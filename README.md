@@ -6,29 +6,72 @@ All synchronous, user-facing traffic is routed through a central **API Gateway**
 
 ---
 
-## Architecture at a Glance
+## Architecture at a Glan```mermaid
+graph TD
+    Client["Client App"] --> GW["API Gateway (:8080)<br/>Student 2"]
+    GW -->|"Token Bucket"| Redis[("Redis<br/>(Rate Limiting)")]
+
+    GW --> S1["IoT Telemetry & Control (:8082)<br/>Student 1"]
+    GW --> S2["User Mgmt & Diagnosis (:8081)<br/>Student 2"]
+    GW --> S3["Treatment & Suggestion (:8083)<br/>Student 3"]
+    GW --> S4["E-Commerce Marketplace (:8084)<br/>Student 4"]
+    GW --> S5["Community Forum (:8085)<br/>Student 5"]
+
+    S1 -.-> DB1[("Firebase Realtime DB<br/>(hourly readings & suggestions)")]
+    S2 -.-> DB2_PG[("PostgreSQL<br/>(users)")]
+    S2 -.-> DB2_MG[("MongoDB<br/>(diagnoses)")]
+    S3 -.-> DB3[("PostgreSQL<br/>(treatments)")]
+    S4 -.-> DB4[("PostgreSQL<br/>(products & orders)")]
+    S5 -.-> DB5[("MongoDB<br/>(posts & replies)")]
+
+    S1 -->|"greenhouse-alerts"| Kafka
+    S2 -->|"diagnosis-events"| Kafka
+    S3 -->|"treatment-events"| Kafka
+    S4 -->|"order-events & stock-events"| Kafka
+    S5 -->|"forum-events"| Kafka
+
+    Kafka["Apache Kafka (KRaft mode)<br/>Event Backbone"] --> S6["Sales Analytics & Notifications (:8086)<br/>Student 6"]
+    S6 -.-> DB6[("PostgreSQL<br/>(sales summary & notify log)")]
+```
 
 ```text
-                            ┌─────────────────────┐
-                            │    Client App        │
-                            └─────────┬───────────┘
-                                      │
-                            ┌─────────▼───────────┐
-                            │   API Gateway :8080  │
-                            │ JWT · CORS · Redis   │
-                            │   Rate Limiting      │
-                            └──┬──┬──┬──┬──┬──┬───┘
-                               │  │  │  │  │  │
-          ┌────────────────────┘  │  │  │  │  └────────────────────┐
-          │              ┌───────┘  │  │  └───────┐               │
-          ▼              ▼          ▼  ▼          ▼               ▼
-  ┌──────────────┐ ┌───────────┐ ┌─────────┐ ┌─────────┐ ┌──────────────┐
-  │ IoT Service  │ │ User Mgmt │ │Treatment│ │E-Commerce│ │ Forum        │
-  │    :8082     │ │+ Diagnosis│ │  :8083  │ │  :8084  │ │  :8085       │
-  │  Student 1   │ │   :8081   │ │Student 3│ │Student 4│ │  Student 5   │
-  └──────┬───────┘ │ Student 2 │ └────┬────┘ └───┬─────┘ └──────┬───────┘
-         │         └─────┬─────┘      │          │               │
-         │               │            │          │               │
+                                  ┌─────────────────────┐
+                                  │     Client App      │
+                                  └──────────┬──────────┘
+                                             │
+                                  ┌──────────▼──────────┐
+                                  │  API Gateway :8080  │───────► [(Redis Cache)]
+                                  │ JWT · CORS · Rate   │          (Token Bucket)
+                                  └──┬──┬──┬──┬──┬──┬───┘
+                                     │  │  │  │  │  │
+           ┌─────────────────────────┘  │  │  │  │  └─────────────────────────┐
+           │              ┌─────────────┘  │  │  └─────────────┐               │
+           ▼              ▼                ▼  ▼                ▼               ▼
+   ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+   │ IoT Service  │ │ User Mgmt &  │ │  Treatment   │ │  E-Commerce  │ │    Forum     │
+   │    :8082     │ │  Diagnosis   │ │   Service    │ │ Marketplace  │ │   Service    │
+   │  Student 1   │ │ :8081 (Stud2)│ │:8083 (Stud3) │ │:8084 (Stud4) │ │:8085 (Stud5) │
+   └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └──────┬───────┘ └──────┬───────┘
+          │                │                │                │                │
+          ▼                ▼                ▼                ▼                ▼
+   [(Firebase DB)]   [(PostgreSQL)]   [(PostgreSQL)]   [(PostgreSQL)]    [(MongoDB)]
+                     [( MongoDB  )]
+          │                │                │                │                │
+          ▼                ▼                ▼                ▼                ▼
+   ┌──────────────────────────────────────────────────────────────────────────────────┐
+   │                            Apache Kafka (KRaft mode)                             │
+   │  greenhouse-alerts · diagnosis-events · treatment-events · order/stock/forum   │
+   └────────────────────────────────────────┬─────────────────────────────────────────┘
+                                            │
+                                  ┌─────────▼──────────┐
+                                  │   Analytics &      │
+                                  │Notification :8086  │
+                                  │    Student 6       │
+                                  └─────────┬──────────┘
+                                            │
+                                            ▼
+                                      [(PostgreSQL)]
+```     │
          ▼               ▼            ▼          ▼               ▼
   ┌─────────────────────────────────────────────────────────────────────┐
   │                     Apache Kafka (KRaft mode)                       │
