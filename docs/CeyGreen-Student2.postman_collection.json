@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "CeyGreen Student 2 — Gateway, Users & Disease Detection",
+    "description": "All Student 2 endpoints. Set collection variables gateway, service, apiKey, token, userId, diagnosisId after login/upload.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gateway", "value": "http://localhost:8080" },
+    { "key": "service", "value": "http://localhost:8081" },
+    { "key": "apiKey", "value": "ceygreen-dev-api-key" },
+    { "key": "token", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "diagnosisId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Register farmer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nimal Perera\",\n  \"email\": \"nimal@ceygreen.test\",\n  \"password\": \"greenhouse123\",\n  \"role\": \"FARMER\",\n  \"farmLocation\": \"Nuwara Eliya\",\n  \"contactInfo\": \"+94771234567\"\n}"
+            },
+            "url": "{{gateway}}/api/users/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.access_token);",
+                  "pm.collectionVariables.set('userId', body.user_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nimal@ceygreen.test\",\n  \"password\": \"greenhouse123\"\n}"
+            },
+            "url": "{{gateway}}/api/users/login"
+          }
+        },
+        {
+          "name": "Get profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{gateway}}/api/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nimal K. Perera\",\n  \"farmLocation\": \"Bandarawela\",\n  \"contactInfo\": \"+94770000000\"\n}"
+            },
+            "url": "{{gateway}}/api/users/{{userId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disease Detection",
+      "item": [
+        {
+          "name": "Upload diagnosis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('diagnosisId', pm.response.json().diagnosisId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "" },
+                { "key": "farmerId", "type": "text", "value": "{{userId}}" },
+                { "key": "cropType", "type": "text", "value": "tomato" }
+              ]
+            },
+            "url": "{{gateway}}/api/diagnosis/upload"
+          }
+        },
+        {
+          "name": "Get diagnosis",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{gateway}}/api/diagnosis/{{diagnosisId}}"
+          }
+        },
+        {
+          "name": "Diagnosis history",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{gateway}}/api/diagnosis/history/{{userId}}"
+          }
+        },
+        {
+          "name": "Delete diagnosis",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{gateway}}/api/diagnosis/{{diagnosisId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative cases",
+      "item": [
+        {
+          "name": "401 without token",
+          "request": {
+            "method": "GET",
+            "url": "{{gateway}}/api/users/{{userId}}"
+          }
+        },
+        {
+          "name": "401 direct service without API key",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{service}}/users/{{userId}}"
+          }
+        },
+        {
+          "name": "Direct service with API key",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "url": "{{service}}/users/{{userId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
