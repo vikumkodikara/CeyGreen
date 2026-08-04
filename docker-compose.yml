@@ -1,0 +1,303 @@
+# CeyGreen root compose — Full stack orchestration.
+# Student 2 services are live; teammate service blocks are commented out
+# and ready to uncomment once their code is added.
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose up --build
+
+name: ceygreen
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════
+  #  SHARED INFRASTRUCTURE
+  # ═══════════════════════════════════════════════════════════════════════
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ceygreen_users
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ceygreen -d ceygreen_users"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Kafka in KRaft mode — no ZooKeeper container.
+  kafka:
+    image: apache/kafka:3.9.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: ceygreenKRaftCluster01
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 2 — User Management + Disease Detection (port 8081)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  user-diagnosis-service:
+    build: ./user-diagnosis-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_users
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+      MONGODB_URI: mongodb://mongo:27017/ceygreen_diagnoses
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+      DIAGNOSIS_IMAGE_DIR: /app/data/diagnosis-images
+      DISEASE_CLASSIFIER_IMPL: mock
+    volumes:
+      - diagnosis_images:/app/data/diagnosis-images
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 2 — API Gateway (port 8080)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      USER_DIAGNOSIS_SERVICE_URL: http://user-diagnosis-service:8081
+      # Placeholder teammate URLs — gateway starts without these services existing.
+      IOT_SERVICE_URL: ${IOT_SERVICE_URL:-http://iot-service:8082}
+      TREATMENT_SERVICE_URL: ${TREATMENT_SERVICE_URL:-http://treatment-service:8083}
+      ECOMMERCE_SERVICE_URL: ${ECOMMERCE_SERVICE_URL:-http://ecommerce-service:8084}
+      FORUM_SERVICE_URL: ${FORUM_SERVICE_URL:-http://forum-service:8085}
+      ANALYTICS_SERVICE_URL: ${ANALYTICS_SERVICE_URL:-http://analytics-service:8086}
+      DOWNSTREAM_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      RATE_LIMIT_REQUESTS_PER_MIN: ${RATE_LIMIT_REQUESTS_PER_MIN:-60}
+    depends_on:
+      redis:
+        condition: service_healthy
+      user-diagnosis-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 1 — IoT Telemetry & Control Service (port 8082)
+  #  Uncomment once Student 1's code is added to iot-service/
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # iot-service:
+  #   build: ./iot-service
+  #   ports:
+  #     - "8082:8082"
+  #   environment:
+  #     SERVER_PORT: 8082
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+  #     FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-your-project-id}
+  #     FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL:-https://your-project.firebaseio.com}
+  #     GOOGLE_APPLICATION_CREDENTIALS: /app/config/firebase-service-account.json
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 12
+  #     start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 3 — Treatment & Suggestion Service (port 8083)
+  #  Uncomment once Student 3's code is added to treatment-service/
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # treatment-service:
+  #   build: ./treatment-service
+  #   ports:
+  #     - "8083:8083"
+  #   environment:
+  #     SERVER_PORT: 8083
+  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_treatments
+  #     POSTGRES_USER: ceygreen
+  #     POSTGRES_PASSWORD: ceygreen
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 12
+  #     start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 4 — E-Commerce Marketplace Service (port 8084)
+  #  Uncomment once Student 4's code is added to ecommerce-service/
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # ecommerce-service:
+  #   build: ./ecommerce-service
+  #   ports:
+  #     - "8084:8084"
+  #   environment:
+  #     SERVER_PORT: 8084
+  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_ecommerce
+  #     POSTGRES_USER: ceygreen
+  #     POSTGRES_PASSWORD: ceygreen
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 12
+  #     start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 5 — Community Forum Service (port 8085)
+  #  Uncomment once Student 5's code is added to forum-service/
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # forum-service:
+  #   build: ./forum-service
+  #   ports:
+  #     - "8085:8085"
+  #   environment:
+  #     SERVER_PORT: 8085
+  #     MONGODB_URI: mongodb://mongo:27017/ceygreen_forum
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 12
+  #     start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 6 — Sales Analytics & Notification Service (port 8086)
+  #  Uncomment once Student 6's code is added to analytics-notification-service/
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # analytics-notification-service:
+  #   build: ./analytics-notification-service
+  #   ports:
+  #     - "8086:8086"
+  #   environment:
+  #     SERVER_PORT: 8086
+  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_analytics
+  #     POSTGRES_USER: ceygreen
+  #     POSTGRES_PASSWORD: ceygreen
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     kafka:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 12
+  #     start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  GRAFANA — Dashboards (port 3001)
+  #  Uncomment once dashboard configs are added to grafana/provisioning/
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - ./grafana/provisioning:/etc/grafana/provisioning
+  #     - grafana_data:/var/lib/grafana
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: admin
+  #     GF_SECURITY_ADMIN_PASSWORD: admin
+
+volumes:
+  postgres_data:
+  mongo_data:
+  diagnosis_images:
+  # grafana_data:
