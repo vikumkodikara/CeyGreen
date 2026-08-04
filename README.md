@@ -1,9 +1,5 @@
 # CeyGreen — Microservices-Based Greenhouse Management System
 
-> **Individual Member Responsibilities & Microservice Design — Revision 3**
->
-> Team of 6 | Event-Driven Architecture with Apache Kafka & Grafana | Firebase Realtime DB for IoT | Deployed on AWS EC2
-
 CeyGreen is an end-to-end, distributed microservices platform that modernizes greenhouse farming by combining IoT sensing, machine-learning-assisted plant diagnostics, and community and marketplace features on a single platform. Each greenhouse is represented as a digital blueprint — a virtual layout of zones with ESP32-based IoT devices placed inside it that measure temperature, humidity, soil moisture, and soil NPK nutrient levels. Readings are captured hour by hour, streamed to Firebase for real-time updates, and turned into plain-language suggestions for the farmer.
 
 All synchronous, user-facing traffic is routed through a central **API Gateway**, while an **Apache Kafka** event backbone connects the services that generate events to the service that consumes them. **Grafana** provides live dashboards over both the environmental and the sales data, and the full system is containerized with **Docker** and deployed to a single **AWS EC2** instance.
@@ -345,4 +341,3 @@ Not required for the current 6-member scope — useful for the report's future-w
 | GET | `/profiles/{farmerId}/certifications` | Retrieve a farmer's certification badges |
 | POST | `/profiles/{farmerId}/certifications` | Add a certification badge (e.g. "Certified Organic") |
 
-> With User Management now formalised under the Gateway (Student 2), this option narrows to certification badges specifically, since basic profile fields are already covered.
