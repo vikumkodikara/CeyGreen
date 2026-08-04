@@ -41,10 +41,11 @@ jobs:
           cache: 'maven'
           cache-dependency-path: api-gateway/pom.xml
 
-      - name: Enable Testcontainers Reuse
+      - name: Enable Testcontainers Reuse & Fix Permissions
         run: |
           mkdir -p ~/.testcontainers
           echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+          chmod +x mvnw
 
       - name: Build with Maven
         run: ./mvnw -B -ntp clean compile
@@ -84,10 +85,11 @@ jobs:
           cache: 'maven'
           cache-dependency-path: user-diagnosis-service/pom.xml
 
-      - name: Enable Testcontainers Reuse
+      - name: Enable Testcontainers Reuse & Fix Permissions
         run: |
           mkdir -p ~/.testcontainers
           echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+          chmod +x mvnw
 
       - name: Build with Maven
         run: ./mvnw -B -ntp clean compile
