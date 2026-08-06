@@ -9,7 +9,6 @@ import java.util.List;
 
 /**
  * Compares sensor readings to zone thresholds and produces suggestions.
- * Temperature rules are implemented first; more sensors are added in later steps.
  */
 @Component
 public class RuleEngine {
@@ -17,6 +16,8 @@ public class RuleEngine {
     public List<RuleResult> evaluate(SensorReading reading, ZoneThresholds thresholds) {
         List<RuleResult> results = new ArrayList<>();
         results.addAll(evaluateTemperature(reading.getTemperature(), thresholds));
+        results.addAll(evaluateSoilMoisture(reading.getSoilMoisture(), thresholds));
+        results.addAll(evaluateHumidity(reading.getHumidity(), thresholds));
         return results;
     }
 
@@ -30,6 +31,30 @@ public class RuleEngine {
         } else if (temperature > thresholds.getMaxTemperature()) {
             results.add(new RuleResult(
                     "Cool the greenhouse",
+                    RuleSeverity.NORMAL));
+        }
+
+        return results;
+    }
+
+    List<RuleResult> evaluateSoilMoisture(double soilMoisture, ZoneThresholds thresholds) {
+        List<RuleResult> results = new ArrayList<>();
+
+        if (soilMoisture < thresholds.getMinSoilMoisture()) {
+            results.add(new RuleResult(
+                    "Start irrigation",
+                    RuleSeverity.NORMAL));
+        }
+
+        return results;
+    }
+
+    List<RuleResult> evaluateHumidity(double humidity, ZoneThresholds thresholds) {
+        List<RuleResult> results = new ArrayList<>();
+
+        if (humidity > thresholds.getMaxHumidity()) {
+            results.add(new RuleResult(
+                    "Open vent",
                     RuleSeverity.NORMAL));
         }
 
