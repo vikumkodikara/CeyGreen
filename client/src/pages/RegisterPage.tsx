@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register } from '../api/auth';
+import { register, login } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -8,10 +8,12 @@ import { Input } from '../components/ui/Input';
 import { Role } from '../types/user';
 
 export const RegisterPage: React.FC = () => {
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('FARMER');
+  const [farmLocation, setFarmLocation] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,11 +26,22 @@ export const RegisterPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await register({ fullName, email, passwordHash: password, role });
-      loginUser(res.accessToken, res.user);
+      // 1. Register user in backend PostgreSQL database
+      await register({
+        name,
+        email,
+        password,
+        role,
+        farmLocation: farmLocation || undefined,
+        contactInfo: contactInfo || undefined,
+      });
+
+      // 2. Automatically log in to issue OAuth 2.0 JWT access token
+      const { token, user } = await login({ email, password });
+      loginUser(token.access_token, user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed.');
+      setError(err.response?.data?.message || 'Registration failed. Check password length (min 8 chars) or email uniqueness.');
     } finally {
       setLoading(false);
     }
@@ -37,13 +50,17 @@ export const RegisterPage: React.FC = () => {
   return (
     <div style={{ maxWidth: '450px', margin: '3rem auto', padding: '0 1rem' }}>
       <Card title="Create Account" subtitle="Join CeyGreen Greenhouse Management">
-        {error && <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+        {error && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <Input
             label="Full Name"
             placeholder="John Doe"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
           />
           <Input
@@ -55,12 +72,13 @@ export const RegisterPage: React.FC = () => {
             required
           />
           <Input
-            label="Password"
+            label="Password (min 8 characters)"
             type="password"
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={8}
           />
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>
@@ -73,9 +91,22 @@ export const RegisterPage: React.FC = () => {
             >
               <option value="FARMER">Farmer (Greenhouse & Diagnostics)</option>
               <option value="BUYER">Buyer (Marketplace)</option>
-              <option value="ADMIN">Administrator</option>
             </select>
           </div>
+          {role === 'FARMER' && (
+            <Input
+              label="Farm Location (Optional)"
+              placeholder="e.g. Nuwara Eliya, Sri Lanka"
+              value={farmLocation}
+              onChange={(e) => setFarmLocation(e.target.value)}
+            />
+          )}
+          <Input
+            label="Contact Info (Optional)"
+            placeholder="e.g. +94 77 123 4567"
+            value={contactInfo}
+            onChange={(e) => setContactInfo(e.target.value)}
+          />
           <Button type="submit" isLoading={loading} style={{ width: '100%', marginTop: '1rem' }}>
             Create Account
           </Button>
