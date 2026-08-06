@@ -1,33 +1,32 @@
-# CeyGreen Client Application
+# React + TypeScript + Vite
 
-**Owner:** Team (shared)
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-## Overview
+Currently, two official plugins are available:
 
-The client application that communicates with all backend microservices exclusively through the **API Gateway** (`http://localhost:8080/api/...`).
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-The client **orchestrates cross-service flows** on behalf of the user. For example, after receiving a diagnosis result from Student 2's service, the client separately calls Student 3's Treatment service — the backend services never call each other.
+## React Compiler
 
-## Key Flows
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-1. **Registration & Login** → `POST /api/users/register`, `POST /api/users/login`
-2. **Disease Diagnosis** → `POST /api/diagnosis/upload` → client receives disease name → `GET /api/treatments/{diseaseName}`
-3. **Greenhouse Monitoring** → `GET /api/iot/suggestions/{greenhouseId}` + Firebase Realtime DB listener for live readings
-4. **Marketplace** → `GET /api/products`, `POST /api/orders/checkout`
-5. **Forum** → `GET /api/forum/posts`, `POST /api/forum/posts/{id}/replies`
-6. **Analytics** → `GET /api/analytics/sales/{farmerId}`
+## Expanding the Oxlint configuration
 
-## Tech Stack
+If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
 
-To be decided by the team. Options:
-- React / Next.js / Vite (JavaScript/TypeScript)
-- Angular
-- Flutter (if mobile)
-
-## Getting Started
-
-```bash
-# Place your client application here
-# All API calls go through the Gateway at http://localhost:8080/api/...
-# Authorization: Bearer <token> on every authenticated request
+```json
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  }
+}
 ```
+
+See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
