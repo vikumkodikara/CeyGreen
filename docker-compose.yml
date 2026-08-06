@@ -145,7 +145,20 @@ services:
       start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
+  #  CLIENT — Web Application (port 3000)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  client:
+    build: ./client
+    ports:
+      - "3000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+  # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 1 — IoT Telemetry & Control Service (port 8082)
+
   #  Uncomment once Student 1's code is added to iot-service/
   # ═══════════════════════════════════════════════════════════════════════
 

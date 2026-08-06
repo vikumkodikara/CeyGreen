@@ -1,9 +1,12 @@
 # Build output
 target/
 build/
+dist/
+node_modules/
 *.jar
 *.war
 !.mvn/wrapper/maven-wrapper.jar
+
 
 # Local Maven distribution downloaded by the bootstrap step
 .tools/
