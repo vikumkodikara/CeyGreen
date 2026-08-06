@@ -16,6 +16,14 @@ management:
         enabled: true
       show-details: never
 
+ceygreen:
+  firebase:
+    # Keep false until you add a real Firebase project + service account JSON.
+    enabled: ${FIREBASE_ENABLED:false}
+    project-id: ${FIREBASE_PROJECT_ID:}
+    database-url: ${FIREBASE_DATABASE_URL:}
+    credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}
+
 logging:
   level:
     com.ceygreen.iot: ${LOG_LEVEL:INFO}
