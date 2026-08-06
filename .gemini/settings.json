@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "ceygreen-postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://ceygreen:ceygreen@localhost:5433/ceygreen_users"
+      ]
+    },
+    "ceygreen-mongodb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-mongo-server",
+        "mongodb://localhost:27020/ceygreen_diagnoses"
+      ]
+    }
+  }
+}
