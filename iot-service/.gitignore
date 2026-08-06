@@ -1,0 +1,11 @@
+# Firebase service account — never commit real credentials
+**/firebase-service-account.json
+**/serviceAccountKey.json
+**/google-services.json
+
+# Local secrets for ESP32 firmware
+firmware/**/secrets.h
+
+# Local env overrides
+.env
+.env.local
