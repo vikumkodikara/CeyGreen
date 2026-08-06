@@ -21,11 +21,11 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await login({ email, passwordHash: password });
-      loginUser(res.accessToken, res.user);
+      const { token, user } = await login({ email, password });
+      loginUser(token.access_token, user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.message || 'Login failed. Please check your email and password.');
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,11 @@ export const LoginPage: React.FC = () => {
   return (
     <div style={{ maxWidth: '420px', margin: '4rem auto', padding: '0 1rem' }}>
       <Card title="Welcome Back" subtitle="Sign in to your CeyGreen account">
-        {error && <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>{error}</div>}
+        {error && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <Input
             label="Email Address"
