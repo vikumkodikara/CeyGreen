@@ -1,0 +1,13 @@
+target/
+.tools/
+data/
+.git/
+.idea/
+.vscode/
+*.log
+firmware/
+**/firebase-service-account.json
+**/serviceAccountKey.json
+**/secrets.h
+.env
+.env.local
