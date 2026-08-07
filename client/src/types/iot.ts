@@ -14,11 +14,12 @@ export interface Greenhouse {
 }
 
 export interface Suggestion {
+  zone?: string;
   zoneId: string;
   message: string;
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  severity: string;
   resolved: boolean;
-  timestamp: string;
+  createdAt?: string;
 }
 
 export interface ReadingRequest {
