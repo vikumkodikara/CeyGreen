@@ -17,6 +17,8 @@ management:
       show-details: never
 
 ceygreen:
+  security:
+    api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
   firebase:
     # Keep false until you add a real Firebase project + service account JSON.
     enabled: ${FIREBASE_ENABLED:false}
