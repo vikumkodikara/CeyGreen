@@ -4,6 +4,13 @@ server:
 spring:
   application:
     name: iot-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
 management:
   endpoints:
@@ -19,6 +26,10 @@ management:
 ceygreen:
   security:
     api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
+  kafka:
+    alert-topic: ${KAFKA_ALERT_TOPIC:greenhouse-alerts}
+    topic-partitions: ${KAFKA_TOPIC_PARTITIONS:1}
+    topic-replicas: ${KAFKA_TOPIC_REPLICAS:1}
   firebase:
     # Keep false until you add a real Firebase project + service account JSON.
     enabled: ${FIREBASE_ENABLED:false}
