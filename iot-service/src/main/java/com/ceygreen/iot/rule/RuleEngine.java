@@ -18,6 +18,7 @@ public class RuleEngine {
         results.addAll(evaluateTemperature(reading.getTemperature(), thresholds));
         results.addAll(evaluateSoilMoisture(reading.getSoilMoisture(), thresholds));
         results.addAll(evaluateHumidity(reading.getHumidity(), thresholds));
+        results.addAll(evaluateNpk(reading.getN(), reading.getP(), reading.getK(), thresholds));
         return results;
     }
 
@@ -55,6 +56,28 @@ public class RuleEngine {
         if (humidity > thresholds.getMaxHumidity()) {
             results.add(new RuleResult(
                     "Open vent",
+                    RuleSeverity.NORMAL));
+        }
+
+        return results;
+    }
+
+    List<RuleResult> evaluateNpk(double n, double p, double k, ZoneThresholds thresholds) {
+        List<RuleResult> results = new ArrayList<>();
+
+        if (n < thresholds.getMinNitrogen()) {
+            results.add(new RuleResult(
+                    "Apply Nitrogen fertilizer",
+                    RuleSeverity.NORMAL));
+        }
+        if (p < thresholds.getMinPhosphorus()) {
+            results.add(new RuleResult(
+                    "Apply Phosphorus fertilizer",
+                    RuleSeverity.NORMAL));
+        }
+        if (k < thresholds.getMinPotassium()) {
+            results.add(new RuleResult(
+                    "Apply Potassium fertilizer",
                     RuleSeverity.NORMAL));
         }
 
