@@ -6,17 +6,20 @@ import com.ceygreen.iot.model.Suggestion;
 import com.ceygreen.iot.model.Zone;
 import com.ceygreen.iot.model.ZoneThresholds;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Firebase Realtime Database storage when {@code ceygreen.firebase.enabled=true}.
@@ -41,13 +44,13 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
     @Override
     public Greenhouse saveGreenhouse(Greenhouse greenhouse) {
         DatabaseReference ref = greenhouseRef(greenhouse.getId());
-        await(ref.setValueAsync(greenhouse));
+        awaitSet(ref, greenhouse);
         return greenhouse;
     }
 
     @Override
     public Optional<Greenhouse> findGreenhouse(String greenhouseId) {
-        DataSnapshot snapshot = await(greenhouseRef(greenhouseId).get());
+        DataSnapshot snapshot = awaitGet(greenhouseRef(greenhouseId));
         if (!snapshot.exists()) {
             return Optional.empty();
         }
@@ -62,26 +65,26 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
         DatabaseReference ref = zoneRef(reading.getGreenhouseId(), reading.getZoneId())
                 .child("readings")
                 .child(key);
-        await(ref.setValueAsync(reading));
+        awaitSet(ref, reading);
         return reading;
     }
 
     @Override
     public List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> suggestions) {
         DatabaseReference suggestionsRef = zoneRef(greenhouseId, zoneId).child("suggestions");
-        await(suggestionsRef.removeValueAsync());
+        awaitRemove(suggestionsRef);
         for (Suggestion suggestion : suggestions) {
             String key = suggestion.getId() != null
                     ? suggestion.getId().replace(".", "_").replace(":", "-")
                     : String.valueOf(System.currentTimeMillis());
-            await(suggestionsRef.child(key).setValueAsync(suggestion));
+            awaitSet(suggestionsRef.child(key), suggestion);
         }
         return List.copyOf(suggestions);
     }
 
     @Override
     public List<Suggestion> findSuggestions(String greenhouseId) {
-        DataSnapshot greenhouseSnap = await(greenhouseRef(greenhouseId).child("zones").get());
+        DataSnapshot greenhouseSnap = awaitGet(greenhouseRef(greenhouseId).child("zones"));
         List<Suggestion> result = new ArrayList<>();
         if (!greenhouseSnap.exists()) {
             return result;
@@ -107,13 +110,13 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
             throw new IllegalArgumentException("Zone not found: " + zoneId);
         }
         zone.setThresholds(thresholds);
-        await(zoneRef(greenhouseId, zoneId).child("thresholds").setValueAsync(thresholds));
+        awaitSet(zoneRef(greenhouseId, zoneId).child("thresholds"), thresholds);
         return thresholds;
     }
 
     @Override
     public Optional<ZoneThresholds> findThresholds(String greenhouseId, String zoneId) {
-        DataSnapshot snapshot = await(zoneRef(greenhouseId, zoneId).child("thresholds").get());
+        DataSnapshot snapshot = awaitGet(zoneRef(greenhouseId, zoneId).child("thresholds"));
         if (!snapshot.exists()) {
             return Optional.empty();
         }
@@ -128,13 +131,71 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
         return greenhouseRef(greenhouseId).child("zones").child(zoneId);
     }
 
-    private static <T> T await(com.google.api.core.ApiFuture<T> future) {
+    private static void awaitSet(DatabaseReference ref, Object value) {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<DatabaseError> error = new AtomicReference<>();
+        ref.setValue(value, (databaseError, databaseReference) -> {
+            if (databaseError != null) {
+                error.set(databaseError);
+            }
+            latch.countDown();
+        });
+        awaitLatch(latch);
+        if (error.get() != null) {
+            throw new IllegalStateException("Firebase write failed: " + error.get().getMessage());
+        }
+    }
+
+    private static void awaitRemove(DatabaseReference ref) {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<DatabaseError> error = new AtomicReference<>();
+        ref.removeValue((databaseError, databaseReference) -> {
+            if (databaseError != null) {
+                error.set(databaseError);
+            }
+            latch.countDown();
+        });
+        awaitLatch(latch);
+        if (error.get() != null) {
+            throw new IllegalStateException("Firebase remove failed: " + error.get().getMessage());
+        }
+    }
+
+    private static DataSnapshot awaitGet(DatabaseReference ref) {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<DataSnapshot> snapshot = new AtomicReference<>();
+        AtomicReference<DatabaseError> error = new AtomicReference<>();
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                snapshot.set(dataSnapshot);
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                error.set(databaseError);
+                latch.countDown();
+            }
+        });
+
+        awaitLatch(latch);
+        if (error.get() != null) {
+            throw new IllegalStateException("Firebase read failed: " + error.get().getMessage());
+        }
+        return snapshot.get();
+    }
+
+    private static void awaitLatch(CountDownLatch latch) {
         try {
-            return future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                throw new TimeoutException("Timed out waiting for Firebase");
+            }
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted waiting for Firebase", ex);
-        } catch (ExecutionException | TimeoutException ex) {
+        } catch (TimeoutException ex) {
             throw new IllegalStateException("Firebase operation failed", ex);
         }
     }
