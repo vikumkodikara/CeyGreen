@@ -2,6 +2,8 @@ package com.ceygreen.iot.service;
 
 import com.ceygreen.iot.dto.SensorReadingRequest;
 import com.ceygreen.iot.dto.SensorReadingResponse;
+import com.ceygreen.iot.kafka.GreenhouseAlertEvent;
+import com.ceygreen.iot.kafka.GreenhouseAlertPublisher;
 import com.ceygreen.iot.model.Greenhouse;
 import com.ceygreen.iot.model.SensorReading;
 import com.ceygreen.iot.model.Suggestion;
@@ -17,17 +19,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ingests ESP32 sensor readings, evaluates zone rules, and stores suggestions.
+ * Ingests ESP32 sensor readings, evaluates zone rules, stores suggestions,
+ * and publishes urgent alerts to Kafka for Student 6.
  */
 @Service
 public class ReadingService {
 
     private final TelemetryRepository telemetryRepository;
     private final RuleEngine ruleEngine;
+    private final GreenhouseAlertPublisher alertPublisher;
 
-    public ReadingService(TelemetryRepository telemetryRepository, RuleEngine ruleEngine) {
+    public ReadingService(
+            TelemetryRepository telemetryRepository,
+            RuleEngine ruleEngine,
+            GreenhouseAlertPublisher alertPublisher) {
         this.telemetryRepository = telemetryRepository;
         this.ruleEngine = ruleEngine;
+        this.alertPublisher = alertPublisher;
     }
 
     public SensorReadingResponse ingest(SensorReadingRequest request) {
@@ -66,6 +74,16 @@ public class ReadingService {
                     zone.getZoneName(),
                     result.getMessage(),
                     result.getSeverity().name()));
+
+            if (result.isUrgent()) {
+                alertPublisher.publish(new GreenhouseAlertEvent(
+                        result.getSeverity().name(),
+                        result.getMessage(),
+                        saved.getGreenhouseId(),
+                        saved.getZoneId(),
+                        saved.getTemperature(),
+                        saved.getTimestamp()));
+            }
         }
         telemetryRepository.saveSuggestions(saved.getGreenhouseId(), saved.getZoneId(), suggestions);
 
