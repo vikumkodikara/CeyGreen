@@ -7,43 +7,55 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
+import java.util.Arrays;
+
 /**
- * Defense-in-depth API key check. Every endpoint except health and docs requires
- * the {@code X-API-Key} header, so a call bypassing the gateway is rejected.
+ * Requires {@code X-API-Key} on every IoT endpoint except health and docs.
  */
 @Component
-public class ApiKeyFilter extends OncePerRequestFilter {
+public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     private final ServiceSecurityProperties properties;
     private final ObjectMapper objectMapper;
+    private final RequestMatcher exempt;
 
-    public ApiKeyFilter(ServiceSecurityProperties properties, ObjectMapper objectMapper) {
+    public ApiKeyAuthFilter(ServiceSecurityProperties properties, ObjectMapper objectMapper) {
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.exempt = new OrRequestMatcher(Arrays.stream(SecurityConfig.PUBLIC_PATHS)
+                .map(AntPathRequestMatcher::new)
+                .toArray(RequestMatcher[]::new));
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return path.startsWith("/actuator/") || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-ui");
+        return exempt.matches(request);
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
         String provided = request.getHeader(GatewayHeaders.API_KEY);
         if (provided == null || !provided.equals(properties.getApiKey())) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            objectMapper.writeValue(response.getOutputStream(),
-                    ApiError.of(401, "Unauthorized", "A valid X-API-Key header is required",
+            objectMapper.writeValue(
+                    response.getOutputStream(),
+                    ApiError.of(
+                            HttpStatus.UNAUTHORIZED.value(),
+                            HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                            "A valid X-API-Key header is required",
                             request.getRequestURI()));
             return;
         }
