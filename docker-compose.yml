@@ -159,30 +159,29 @@ services:
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 1 — IoT Telemetry & Control Service (port 8082)
-
-  #  Uncomment once Student 1's code is added to iot-service/
   # ═══════════════════════════════════════════════════════════════════════
 
-  # iot-service:
-  #   build: ./iot-service
-  #   ports:
-  #     - "8082:8082"
-  #   environment:
-  #     SERVER_PORT: 8082
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #     FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-your-project-id}
-  #     FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL:-https://your-project.firebaseio.com}
-  #     GOOGLE_APPLICATION_CREDENTIALS: /app/config/firebase-service-account.json
-  #   depends_on:
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  iot-service:
+    build: ./iot-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+      FIREBASE_ENABLED: ${FIREBASE_ENABLED:-false}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+    depends_on:
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 3 — Treatment & Suggestion Service (port 8083)

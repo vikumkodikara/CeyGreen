@@ -1,6 +1,5 @@
-package com.ceygreen.iot.config;
+package com.ceygreen.iot.security;
 
-import com.ceygreen.iot.security.ApiKeyFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,8 +9,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Security configuration for the IoT service. All endpoints require the API key;
- * bearer token validation is handled by the gateway.
+ * IoT service security: API key only (no JWT).
+ * ESP32 and Postman send {@code X-API-Key: ceygreen-dev-api-key}.
  */
 @Configuration
 @EnableWebSecurity
@@ -28,16 +27,20 @@ public class SecurityConfig {
     };
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   ApiKeyFilter apiKeyFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ApiKeyAuthFilter apiKeyAuthFilter) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(PUBLIC_PATHS).permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
+                        .anyRequest().permitAll())
+                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
                 .build();
     }
 }
