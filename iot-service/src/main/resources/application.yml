@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: iot-service
-
-  # ---- Kafka: producer only. Publishes greenhouse-alerts when readings cross thresholds. ----
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
@@ -13,24 +11,6 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
-
-ceygreen:
-  security:
-    api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
-  kafka:
-    greenhouse-alerts-topic: ${KAFKA_GREENHOUSE_ALERTS_TOPIC:greenhouse-alerts}
-    topic-partitions: ${KAFKA_TOPIC_PARTITIONS:1}
-    topic-replicas: ${KAFKA_TOPIC_REPLICAS:1}
-  firebase:
-    project-id: ${FIREBASE_PROJECT_ID:your-project-id}
-    database-url: ${FIREBASE_DATABASE_URL:https://your-project.firebaseio.com}
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    operations-sorter: method
-  api-docs:
-    path: /v3/api-docs
 
 management:
   endpoints:
@@ -42,6 +22,20 @@ management:
       probes:
         enabled: true
       show-details: never
+
+ceygreen:
+  security:
+    api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
+  kafka:
+    alert-topic: ${KAFKA_ALERT_TOPIC:greenhouse-alerts}
+    topic-partitions: ${KAFKA_TOPIC_PARTITIONS:1}
+    topic-replicas: ${KAFKA_TOPIC_REPLICAS:1}
+  firebase:
+    # Keep false until you add a real Firebase project + service account JSON.
+    enabled: ${FIREBASE_ENABLED:false}
+    project-id: ${FIREBASE_PROJECT_ID:}
+    database-url: ${FIREBASE_DATABASE_URL:}
+    credentials-path: ${GOOGLE_APPLICATION_CREDENTIALS:}
 
 logging:
   level:

@@ -7,9 +7,12 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 /**
  * CeyGreen Student 1 microservice: IoT Telemetry and Control.
  *
- * <p>Manages greenhouse blueprints, ingests hourly ESP32 sensor readings into Firebase
- * Realtime Database, evaluates them against configurable zone thresholds, and publishes
- * urgent alerts to the {@code greenhouse-alerts} Kafka topic.
+ * <p>Ingests ESP32 sensor readings, stores them in Firebase Realtime Database,
+ * evaluates zone thresholds (rule engine), and publishes severe alerts to the
+ * {@code greenhouse-alerts} Kafka topic for Student 6.
+ *
+ * <p>This service never calls other microservices over REST. Outbound integration
+ * is Kafka publish only (fire-and-forget).
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan

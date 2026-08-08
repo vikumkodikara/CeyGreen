@@ -13,6 +13,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 RUN useradd --system --create-home --shell /usr/sbin/nologin ceygreen \
+    && mkdir -p /app/config \
     && chown -R ceygreen:ceygreen /app
 COPY --from=build /build/target/iot-service-*.jar app.jar
 USER ceygreen

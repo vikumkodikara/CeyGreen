@@ -1,15 +1,15 @@
 package com.ceygreen.iot.security;
 
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
 
-@Validated
 @ConfigurationProperties(prefix = "ceygreen.security")
 public class ServiceSecurityProperties {
 
-    @NotBlank
-    private String apiKey;
+    /**
+     * Shared secret required in the {@code X-API-Key} header.
+     * Must match the gateway's {@code DOWNSTREAM_API_KEY} / {@code SERVICE_API_KEY}.
+     */
+    private String apiKey = "ceygreen-dev-api-key";
 
     public String getApiKey() {
         return apiKey;
