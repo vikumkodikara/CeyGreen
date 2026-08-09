@@ -1,11 +1,9 @@
 CREATE TABLE diseases (
     id               BIGSERIAL PRIMARY KEY,
     name             VARCHAR(150) NOT NULL UNIQUE,
-    normalized_name  VARCHAR(150) NOT NULL,
+    normalized_name  VARCHAR(150) NOT NULL UNIQUE,
     description      TEXT
 );
-
-CREATE INDEX idx_diseases_normalized_name ON diseases(normalized_name);
 
 CREATE TABLE treatments (
     id            BIGSERIAL PRIMARY KEY,
