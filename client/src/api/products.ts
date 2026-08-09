@@ -8,3 +8,8 @@ export const listProducts = async (cropName?: string, location?: string): Promis
   const res = await apiClient.get<Product[]>('/products', { params });
   return res.data;
 };
+
+export const getProduct = async (id: number): Promise<Product> => {
+  const res = await apiClient.get<Product>(/products/ + id);
+  return res.data;
+};
