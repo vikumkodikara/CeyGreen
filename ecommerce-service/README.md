@@ -69,7 +69,7 @@ Flyway migration `V1__init_products_and_orders.sql` owns the schema. Hibernate `
 |---|---|---|
 | `POSTGRES_URL` | `jdbc:postgresql://localhost:5433/ceygreen_ecommerce` | Database |
 | `SERVICE_API_KEY` | `ceygreen-dev-api-key` | API key |
-| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Kafka broker |
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9094` | Kafka broker (host); Docker services use `kafka:9092` |
 | `MARKETPLACE_LOW_STOCK_THRESHOLD` | `10` | Low-stock threshold |
 | `MARKETPLACE_RESTOCK_MIN_INCREASE` | `5` | Minimum increase for `RESTOCKED` |
 
