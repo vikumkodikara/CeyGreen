@@ -50,4 +50,19 @@ Either way, this service only receives a disease name from the **client** — it
 # Place your Spring Boot project here
 # Port: 8083
 # Tech: Spring Boot 3.5.x, Java 17, PostgreSQL
+
+# Treatment & Suggestion Service
+
+This microservice provides treatment recommendations based on the diagnosed plant diseases. 
+
+## Run standalone
+```bash
+docker compose up treatment-service postgres
+```
+
+## Endpoints Examples
+```bash
+# Get treatments by disease (Normalized format testing)
+curl -H "X-API-KEY: ceygreen-dev-api-key" http://localhost:8083/treatments/Tomato%20Early%20Blight
+curl -H "X-API-KEY: ceygreen-dev-api-key" http://localhost:8083/treatments/Tomato___Early_blight
 ```

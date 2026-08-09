@@ -7,7 +7,7 @@ spring:
 
   # ---- PostgreSQL: the users table, owned exclusively by this service ----
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5433/ceygreen_users}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/ceygreen_users}
     username: ${POSTGRES_USER:ceygreen}
     password: ${POSTGRES_PASSWORD:ceygreen}
   jpa:
