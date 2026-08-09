@@ -1,55 +1,114 @@
-# E-Commerce Marketplace Service — Student 4
+# E-Commerce Marketplace Service
 
 **Port:** `8084`  
-**Database:** PostgreSQL  
-**Owner:** Student 4
+**Database:** PostgreSQL (`ceygreen_ecommerce`)
 
 ## Overview
 
-Turns CeyGreen from a monitoring tool into a marketplace where farmers earn from their harvest. Farmers list produce, manage stock, and buyers purchase directly through the client. This is the most conventional CRUD service of the six — a good anchor for demonstrating solid REST practices.
+Farmers list harvested produce; buyers browse and purchase through the client. Successful checkouts and meaningful stock changes are published to Kafka for the analytics and notification service.
 
-Every new order and every stock change is published as a Kafka event so Student 6's service can turn it into both a notification and a data point for sales analytics.
+This service is **producer-only** for Kafka — it never calls other microservices over REST.
+
+## Architecture
+
+```text
+Client / API Gateway
+        |  X-API-Key + identity headers
+        v
+E-Commerce Service (:8084)
+        |-- PostgreSQL (products, orders)
+        |-- Kafka producer -> order-events, stock-events
+```
 
 ## Endpoints
 
-| Method | Path | CRUD | Description |
-|---|---|---|---|
-| GET | `/products` | Read | List all active harvest listings; filterable by crop type and location |
-| GET | `/products/{id}` | Read | Get full detail for a single listing |
-| POST | `/products` | Create | Create a new listing (farmer only) |
-| PUT | `/products/{id}` | Update | Update price, quantity, or availability (including marking inactive) |
-| POST | `/orders/checkout` | Create | Buyer purchases a listed quantity; decrements stock, creates order, publishes events |
-
-> Explicit `DELETE /products/{id}` was retired in favour of PUT with an availability flag, keeping listing history intact for analytics.
-
-## Database Schema (PostgreSQL)
-
-| Table | Key Columns | Purpose |
+| Method | Path | Auth |
 |---|---|---|
-| `products` | `id, farmer_id, crop_name, quantity, unit_price, harvest_date, location, active` | Active and past harvest listings |
-| `orders` | `id, buyer_id, product_id, quantity, total_price, status, ordered_at` | Transactional record of each purchase |
+| GET | `/products` | API key; optional `?cropName=` `?location=` |
+| GET | `/products/{id}` | API key |
+| POST | `/products` | API key + `FARMER` + `X-Farmer-Id` |
+| PUT | `/products/{id}` | API key + owning `FARMER` (or `ADMIN`) |
+| POST | `/orders/checkout` | API key + `BUYER` + `X-Buyer-Id` |
 
-## Kafka Integration
+> No `DELETE /products/{id}` — use `PUT` with `"active": false` to preserve listing history.
 
-| Topic | Role | Published When |
-|---|---|---|
-| `order-events` | **Producer** | A buyer completes checkout |
-| `stock-events` | **Producer** | Stock runs low or is refilled |
+Gateway paths are prefixed with `/api` (for example `/api/products`).
+
+## Database
+
+Flyway migration `V1__init_products_and_orders.sql` owns the schema. Hibernate `ddl-auto=validate`.
+
+| Table | Purpose |
+|---|---|
+| `products` | Harvest listings (`active` flag keeps history) |
+| `orders` | One row per successful checkout |
+
+## Kafka (producer)
+
+| Topic | When |
+|---|---|
+| `order-events` | Checkout completes (`ORDER_CREATED`) |
+| `stock-events` | Stock crosses low threshold (`LOW_STOCK`) or farmer restocks (`RESTOCKED`) |
+
+### Order event fields
+
+`eventId`, `orderId`, `buyerId`, `farmerId`, `productId`, `cropName`, `quantity`, `unitPrice`, `totalPrice`, `status`, `orderedAt`, `eventType`
+
+### Stock event fields
+
+`eventId`, `productId`, `farmerId`, `cropName`, `previousQuantity`, `currentQuantity`, `threshold`, `eventType`, `occurredAt`
 
 ## Security
 
-- API Key verification on every endpoint
-- Write access to a listing restricted to its owning farmer
+- Every business endpoint requires `X-API-Key` (gateway injects this for authenticated traffic).
+- Farmer/buyer identity comes from gateway headers derived from JWT claims — never trust `farmerId`/`buyerId` in request bodies.
 
-## Ideas Worth Adding
+## Configuration
 
-- Auto-decrement stock on checkout and flag low stock via `stock-events`
-- A star-rating field on completed orders for buyer feedback
+| Variable | Default | Purpose |
+|---|---|---|
+| `POSTGRES_URL` | `jdbc:postgresql://localhost:5433/ceygreen_ecommerce` | Database |
+| `SERVICE_API_KEY` | `ceygreen-dev-api-key` | API key |
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Kafka broker |
+| `MARKETPLACE_LOW_STOCK_THRESHOLD` | `10` | Low-stock threshold |
+| `MARKETPLACE_RESTOCK_MIN_INCREASE` | `5` | Minimum increase for `RESTOCKED` |
 
-## Getting Started
+## Local run (Maven)
 
 ```bash
-# Place your Spring Boot project here
-# Port: 8084
-# Tech: Spring Boot 3.5.x, Java 17, PostgreSQL
+cd ecommerce-service
+docker compose -f ../docker-compose.yml up -d postgres kafka
+.\mvnw.cmd spring-boot:run
 ```
+
+```bash
+curl http://localhost:8084/actuator/health
+curl -H "X-API-Key: ceygreen-dev-api-key" http://localhost:8084/products
+```
+
+If Postgres was created before `ceygreen_ecommerce` existed:
+
+```bash
+docker compose down -v
+docker compose up -d postgres kafka
+```
+
+## Docker
+
+From repository root:
+
+```bash
+docker compose up --build ecommerce-service
+```
+
+Service URL: `http://localhost:8084`
+
+## Tests
+
+```bash
+.\mvnw.cmd test
+```
+
+Includes unit tests, API tests, Kafka producer tests, and a concurrent checkout test that verifies stock cannot be oversold.
+
+Sample HTTP requests: [`docs/ecommerce-api.http`](../docs/ecommerce-api.http)

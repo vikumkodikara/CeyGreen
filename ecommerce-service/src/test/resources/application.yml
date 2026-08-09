@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:ceygreen_ecommerce;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+ceygreen:
+  security:
+    api-key: ceygreen-dev-api-key
+  marketplace:
+    stock:
+      low-threshold: 10
+      restock-min-increase: 5
+  kafka:
+    order-events-topic: order-events
+    stock-events-topic: stock-events
+    topic-partitions: 1
+    topic-replicas: 1

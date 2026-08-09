@@ -4,14 +4,18 @@ server:
 spring:
   application:
     name: ecommerce-service
+  # Default port 5433 matches docker-compose host mapping (5433:5432).
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/ceygreen_ecommerce}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5433/ceygreen_ecommerce}
     username: ${POSTGRES_USER:ceygreen}
     password: ${POSTGRES_PASSWORD:ceygreen}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:validate}
     properties:
       hibernate.jdbc.time_zone: UTC
   kafka:
@@ -25,6 +29,10 @@ spring:
 ceygreen:
   security:
     api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
+  marketplace:
+    stock:
+      low-threshold: ${MARKETPLACE_LOW_STOCK_THRESHOLD:10}
+      restock-min-increase: ${MARKETPLACE_RESTOCK_MIN_INCREASE:5}
   kafka:
     order-events-topic: ${KAFKA_ORDER_EVENTS_TOPIC:order-events}
     stock-events-topic: ${KAFKA_STOCK_EVENTS_TOPIC:stock-events}
