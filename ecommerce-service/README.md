@@ -48,8 +48,48 @@ Every new order and every stock change is published as a Kafka event so Student 
 
 ## Getting Started
 
+### Prerequisites
+
+- Java 17+
+- Docker Desktop (for PostgreSQL on port **5433** and Kafka on **9092**)
+
+### Local run
+
 ```bash
-# Place your Spring Boot project here
-# Port: 8084
-# Tech: Spring Boot 3.5.x, Java 17, PostgreSQL
+cd ecommerce-service
+.\mvnw.cmd spring-boot:run    # Windows
+./mvnw spring-boot:run        # macOS / Linux
 ```
+
+Health (no API key required):
+
+```bash
+curl http://localhost:8084/actuator/health
+```
+
+Business endpoints require `X-API-Key: ceygreen-dev-api-key` (or `SERVICE_API_KEY` from `.env`).
+
+### Database
+
+This service uses PostgreSQL database `ceygreen_ecommerce`. Docker Compose creates it via
+[`docker/postgres/init-databases.sql`](../docker/postgres/init-databases.sql) on first Postgres startup.
+
+If you already had a Postgres volume before that script existed, recreate it once:
+
+```bash
+docker compose down -v
+docker compose up -d postgres kafka
+```
+
+Flyway is enabled; schema migrations will be added in Phase 2. Until then, Hibernate `ddl-auto=update`
+manages the scaffold tables.
+
+### Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `POSTGRES_URL` | `jdbc:postgresql://localhost:5433/ceygreen_ecommerce` | Database connection |
+| `SERVICE_API_KEY` | `ceygreen-dev-api-key` | API key for all endpoints |
+| `MARKETPLACE_LOW_STOCK_THRESHOLD` | `10` | Low-stock alert threshold (used in Phase 6) |
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` | Kafka broker |
+
