@@ -15,8 +15,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      # Switch to validate once V1__init_products_and_orders.sql lands in Phase 2.
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:validate}
     properties:
       hibernate.jdbc.time_zone: UTC
   kafka:
@@ -33,6 +32,7 @@ ceygreen:
   marketplace:
     stock:
       low-threshold: ${MARKETPLACE_LOW_STOCK_THRESHOLD:10}
+      restock-min-increase: ${MARKETPLACE_RESTOCK_MIN_INCREASE:5}
   kafka:
     order-events-topic: ${KAFKA_ORDER_EVENTS_TOPIC:order-events}
     stock-events-topic: ${KAFKA_STOCK_EVENTS_TOPIC:stock-events}
