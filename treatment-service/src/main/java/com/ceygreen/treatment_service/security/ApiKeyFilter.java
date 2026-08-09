@@ -38,7 +38,17 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\": \"Missing or invalid API key\"}");
             return;
         }
-        chain.doFilter(request, response);
+
+        var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "service-api-key",
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN")));
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
     }
 
 }
