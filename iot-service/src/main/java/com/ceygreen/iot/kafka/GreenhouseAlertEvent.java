@@ -1,7 +1,5 @@
 package com.ceygreen.iot.kafka;
 
-import java.time.Instant;
-
 /**
  * Payload published to {@code greenhouse-alerts} for Student 6.
  */
@@ -13,7 +11,7 @@ public class GreenhouseAlertEvent {
     private String greenhouseId;
     private String zoneId;
     private Double temperature;
-    private Instant timestamp;
+    private String timestamp;
 
     public GreenhouseAlertEvent() {
     }
@@ -24,7 +22,7 @@ public class GreenhouseAlertEvent {
             String greenhouseId,
             String zoneId,
             Double temperature,
-            Instant timestamp) {
+            String timestamp) {
         this.severity = severity;
         this.message = message;
         this.greenhouseId = greenhouseId;
@@ -81,11 +79,11 @@ public class GreenhouseAlertEvent {
         this.temperature = temperature;
     }
 
-    public Instant getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 }

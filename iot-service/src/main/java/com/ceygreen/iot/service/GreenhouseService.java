@@ -41,7 +41,7 @@ public class GreenhouseService {
                 greenhouseId,
                 request.getName(),
                 request.getFarmerId(),
-                Instant.now());
+                Instant.now().toString());
 
         Map<String, Zone> zones = new LinkedHashMap<>();
         for (ZoneRequest zoneRequest : request.getZones()) {

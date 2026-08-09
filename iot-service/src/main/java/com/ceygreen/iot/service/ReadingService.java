@@ -51,7 +51,7 @@ public class ReadingService {
         SensorReading reading = new SensorReading();
         reading.setGreenhouseId(request.getGreenhouseId());
         reading.setZoneId(request.getZoneId());
-        reading.setTimestamp(Instant.now());
+        reading.setTimestamp(Instant.now().toString());
         reading.setTemperature(request.getTemperature());
         reading.setHumidity(request.getHumidity());
         reading.setSoilMoisture(request.getSoilMoisture());

@@ -1,24 +1,24 @@
 package com.ceygreen.iot.model;
 
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Top-level greenhouse blueprint stored under {@code /greenhouses/{id}} in Firebase.
+ * Timestamps are ISO-8601 strings because Firebase cannot deserialize {@code java.time.Instant}.
  */
 public class Greenhouse {
 
     private String id;
     private String name;
     private String farmerId;
-    private Instant createdAt;
+    private String createdAt;
     private Map<String, Zone> zones = new LinkedHashMap<>();
 
     public Greenhouse() {
     }
 
-    public Greenhouse(String id, String name, String farmerId, Instant createdAt) {
+    public Greenhouse(String id, String name, String farmerId, String createdAt) {
         this.id = id;
         this.name = name;
         this.farmerId = farmerId;
@@ -49,11 +49,11 @@ public class Greenhouse {
         this.farmerId = farmerId;
     }
 
-    public Instant getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 
