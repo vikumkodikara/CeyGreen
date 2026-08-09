@@ -1,96 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { listProducts, createProduct, checkout } from '../api/products';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import React, { useEffect, useState, useCallback } from 'react';
+import { listProducts } from '../api/products';
+import { Spinner } from '../components/ui/Spinner';
 import { Product } from '../types/product';
-import { useAuth } from '../hooks/useAuth';
+import { getApiErrorMessage } from '../utils/apiError';
+import '../styles/marketplace.css';
 
 export const MarketplacePage: React.FC = () => {
-  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
 
-  // New product state
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState(10);
-  const [quantity, setQuantity] = useState(100);
-  const [cropType, setCropType] = useState('Organic');
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
+    setPageError(null);
     try {
-      const data = await listProducts();
-      setProducts(data);
-    } catch {
+      setProducts(await listProducts());
+    } catch (err) {
+      setPageError(getApiErrorMessage(err, 'Failed to load products.'));
       setProducts([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const farmerId = user?.farmerId || user?.id || 'farmer-1';
-      await createProduct({ name, price, quantity, cropType, farmerId });
-      setName('');
-      fetchProducts();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to list product');
-    }
-  };
-
-  const handleBuy = async (product: Product) => {
-    try {
-      const buyerId = user?.buyerId || user?.id || 'buyer-1';
-      const order = await checkout({
-        buyerId,
-        items: [{ productId: product.id, quantity: 1 }],
-      });
-      alert(`Order placed successfully! Order ID: ${order.id}`);
-      fetchProducts();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Checkout failed');
-    }
-  };
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   return (
-    <div style={{ maxWidth: '1000px' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>ðŸ›’ Crop Marketplace</h1>
-
-      <Card title="List New Crop Harvest (Farmer)">
-        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', alignItems: 'flex-end' }}>
-          <Input label="Crop Name" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input label="Price ($/kg)" type="number" step="0.1" value={price} onChange={(e) => setPrice(parseFloat(e.target.value))} required />
-          <Input label="Quantity (kg)" type="number" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} required />
-          <Button type="submit" style={{ marginBottom: '1rem' }}>
-            List Harvest
-          </Button>
-        </form>
-      </Card>
-
-      <h2 style={{ fontSize: '1.4rem', marginTop: '2rem', marginBottom: '1rem' }}>Available Produce</h2>
-      {loading ? (
-        <p>Loading produce...</p>
+    <div className="marketplace-page">
+      <div className="marketplace-header">
+        <h1>?? Crop Marketplace</h1>
+        <p>Browse fresh harvests from local farmers.</p>
+      </div>
+      {pageError && <div className="marketplace-alert error">{pageError}</div>}
+      {loading ? <Spinner /> : products.length === 0 ? (
+        <div className="marketplace-empty glass-panel"><p>No active listings found.</p></div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
+        <div className="marketplace-product-grid">
           {products.map((p) => (
-            <Card key={p.id} title={p.name} subtitle={`Farmer: ${p.farmerId}`}>
-              <p style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--accent-green)', margin: '0.5rem 0' }}>
-                ${p.price} <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>/ kg</span>
-              </p>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                Stock Available: {p.quantity} kg
-              </p>
-              <Button style={{ width: '100%' }} onClick={() => handleBuy(p)}>
-                Buy 1 kg Now
-              </Button>
-            </Card>
+            <div key={p.id} className="glass-panel" style={{ padding: '1rem' }}>
+              <h3>{p.cropName}</h3>
+              <p className="marketplace-meta">{p.location} · {p.harvestDate}</p>
+              <p className="marketplace-price">Rs. {p.unitPrice} / kg</p>
+              <p className="marketplace-meta">{p.quantity} kg available</p>
+            </div>
           ))}
         </div>
       )}
