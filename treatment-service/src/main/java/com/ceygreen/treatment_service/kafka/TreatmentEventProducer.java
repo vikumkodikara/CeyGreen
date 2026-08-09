@@ -8,11 +8,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 
 public class TreatmentEventProducer {
-    private static final String TOPIC = "treatment-events";
+    @org.springframework.beans.factory.annotation.Value("${KAFKA_TREATMENT_EVENTS_TOPIC:treatment-events}")
+    private String topic;
+
     private final KafkaTemplate<String, TreatmentEvent> kafkaTemplate;
 
     public void publish(TreatmentEvent event) {
-        kafkaTemplate.send(TOPIC, event.diseaseName(), event);
+        kafkaTemplate.send(topic, event.diseaseName(), event);
     }
 
 }
