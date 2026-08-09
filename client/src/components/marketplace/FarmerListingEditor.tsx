@@ -32,12 +32,12 @@ export const FarmerListingEditor: React.FC<FarmerListingEditorProps> = ({
         label="Update quantity (kg)"
         type="number"
         min="0"
+        step="1"
         value={quantity}
-        onChange={(e) =>
-          onQuantityChange(
-            Number.isNaN(e.currentTarget.valueAsNumber) ? quantity : e.currentTarget.valueAsNumber
-          )
-        }
+        onChange={(e) => {
+          const next = e.currentTarget.valueAsNumber;
+          onQuantityChange(Number.isNaN(next) ? quantity : Math.max(0, Math.floor(next)));
+        }}
       />
       <Input
         label="Update price (Rs.)"
