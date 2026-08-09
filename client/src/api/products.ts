@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Product } from '../types/product';
+import { Product, ProductCreateRequest } from '../types/product';
 
 export const listProducts = async (cropName?: string, location?: string): Promise<Product[]> => {
   const params: Record<string, string> = {};
@@ -11,5 +11,10 @@ export const listProducts = async (cropName?: string, location?: string): Promis
 
 export const getProduct = async (id: number): Promise<Product> => {
   const res = await apiClient.get<Product>(/products/ + id);
+  return res.data;
+};
+
+export const createProduct = async (data: ProductCreateRequest): Promise<Product> => {
+  const res = await apiClient.post<Product>('/products', data);
   return res.data;
 };
