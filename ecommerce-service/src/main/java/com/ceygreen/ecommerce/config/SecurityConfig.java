@@ -9,19 +9,37 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * E-Commerce service security: API key only (no JWT).
+ * Identity headers from the gateway are trusted in later phases once role checks are added.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    static final String[] PUBLIC_PATHS = {
-            "/actuator/health", "/actuator/health/**", "/actuator/info",
-            "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"
+
+    public static final String[] PUBLIC_PATHS = {
+            "/actuator/health",
+            "/actuator/health/**",
+            "/actuator/info",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**"
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ApiKeyFilter apiKeyFilter) throws Exception {
-        return http.csrf(c -> c.disable()).cors(c -> c.disable())
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(r -> r.requestMatchers(PUBLIC_PATHS).permitAll().anyRequest().authenticated())
-                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class).build();
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(PUBLIC_PATHS).permitAll()
+                        .anyRequest().permitAll())
+                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .build();
     }
 }
