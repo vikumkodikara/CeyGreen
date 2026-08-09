@@ -1,5 +1,11 @@
 import { apiClient } from './client';
-import { Product, ProductCreateRequest, ProductUpdateRequest } from '../types/product';
+import {
+  CheckoutRequest,
+  OrderResponse,
+  Product,
+  ProductCreateRequest,
+  ProductUpdateRequest,
+} from '../types/product';
 
 export const listProducts = async (cropName?: string, location?: string): Promise<Product[]> => {
   const params: Record<string, string> = {};
@@ -10,7 +16,7 @@ export const listProducts = async (cropName?: string, location?: string): Promis
 };
 
 export const getProduct = async (id: number): Promise<Product> => {
-  const res = await apiClient.get<Product>(/products/ + id);
+  const res = await apiClient.get<Product>(`/products/${id}`);
   return res.data;
 };
 
@@ -20,6 +26,11 @@ export const createProduct = async (data: ProductCreateRequest): Promise<Product
 };
 
 export const updateProduct = async (id: number, data: ProductUpdateRequest): Promise<Product> => {
-  const res = await apiClient.put<Product>(/products/ + id, data);
+  const res = await apiClient.put<Product>(`/products/${id}`, data);
+  return res.data;
+};
+
+export const checkout = async (data: CheckoutRequest): Promise<OrderResponse> => {
+  const res = await apiClient.post<OrderResponse>('/orders/checkout', data);
   return res.data;
 };
