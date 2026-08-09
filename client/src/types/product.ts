@@ -22,3 +22,20 @@ export interface ProductUpdateRequest {
   quantity?: number;
   active?: boolean;
 }
+
+export interface CheckoutRequest {
+  productId: number;
+  quantity: number;
+}
+
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+
+export interface OrderResponse {
+  id: number;
+  buyerId: string;
+  productId: number;
+  quantity: number;
+  totalPrice: number;
+  status: OrderStatus;
+  orderedAt: string;
+}
