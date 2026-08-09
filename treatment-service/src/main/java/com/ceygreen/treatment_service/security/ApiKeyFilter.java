@@ -18,6 +18,16 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     private String expectedApiKey;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/swagger-ui") || 
+               path.startsWith("/v3/api-docs") || 
+               path.startsWith("/actuator") ||
+               path.startsWith("/swagger-resources") ||
+               path.startsWith("/webjars");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
