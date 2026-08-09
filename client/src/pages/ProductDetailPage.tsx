@@ -169,7 +169,11 @@ export const ProductDetailPage: React.FC = () => {
               type="number"
               min="0"
               value={editQty}
-              onChange={(e) => setEditQty(parseInt(e.target.value, 10))}
+              onChange={(e) =>
+                setEditQty((prev) =>
+                  Number.isNaN(e.currentTarget.valueAsNumber) ? prev : e.currentTarget.valueAsNumber
+                )
+              }
             />
             <Input
               label="Unit price (Rs.)"
@@ -177,7 +181,11 @@ export const ProductDetailPage: React.FC = () => {
               step="0.01"
               min="0.01"
               value={editPrice}
-              onChange={(e) => setEditPrice(parseFloat(e.target.value))}
+              onChange={(e) =>
+                setEditPrice((prev) =>
+                  Number.isNaN(e.currentTarget.valueAsNumber) ? prev : e.currentTarget.valueAsNumber
+                )
+              }
             />
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
               <Button isLoading={actionLoading} onClick={handleSave}>

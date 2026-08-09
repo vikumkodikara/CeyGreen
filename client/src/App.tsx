@@ -71,6 +71,14 @@ const AppContent: React.FC = () => {
               }
             />
             <Route
+              path="/marketplace/products/:id"
+              element={
+                <ProtectedRoute>
+                  <ProductDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/forum"
               element={
                 <ProtectedRoute>
