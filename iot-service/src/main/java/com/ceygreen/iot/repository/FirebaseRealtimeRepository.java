@@ -60,7 +60,7 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
     @Override
     public SensorReading saveReading(SensorReading reading) {
         String key = reading.getTimestamp() != null
-                ? reading.getTimestamp().toString().replace(".", "_")
+                ? reading.getTimestamp().replace(".", "_").replace(":", "-")
                 : String.valueOf(System.currentTimeMillis());
         DatabaseReference ref = zoneRef(reading.getGreenhouseId(), reading.getZoneId())
                 .child("readings")
