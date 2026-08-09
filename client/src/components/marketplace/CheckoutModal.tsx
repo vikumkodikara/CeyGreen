@@ -24,8 +24,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
-    if (product) setQuantity(1);
-  }, [product]);
+    if (isOpen) setQuantity(1);
+  }, [isOpen, product]);
 
   if (!product) return null;
 
