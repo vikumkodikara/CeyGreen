@@ -23,6 +23,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ceygreen -d ceygreen_users"]
       interval: 5s
@@ -212,32 +213,31 @@ services:
   #     start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
-  #  STUDENT 4 — E-Commerce Marketplace Service (port 8084)
-  #  Uncomment once Student 4's code is added to ecommerce-service/
+  #  E-Commerce Marketplace Service (port 8084)
   # ═══════════════════════════════════════════════════════════════════════
 
-  # ecommerce-service:
-  #   build: ./ecommerce-service
-  #   ports:
-  #     - "8084:8084"
-  #   environment:
-  #     SERVER_PORT: 8084
-  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_ecommerce
-  #     POSTGRES_USER: ceygreen
-  #     POSTGRES_PASSWORD: ceygreen
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  ecommerce-service:
+    build: ./ecommerce-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_ecommerce
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 5 — Community Forum Service (port 8085)
