@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /**
- * CeyGreen Student 4 microservice: E-Commerce Marketplace.
+ * CeyGreen E-Commerce Marketplace microservice.
  *
  * <p>Farmers list harvest products; buyers browse and checkout. Publishes order
  * and stock events to Kafka for the analytics service to consume.

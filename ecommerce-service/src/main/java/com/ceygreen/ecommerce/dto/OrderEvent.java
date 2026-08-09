@@ -5,11 +5,16 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-public record OrderResponse(
-        Long id,
+public record OrderEvent(
+        UUID eventId,
+        Long orderId,
         UUID buyerId,
+        UUID farmerId,
         Long productId,
+        String cropName,
         int quantity,
+        BigDecimal unitPrice,
         BigDecimal totalPrice,
         OrderStatus status,
-        Instant orderedAt) {}
+        Instant orderedAt,
+        String eventType) {}
