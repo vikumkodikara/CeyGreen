@@ -45,13 +45,14 @@ export const FarmerListingForm: React.FC<FarmerListingFormProps> = ({
         label="Quantity (kg)"
         type="number"
         min="1"
+        step="1"
         value={value.quantity}
         onChange={(e) =>
           onChange({
             ...value,
             quantity: Number.isNaN(e.currentTarget.valueAsNumber)
               ? value.quantity
-              : e.currentTarget.valueAsNumber,
+              : Math.max(1, Math.floor(e.currentTarget.valueAsNumber)),
           })
         }
         required
