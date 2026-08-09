@@ -4,7 +4,6 @@ import com.ceygreen.iot.model.Device;
 import com.ceygreen.iot.model.Greenhouse;
 import com.ceygreen.iot.model.Zone;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +15,7 @@ public class GreenhouseResponse {
     private String id;
     private String name;
     private String farmerId;
-    private Instant createdAt;
+    private String createdAt;
     private List<ZoneSummary> zones = new ArrayList<>();
 
     public static GreenhouseResponse from(Greenhouse greenhouse) {
@@ -53,7 +52,7 @@ public class GreenhouseResponse {
         return farmerId;
     }
 
-    public Instant getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 

@@ -1,16 +1,15 @@
 package com.ceygreen.iot.model;
 
-import java.time.Instant;
-
 /**
  * One hourly sensor sample from an ESP32.
  * Stored under {@code /greenhouses/{id}/zones/{zoneId}/readings/{timestamp}}.
+ * Timestamps are ISO-8601 strings for Firebase compatibility.
  */
 public class SensorReading {
 
     private String greenhouseId;
     private String zoneId;
-    private Instant timestamp;
+    private String timestamp;
     private double temperature;
     private double humidity;
     private double soilMoisture;
@@ -37,11 +36,11 @@ public class SensorReading {
         this.zoneId = zoneId;
     }
 
-    public Instant getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 
