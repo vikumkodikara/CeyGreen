@@ -31,7 +31,14 @@ export const FarmerListingForm: React.FC<FarmerListingFormProps> = ({
         step="0.01"
         min="0.01"
         value={value.unitPrice}
-        onChange={(e) => onChange({ ...value, unitPrice: parseFloat(e.target.value) })}
+        onChange={(e) =>
+          onChange({
+            ...value,
+            unitPrice: Number.isNaN(e.currentTarget.valueAsNumber)
+              ? value.unitPrice
+              : e.currentTarget.valueAsNumber,
+          })
+        }
         required
       />
       <Input
@@ -39,7 +46,14 @@ export const FarmerListingForm: React.FC<FarmerListingFormProps> = ({
         type="number"
         min="1"
         value={value.quantity}
-        onChange={(e) => onChange({ ...value, quantity: parseInt(e.target.value, 10) })}
+        onChange={(e) =>
+          onChange({
+            ...value,
+            quantity: Number.isNaN(e.currentTarget.valueAsNumber)
+              ? value.quantity
+              : e.currentTarget.valueAsNumber,
+          })
+        }
         required
       />
       <Input

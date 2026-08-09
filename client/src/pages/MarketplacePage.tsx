@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { listProducts, createProduct, updateProduct, checkout } from '../api/products';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -27,7 +27,7 @@ const emptyCreateForm = (): ProductCreateRequest => ({
 type Tab = 'browse' | 'farmer';
 
 export const MarketplacePage: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
 
   const [tab, setTab] = useState<Tab>(
@@ -224,15 +224,6 @@ export const MarketplacePage: React.FC = () => {
             onChange={setCreateForm}
             onSubmit={handleCreate}
           />
-        </div>
-      )}
-
-      {!isAuthenticated && (
-        <div className="marketplace-alert info" style={{ marginTop: '1.5rem' }}>
-          <Link to="/login" style={{ color: 'var(--accent-green)' }}>
-            Log in
-          </Link>{' '}
-          as a farmer to list produce or as a buyer to purchase.
         </div>
       )}
 
