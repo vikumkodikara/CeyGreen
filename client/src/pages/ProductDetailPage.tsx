@@ -168,11 +168,13 @@ export const ProductDetailPage: React.FC = () => {
               label="Quantity (kg)"
               type="number"
               min="0"
+              step="1"
               value={editQty}
               onChange={(e) =>
-                setEditQty((prev) =>
-                  Number.isNaN(e.currentTarget.valueAsNumber) ? prev : e.currentTarget.valueAsNumber
-                )
+                setEditQty((prev) => {
+                  const next = e.currentTarget.valueAsNumber;
+                  return Number.isNaN(next) ? prev : Math.max(0, Math.floor(next));
+                })
               }
             />
             <Input
