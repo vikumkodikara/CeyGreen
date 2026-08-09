@@ -1,3 +1,4 @@
+/** Maps axios-style API errors to user-facing messages. */
 export const getApiErrorMessage = (err: unknown, fallback: string): string => {
   if (err && typeof err === 'object' && 'response' in err) {
     const data = (err as { response?: { data?: { message?: string }; status?: number } }).response?.data;
