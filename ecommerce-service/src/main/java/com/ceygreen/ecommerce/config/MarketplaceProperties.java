@@ -19,12 +19,23 @@ public class MarketplaceProperties {
         @Min(0)
         private int lowThreshold = 10;
 
+        @Min(1)
+        private int restockMinIncrease = 5;
+
         public int getLowThreshold() {
             return lowThreshold;
         }
 
         public void setLowThreshold(int lowThreshold) {
             this.lowThreshold = lowThreshold;
+        }
+
+        public int getRestockMinIncrease() {
+            return restockMinIncrease;
+        }
+
+        public void setRestockMinIncrease(int restockMinIncrease) {
+            this.restockMinIncrease = restockMinIncrease;
         }
     }
 }
