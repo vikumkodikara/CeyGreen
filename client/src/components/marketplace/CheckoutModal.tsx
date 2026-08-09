@@ -48,7 +48,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         min={1}
         max={product.quantity}
         value={quantity}
-        onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
+        onChange={(e) => {
+          const next = e.currentTarget.valueAsNumber;
+          setQuantity(Number.isNaN(next) ? quantity : next);
+        }}
       />
 
       {(overStock || invalidQty) && (

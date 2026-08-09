@@ -33,7 +33,11 @@ export const FarmerListingEditor: React.FC<FarmerListingEditorProps> = ({
         type="number"
         min="0"
         value={quantity}
-        onChange={(e) => onQuantityChange(parseInt(e.target.value, 10))}
+        onChange={(e) =>
+          onQuantityChange(
+            Number.isNaN(e.currentTarget.valueAsNumber) ? quantity : e.currentTarget.valueAsNumber
+          )
+        }
       />
       <Input
         label="Update price (Rs.)"
@@ -41,7 +45,11 @@ export const FarmerListingEditor: React.FC<FarmerListingEditorProps> = ({
         step="0.01"
         min="0.01"
         value={unitPrice}
-        onChange={(e) => onPriceChange(parseFloat(e.target.value))}
+        onChange={(e) =>
+          onPriceChange(
+            Number.isNaN(e.currentTarget.valueAsNumber) ? unitPrice : e.currentTarget.valueAsNumber
+          )
+        }
       />
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <Button size="sm" variant="secondary" isLoading={loading} onClick={onSave}>
