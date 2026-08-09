@@ -24,6 +24,7 @@ public class TreatmentService {
     private final DiseaseRepository diseaseRepository;
     private final TreatmentEventProducer eventProducer;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<TreatmentResponse> getTreatmentsByDisease(String diseaseName) {
         String normalized = DiseaseNameUtil.normalize(diseaseName);
         List<Treatment> treatments = treatmentRepository.findByDisease_NormalizedNameAndActiveTrue(normalized);
