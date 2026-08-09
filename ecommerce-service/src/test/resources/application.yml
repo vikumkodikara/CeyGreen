@@ -9,6 +9,12 @@ spring:
       ddl-auto: create-drop
   flyway:
     enabled: false
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
 ceygreen:
   security:
@@ -16,6 +22,7 @@ ceygreen:
   marketplace:
     stock:
       low-threshold: 10
+      restock-min-increase: 5
   kafka:
     order-events-topic: order-events
     stock-events-topic: stock-events
