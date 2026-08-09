@@ -1,9 +1,10 @@
 server:
   port: ${SERVER_PORT:8083}
+
 spring:
   application:
     name: treatment-service
-datasource:
+  datasource:
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5433/ceygreen_treatments}
     username: ${POSTGRES_USER:ceygreen}
     password: ${POSTGRES_PASSWORD:ceygreen}
