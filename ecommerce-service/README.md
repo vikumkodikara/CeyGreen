@@ -78,6 +78,7 @@ Flyway migration `V1__init_products_and_orders.sql` owns the schema. Hibernate `
 ```bash
 cd ecommerce-service
 docker compose -f ../docker-compose.yml up -d postgres kafka
+# Host apps must use port 9094 (see docker-compose Kafka EXTERNAL listener).
 .\mvnw.cmd spring-boot:run
 ```
 
