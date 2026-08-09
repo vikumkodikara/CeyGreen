@@ -2,8 +2,6 @@ package com.ceygreen.iot.dto;
 
 import com.ceygreen.iot.model.SensorReading;
 
-import java.time.Instant;
-
 /**
  * Confirmation returned after a reading is stored.
  */
@@ -11,7 +9,7 @@ public class SensorReadingResponse {
 
     private String greenhouseId;
     private String zoneId;
-    private Instant timestamp;
+    private String timestamp;
     private double temperature;
     private double humidity;
     private double soilMoisture;
@@ -43,7 +41,7 @@ public class SensorReadingResponse {
         return zoneId;
     }
 
-    public Instant getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 

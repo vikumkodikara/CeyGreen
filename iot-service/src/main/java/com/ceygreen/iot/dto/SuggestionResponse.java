@@ -2,8 +2,6 @@ package com.ceygreen.iot.dto;
 
 import com.ceygreen.iot.model.Suggestion;
 
-import java.time.Instant;
-
 /**
  * One suggestion shown on the web greenhouse dashboard.
  */
@@ -14,7 +12,7 @@ public class SuggestionResponse {
     private String message;
     private String severity;
     private boolean resolved;
-    private Instant createdAt;
+    private String createdAt;
 
     public static SuggestionResponse from(Suggestion suggestion) {
         SuggestionResponse response = new SuggestionResponse();
@@ -47,7 +45,7 @@ public class SuggestionResponse {
         return resolved;
     }
 
-    public Instant getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 }

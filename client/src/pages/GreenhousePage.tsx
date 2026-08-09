@@ -2,30 +2,32 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { registerGreenhouse, ingestReading } from '../api/iot';
+import { registerGreenhouse, ingestReading, getSuggestions } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
+import { Suggestion } from '../types/iot';
 
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
   const [ghName, setGhName] = useState('Greenhouse Alpha');
   const [greenhouseId, setGreenhouseId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
-  // Ingest state
-  const [temp, setTemp] = useState(26.5);
-  const [humidity, setHumidity] = useState(65.0);
-  const [soilMoisture, setSoilMoisture] = useState(45.0);
-  const [nitrogen, setNitrogen] = useState(120);
-  const [phosphorus, setPhosphorus] = useState(35);
-  const [potassium, setPotassium] = useState(150);
+  const [temp, setTemp] = useState(40);
+  const [humidity, setHumidity] = useState(70);
+  const [soilMoisture, setSoilMoisture] = useState(35);
+  const [nitrogen, setNitrogen] = useState(10);
+  const [phosphorus, setPhosphorus] = useState(12);
+  const [potassium, setPotassium] = useState(9);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const farmerId = user?.farmerId || user?.id || 'farmer-1';
+      const farmerId = user?.farmerId || user?.id || 'farmer-001';
       const res = await registerGreenhouse(ghName, farmerId);
       setGreenhouseId(res.id);
+      setSuggestions([]);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Greenhouse registration failed');
     } finally {
@@ -39,7 +41,7 @@ export const GreenhousePage: React.FC = () => {
     try {
       await ingestReading({
         greenhouseId,
-        zoneId: 'zone-1',
+        zoneId: 'ZONE1',
         temperature: temp,
         humidity,
         soilMoisture,
@@ -47,7 +49,9 @@ export const GreenhousePage: React.FC = () => {
         phosphorus,
         potassium,
       });
-      alert('Sensor reading ingested successfully! Evaluated by rules engine.');
+      const list = await getSuggestions(greenhouseId);
+      setSuggestions(list);
+      alert('Sensor reading saved. Rule engine updated suggestions.');
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to ingest reading');
     }
@@ -55,9 +59,11 @@ export const GreenhousePage: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '900px' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>🌡️ Greenhouse IoT Telemetry & Control</h1>
+      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>
+        Greenhouse IoT Telemetry & Control
+      </h1>
 
-      <Card title="1. Register Greenhouse Blueprint">
+      <Card title="1. Register Greenhouse Blueprint (1 zone + 1 ESP32)">
         <form onSubmit={handleRegister} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
           <div style={{ flex: 1 }}>
             <Input
@@ -73,7 +79,7 @@ export const GreenhousePage: React.FC = () => {
         </form>
         {greenhouseId && (
           <p style={{ color: 'var(--accent-green)', fontWeight: 600, marginTop: '0.5rem' }}>
-            Registered Greenhouse ID: {greenhouseId}
+            Registered Greenhouse ID: {greenhouseId} (ZONE1)
           </p>
         )}
       </Card>
@@ -90,9 +96,21 @@ export const GreenhousePage: React.FC = () => {
               <Input label="Potassium (K)" type="number" value={potassium} onChange={(e) => setPotassium(parseInt(e.target.value))} />
             </div>
             <Button type="submit" style={{ marginTop: '1rem' }}>
-              Push ESP32 Reading to Firebase & Kafka
+              Push ESP32 Reading
             </Button>
           </form>
+        </Card>
+      )}
+
+      {suggestions.length > 0 && (
+        <Card title="3. Rule Engine Suggestions" style={{ marginTop: '2rem' }}>
+          <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+            {suggestions.map((s, index) => (
+              <li key={`${s.zoneId}-${index}`} style={{ marginBottom: '0.5rem' }}>
+                <strong>{s.severity}</strong>: {s.message}
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
     </div>

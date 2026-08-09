@@ -5,6 +5,7 @@ import java.time.Instant;
 /**
  * A recommended action for the farmer after the rule engine evaluates a reading.
  * Stored under {@code /greenhouses/{id}/zones/{zoneId}/suggestions/{timestamp}}.
+ * Timestamps are ISO-8601 strings for Firebase compatibility.
  */
 public class Suggestion {
 
@@ -15,7 +16,7 @@ public class Suggestion {
     private String message;
     private String severity;
     private boolean resolved;
-    private Instant createdAt;
+    private String createdAt;
 
     public Suggestion() {
     }
@@ -33,8 +34,8 @@ public class Suggestion {
         suggestion.message = message;
         suggestion.severity = severity;
         suggestion.resolved = false;
-        suggestion.createdAt = Instant.now();
-        suggestion.id = suggestion.createdAt.toString();
+        suggestion.createdAt = Instant.now().toString();
+        suggestion.id = suggestion.createdAt;
         return suggestion;
     }
 
@@ -94,11 +95,11 @@ public class Suggestion {
         this.resolved = resolved;
     }
 
-    public Instant getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 }

@@ -15,6 +15,9 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // IoT service (and other services) require the shared gateway API key.
+    config.headers['X-API-Key'] =
+      import.meta.env.VITE_API_KEY || 'ceygreen-dev-api-key';
     return config;
   },
   (error) => Promise.reject(error)
