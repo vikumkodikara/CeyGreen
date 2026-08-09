@@ -36,15 +36,9 @@ spring:
           # preflights are answered before the JWT filter, from one allowlist:
           # ceygreen.cors.allowed-origins / CORS_ALLOWED_ORIGINS.
 
-          # Applied to every route: strip the /api prefix, then rate-limit per client IP.
+          # Strip the /api prefix on every route. Per-route rate limits are configured below.
           default-filters:
             - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                key-resolver: "#{@clientIpKeyResolver}"
-                redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
-                redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
-                redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
           # The routing table: public path -> owning microservice. Every base URL is an env var,
           # so this gateway builds and runs without any teammate's service existing.
@@ -54,10 +48,21 @@ spring:
               uri: ${USER_DIAGNOSIS_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/users/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@principalNameKeyResolver}"
+                    rate-limiter: "#{@redisRateLimiter}"
+                    deny-empty-key: true
             - id: disease-detection
               uri: ${USER_DIAGNOSIS_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/diagnosis/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    rate-limiter: "#{@redisRateLimiter}"
 
             # ---- Student 1: IoT Telemetry & Control ----
             - id: iot-telemetry

@@ -7,6 +7,7 @@ import java.util.UUID;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,12 @@ class RateLimitIntegrationTest {
 
     @Autowired
     private WebTestClient webTestClient;
+
+    @BeforeAll
+    void warmUpJvmBeforeRateLimitAssertions() {
+        // First request can trigger Mockito agent attachment; keep it off the rate-limit path.
+        webTestClient.get().uri("/actuator/health").exchange();
+    }
 
     @AfterAll
     static void stopDownstream() throws IOException {

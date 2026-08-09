@@ -36,7 +36,7 @@ public class GatewayProperties {
     public static class RateLimit {
         @Min(1)
         private int requestsPerMinute = 60;
-        @Min(1)
+        @Min(0)
         private int replenishRate = 60;
         @Min(1)
         private int burstCapacity = 3600;
