@@ -15,7 +15,7 @@
     <artifactId>ecommerce-service</artifactId>
     <version>1.0.0</version>
     <name>ecommerce-service</name>
-    <description>CeyGreen Student 4 - E-Commerce Marketplace microservice</description>
+    <description>CeyGreen E-Commerce Marketplace microservice</description>
 
     <properties>
         <java.version>17</java.version>
