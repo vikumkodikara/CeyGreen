@@ -188,28 +188,28 @@ services:
   #  Uncomment once Student 3's code is added to treatment-service/
   # ═══════════════════════════════════════════════════════════════════════
 
-  # treatment-service:
-  #   build: ./treatment-service
-  #   ports:
-  #     - "8083:8083"
-  #   environment:
-  #     SERVER_PORT: 8083
-  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_treatments
-  #     POSTGRES_USER: ceygreen
-  #     POSTGRES_PASSWORD: ceygreen
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  treatment-service:
+     build: ./treatment-service
+     ports:
+       - "8083:8083"
+     environment:
+       SERVER_PORT: 8083
+       POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_treatments
+       POSTGRES_USER: ceygreen
+       POSTGRES_PASSWORD: ceygreen
+       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+     depends_on:
+       postgres:
+         condition: service_healthy
+       kafka:
+         condition: service_healthy
+     healthcheck:
+       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+       interval: 10s
+       timeout: 5s
+       retries: 12
+       start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 4 — E-Commerce Marketplace Service (port 8084)
