@@ -38,12 +38,7 @@ public class OrderEventPublisher {
         payload.put("orderedAt", event.orderedAt().toString());
         payload.put("eventType", event.eventType());
 
-        try {
-            kafkaTemplate.send(topic, event.orderId().toString(), payload)
-                    .get(5, java.util.concurrent.TimeUnit.SECONDS);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to publish order event", ex);
-        }
+        kafkaTemplate.send(topic, event.orderId().toString(), payload);
         log.info("Published order event: orderId={}, eventType={}", event.orderId(), event.eventType());
     }
 }
