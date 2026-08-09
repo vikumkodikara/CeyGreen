@@ -15,6 +15,7 @@ import { DiagnosisPage } from './pages/DiagnosisPage';
 import { TreatmentsPage } from './pages/TreatmentsPage';
 import { GreenhousePage } from './pages/GreenhousePage';
 import { MarketplacePage } from './pages/MarketplacePage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
 import { ForumPage } from './pages/ForumPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 
