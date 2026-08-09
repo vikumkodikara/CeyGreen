@@ -39,9 +39,7 @@ public class StockEventPublisher {
         try {
             kafkaTemplate.send(topic, event.productId().toString(), payload).get(5, TimeUnit.SECONDS);
         } catch (Exception ex) {
-            throw new IllegalStateException(
-                    "Failed to publish stock event to topic '" + topic + "' for productId=" + event.productId(),
-                    ex);
+            throw new IllegalStateException("Failed to publish stock event", ex);
         }
         log.info("Published {} event: productId={}, quantity={}->{}",
                 event.eventType(), event.productId(), event.previousQuantity(), event.currentQuantity());
