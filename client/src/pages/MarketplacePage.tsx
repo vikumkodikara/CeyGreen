@@ -14,7 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/marketplace.css';
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
 
 const emptyCreateForm = (): ProductCreateRequest => ({
   cropName: '',
