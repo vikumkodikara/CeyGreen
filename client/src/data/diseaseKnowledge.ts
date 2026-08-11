@@ -14,12 +14,12 @@ export interface DiseaseDetail {
 }
 
 export const CROPS_LIST = [
-  { id: 'Tomato', label: 'Tomato', icon: '🍅', description: 'Solanum lycopersicum' },
-  { id: 'Potato', label: 'Potato', icon: '🥔', description: 'Solanum tuberosum' },
-  { id: 'Pepper', label: 'Pepper / Bell Pepper', icon: '🫑', description: 'Capsicum annuum' },
-  { id: 'Strawberry', label: 'Strawberry', icon: '🍓', description: 'Fragaria × ananassa' },
-  { id: 'Grape', label: 'Grape', icon: '🍇', description: 'Vitis vinifera' },
-  { id: 'Other', label: 'Other Greenhouse Crop', icon: '🌱', description: 'General Crop Diagnostics' },
+  { id: 'Tomato', label: 'Tomato', description: 'Solanum lycopersicum' },
+  { id: 'Potato', label: 'Potato', description: 'Solanum tuberosum' },
+  { id: 'Pepper', label: 'Pepper / Bell Pepper', description: 'Capsicum annuum' },
+  { id: 'Strawberry', label: 'Strawberry', description: 'Fragaria × ananassa' },
+  { id: 'Grape', label: 'Grape', description: 'Vitis vinifera' },
+  { id: 'Other', label: 'Other Greenhouse Crop', description: 'General Crop Diagnostics' },
 ];
 
 export const DISEASE_KNOWLEDGE: Record<string, DiseaseDetail> = {
@@ -239,17 +239,14 @@ export const DISEASE_KNOWLEDGE: Record<string, DiseaseDetail> = {
 export const getDiseaseDetail = (diseaseName: string): DiseaseDetail => {
   if (!diseaseName) return DISEASE_KNOWLEDGE['Healthy'];
 
-  // Match exact key
   if (DISEASE_KNOWLEDGE[diseaseName]) {
     return DISEASE_KNOWLEDGE[diseaseName];
   }
 
-  // Check if healthy
   if (diseaseName.toLowerCase().includes('healthy')) {
     return DISEASE_KNOWLEDGE['Healthy'];
   }
 
-  // Case-insensitive / partial match
   const matchKey = Object.keys(DISEASE_KNOWLEDGE).find((key) =>
     key.toLowerCase().includes(diseaseName.toLowerCase()) || diseaseName.toLowerCase().includes(key.toLowerCase())
   );
@@ -258,7 +255,6 @@ export const getDiseaseDetail = (diseaseName: string): DiseaseDetail => {
     return DISEASE_KNOWLEDGE[matchKey];
   }
 
-  // Fallback generic detail for unmatched disease labels
   const cleanName = diseaseName.replace(/___/g, ' - ').replace(/_/g, ' ');
   const isBacterial = diseaseName.toLowerCase().includes('bacteri');
   const isViral = diseaseName.toLowerCase().includes('virus');
@@ -273,7 +269,7 @@ export const getDiseaseDetail = (diseaseName: string): DiseaseDetail => {
     symptoms: ['Foliar discoloration and localized tissue necrosis', 'Leaf spots or viral mottling on leaves'],
     causes: ['Favorable humidity, air movement, or vector transmission'],
     organicTreatments: ['Apply Neem oil 70% EC or Copper-based organic protectant spray'],
-    chemicalTreatments: ['Consult local agricultural extensión agent for targeted systemic treatment'],
+    chemicalTreatments: ['Consult local agricultural extension agent for targeted systemic treatment'],
     prevention: ['Sanitize tools between handling plants', 'Maintain adequate plant spacing for airflow'],
     recommendedProducts: [
       { name: 'CeyBio CopperShield Liquid', type: 'Bactericide / Fungicide', dosage: '2 ml / Litre' },

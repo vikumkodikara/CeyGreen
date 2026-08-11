@@ -6,7 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Treatment } from '../types/treatment';
 import { CROPS_LIST, getDiseaseDetail, DiseaseDetail } from '../data/diseaseKnowledge';
-import { generateGeminiAgronomistReport, getStoredGeminiKey, setStoredGeminiKey } from '../api/gemini';
+import { generateGeminiAgronomistReport, getStoredGeminiKey } from '../api/gemini';
 
 export const DiagnosisPage: React.FC = () => {
   const { user } = useAuth();
@@ -22,12 +22,9 @@ export const DiagnosisPage: React.FC = () => {
   const [loadingTreatments, setLoadingTreatments] = useState(false);
   const [activeTab, setActiveTab] = useState<'symptoms' | 'treatment' | 'prevention' | 'products'>('symptoms');
   
-  // Gemini AI State
-  const [geminiKeyInput, setGeminiKeyInput] = useState(getStoredGeminiKey());
+  // AI Agronomist Consultation State
   const [aiConsultation, setAiConsultation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [showKeySetting, setShowKeySetting] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -51,14 +48,13 @@ export const DiagnosisPage: React.FC = () => {
     setDiseaseDetail(null);
     setTreatments([]);
     setAiConsultation(null);
-    setAiError(null);
 
     try {
       const farmerId = user?.farmerId || user?.id || 'farmer-1';
       const result = await uploadDiagnosisImage(file, farmerId, cropType);
       setDiagnosisResult(result);
 
-      // Extract disease information
+      // Extract disease details
       const detail = getDiseaseDetail(result.predictedDisease);
       setDiseaseDetail(detail);
 
@@ -75,59 +71,67 @@ export const DiagnosisPage: React.FC = () => {
         }
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Diagnosis upload failed. Please ensure backend services are reachable.');
+      alert(err.response?.data?.message || 'Diagnosis upload failed. Please verify network connection.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveGeminiKey = () => {
-    setStoredGeminiKey(geminiKeyInput);
-    setShowKeySetting(false);
-    alert('Gemini API Key saved successfully!');
-  };
-
-  // Generate Real Live Gemini AI Report
+  // Generate AI Agronomist Action Report (uses Gemini API if key exists, else professional fallback)
   const handleGenerateAiReport = async () => {
     if (!diseaseDetail) return;
-    const keyToUse = geminiKeyInput || getStoredGeminiKey();
-
-    if (!keyToUse) {
-      setShowKeySetting(true);
-      setAiError('Please enter your Gemini API Key below to generate live AI reports.');
-      return;
-    }
-
     setLoadingAi(true);
-    setAiError(null);
+
+    const apiKey = getStoredGeminiKey();
 
     try {
-      const liveReport = await generateGeminiAgronomistReport(
-        cropType,
-        diseaseDetail.displayName,
-        confidencePercent,
-        keyToUse
-      );
-      setAiConsultation(liveReport);
-    } catch (err: any) {
-      setAiError(err.message || 'Failed to call Gemini AI API.');
-      // Fallback to built-in template report if live API fails
-      const fallbackReport = `
-🔬 **CeyGreen AI Agronomist Action Report**
+      if (apiKey) {
+        const liveReport = await generateGeminiAgronomistReport(
+          cropType,
+          diseaseDetail.displayName,
+          confidencePercent,
+          apiKey
+        );
+        setAiConsultation(liveReport);
+      } else {
+        // Professional built-in Agronomist Report when no API key environment variable is configured
+        const fallbackReport = `
+AI Agronomist Action Report
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• **Target Crop**: ${cropType}
-• **Diagnosed Disease**: ${diseaseDetail.displayName}
-• **Risk Level**: ${diseaseDetail.severity} (${diseaseDetail.category})
+• Target Crop: ${cropType}
+• Diagnosed Condition: ${diseaseDetail.displayName}
+• Severity Level: ${diseaseDetail.severity} (${diseaseDetail.category})
 
-🌿 **Immediate Greenhouse Environment Adjustments**:
-1. Reduce relative humidity in the greenhouse below 75% by opening ridge vents and running exhaust fans.
-2. Stop overhead sprinkling immediately; switch to drip irrigation to keep leaf canopy 100% dry.
-3. Prune affected bottom foliage (first 30 cm from ground level) and seal in disposable bags.
+Immediate Greenhouse Environment Adjustments:
+1. Reduce relative humidity in the greenhouse below 75% by opening ridge vents and running exhaust ventilation.
+2. Stop overhead sprinkling immediately; transition to targeted drip irrigation to keep canopy surfaces dry.
+3. Prune lower foliage (first 30 cm above ground level) and safely dispose of infected leaf material.
 
-💊 **Recommended 14-Day Treatment Schedule**:
-• Day 1: Spray ${diseaseDetail.organicTreatments[0] || 'Organic Copper Soap'} thoroughly under leaf surfaces.
-• Day 5: Re-inspect foliage. Apply ${diseaseDetail.chemicalTreatments[0] || 'Protectant Fungicide'} if new spots emerge.
-• Day 10: Apply bio-stimulant foliar spray to boost plant immunity and restore chlorophyll levels.
+14-Day Recovery & Treatment Schedule:
+• Day 1: Apply ${diseaseDetail.organicTreatments[0] || 'Organic Copper Protectant'} thoroughly to affected leaf surfaces.
+• Day 5: Re-inspect foliage. Apply ${diseaseDetail.chemicalTreatments[0] || 'Broad-spectrum Fungicide'} if new spots emerge.
+• Day 10: Apply bio-stimulant foliar spray to strengthen plant tissue immunity and restore active chlorophyll.
+        `.trim();
+        setAiConsultation(fallbackReport);
+      }
+    } catch {
+      // Fallback cleanly without showing technical errors to end-user
+      const fallbackReport = `
+AI Agronomist Action Report
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Target Crop: ${cropType}
+• Diagnosed Condition: ${diseaseDetail.displayName}
+• Severity Level: ${diseaseDetail.severity} (${diseaseDetail.category})
+
+Immediate Greenhouse Environment Adjustments:
+1. Reduce relative humidity in the greenhouse below 75% by opening ridge vents and running exhaust ventilation.
+2. Stop overhead sprinkling immediately; transition to targeted drip irrigation to keep canopy surfaces dry.
+3. Prune lower foliage (first 30 cm above ground level) and safely dispose of infected leaf material.
+
+14-Day Recovery & Treatment Schedule:
+• Day 1: Apply ${diseaseDetail.organicTreatments[0] || 'Organic Copper Protectant'} thoroughly to affected leaf surfaces.
+• Day 5: Re-inspect foliage. Apply ${diseaseDetail.chemicalTreatments[0] || 'Broad-spectrum Fungicide'} if new spots emerge.
+• Day 10: Apply bio-stimulant foliar spray to strengthen plant tissue immunity and restore active chlorophyll.
       `.trim();
       setAiConsultation(fallbackReport);
     } finally {
@@ -135,27 +139,25 @@ export const DiagnosisPage: React.FC = () => {
     }
   };
 
-  // Extract valid confidence score safely (handles confidenceScore, confidence, or fallback)
+  // Extract valid confidence score safely
   const rawConfidence = diagnosisResult ? (diagnosisResult.confidenceScore ?? diagnosisResult.confidence ?? 0.88) : 0;
   const confidencePercent = rawConfidence > 1 ? rawConfidence.toFixed(1) : (rawConfidence * 100).toFixed(1);
   const numericConfidence = parseFloat(confidencePercent);
 
   return (
     <div className="auth-container" style={{ maxWidth: '900px', margin: '1.5rem auto' }}>
-      {/* Header Banner */}
+      {/* Page Title Header */}
       <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-        <h1 style={{ fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-main)' }}>
-          🔬 <span style={{ background: 'linear-gradient(135deg, var(--text-main), var(--accent-green))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            AI Plant Disease Diagnostics
-          </span>
+        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+          AI Plant Disease Diagnostics
         </h1>
         <p style={{ color: 'var(--text-secondary)', marginTop: '0.4rem', fontSize: '0.95rem' }}>
-          Upload a clear photograph of affected leaves for instant ONNX neural network detection and agronomist treatment plans.
+          Upload a high-resolution leaf sample for automated neural network classification and targeted agronomist recovery plans.
         </p>
       </div>
 
       {/* Upload Form Card */}
-      <Card title="Upload Leaf Sample" subtitle="Select your crop product and attach a clear image of the leaf">
+      <Card title="Upload Leaf Sample" subtitle="Select your crop type and attach a clear photo of the affected plant leaf">
         <form onSubmit={handleUpload}>
           {/* Crop Product Dropdown (6 Supported Products) */}
           <div style={{ marginBottom: '1.25rem' }}>
@@ -181,11 +183,11 @@ export const DiagnosisPage: React.FC = () => {
               >
                 {CROPS_LIST.map((crop) => (
                   <option key={crop.id} value={crop.id}>
-                    {crop.icon} {crop.label} — ({crop.description})
+                    {crop.label} — ({crop.description})
                   </option>
                 ))}
               </select>
-              <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--accent-green)' }}>
+              <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--accent-green)', fontSize: '0.8rem' }}>
                 ▼
               </div>
             </div>
@@ -194,7 +196,7 @@ export const DiagnosisPage: React.FC = () => {
           {/* Interactive Drag & Drop File Upload Zone */}
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Leaf Photograph
+              Plant Photo
             </label>
             
             {!previewUrl ? (
@@ -204,7 +206,7 @@ export const DiagnosisPage: React.FC = () => {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: '2rem 1rem',
+                  padding: '2.5rem 1rem',
                   borderRadius: '14px',
                   border: '2px dashed var(--border-color)',
                   background: 'rgba(255, 255, 255, 0.02)',
@@ -215,9 +217,8 @@ export const DiagnosisPage: React.FC = () => {
                 onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--accent-green)')}
                 onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
               >
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📸</div>
                 <p style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                  Click or drag leaf photo here
+                  Click to select or drag leaf photo here
                 </p>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                   Supports PNG, JPG, JPEG (Max 10 MB)
@@ -282,13 +283,13 @@ export const DiagnosisPage: React.FC = () => {
             style={{
               width: '100%',
               padding: '0.9rem',
-              fontSize: '1.05rem',
+              fontSize: '1rem',
               fontWeight: 600,
               background: 'linear-gradient(135deg, var(--accent-green), #10b981)',
               boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)',
             }}
           >
-            {loading ? 'Analyzing Neural Network...' : '🔍 Run AI Disease Diagnosis'}
+            {loading ? 'Analyzing Neural Network...' : 'Run AI Disease Diagnosis'}
           </Button>
         </form>
       </Card>
@@ -345,7 +346,7 @@ export const DiagnosisPage: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Confidence Meter Badge */}
+                {/* Confidence Meter Gauge */}
                 <div style={{ textAlign: 'right', minWidth: '140px' }}>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>AI Confidence</p>
                   <p style={{ fontSize: '1.8rem', fontWeight: 800, color: numericConfidence >= 80 ? 'var(--accent-green)' : 'var(--warning)' }}>
@@ -366,24 +367,24 @@ export const DiagnosisPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Leaf Image & Quick Summary Row */}
+              {/* Leaf Image & Summary Box */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center', background: 'rgba(10, 20, 14, 0.6)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 {previewUrl && (
                   <img
                     src={previewUrl}
-                    alt="Analyzed Leaf"
+                    alt="Analyzed Leaf Sample"
                     style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--border-focus)' }}
                   />
                 )}
                 <div style={{ flex: 1, minWidth: '240px' }}>
-                  <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.4rem', fontSize: '1rem' }}>🔬 Pathology Summary</h4>
+                  <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.4rem', fontSize: '1rem', fontWeight: 600 }}>Pathology Summary</h4>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
                     {diseaseDetail.description}
                   </p>
                 </div>
               </div>
 
-              {/* Gemini AI Agronomist Consultation Button */}
+              {/* Clean AI Agronomist Report Action Button */}
               <div style={{ marginTop: '0.5rem' }}>
                 <button
                   type="button"
@@ -391,7 +392,7 @@ export const DiagnosisPage: React.FC = () => {
                   disabled={loadingAi}
                   style={{
                     width: '100%',
-                    padding: '0.75rem',
+                    padding: '0.8rem',
                     borderRadius: '10px',
                     background: 'linear-gradient(135deg, #10b981, #14b8a6)',
                     color: '#051d0d',
@@ -406,52 +407,11 @@ export const DiagnosisPage: React.FC = () => {
                     boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
                   }}
                 >
-                  {loadingAi ? '✨ Generating Agronomist Report...' : '✨ Generate Gemini AI Agronomist Action Report'}
+                  {loadingAi ? 'Generating Agronomist Report...' : 'Generate AI Agronomist Action Report'}
                 </button>
               </div>
 
-              {/* Gemini API Key Config Toggle */}
-              <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  🔑 Gemini API Status: {geminiKeyInput ? '✅ Key Active (••••' + geminiKeyInput.slice(-4) + ')' : '⚠️ Key Not Set (Using Template)'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowKeySetting(!showKeySetting)}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-green)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  {showKeySetting ? 'Close Setting' : 'Configure Gemini API Key ⚙️'}
-                </button>
-              </div>
-
-              {showKeySetting && (
-                <div style={{ padding: '1rem', background: 'rgba(10, 20, 14, 0.9)', border: '1px solid var(--border-focus)', borderRadius: '10px', marginTop: '0.5rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', fontWeight: 500 }}>
-                    Enter your Google Gemini API Key:
-                  </label>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <input
-                      type="password"
-                      placeholder="AIzaSy..."
-                      value={geminiKeyInput}
-                      onChange={(e) => setGeminiKeyInput(e.target.value)}
-                      style={{ flex: 1, minWidth: '200px', padding: '0.5rem 0.8rem', fontSize: '0.9rem' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSaveGeminiKey}
-                      style={{ padding: '0.5rem 1rem', background: 'var(--accent-green)', color: '#051d0d', fontWeight: 700, borderRadius: '8px', border: 'none', cursor: 'pointer' }}
-                    >
-                      Save Key
-                    </button>
-                  </div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
-                    Or add <code>VITE_GEMINI_API_KEY=AIzaSy...</code> in your <code>client/.env</code> file.
-                  </p>
-                </div>
-              )}
-
-              {/* Gemini AI Report Output Box */}
+              {/* AI Agronomist Report Output Box */}
               {aiConsultation && (
                 <div
                   style={{
@@ -476,19 +436,19 @@ export const DiagnosisPage: React.FC = () => {
           <div style={{ marginTop: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
               {[
-                { id: 'symptoms', label: '📋 Symptoms & Causes' },
-                { id: 'treatment', label: '💊 Treatment Plan' },
-                { id: 'prevention', label: '🛡️ Prevention & IPM' },
-                { id: 'products', label: '🛒 Recommended Products' },
+                { id: 'symptoms', label: 'Symptoms & Causes' },
+                { id: 'treatment', label: 'Treatment Plan' },
+                { id: 'prevention', label: 'Prevention & IPM' },
+                { id: 'products', label: 'Recommended Products' },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as any)}
                   style={{
-                    padding: '0.6rem 1rem',
+                    padding: '0.65rem 1.1rem',
                     borderRadius: '10px',
-                    fontSize: '0.85rem',
+                    fontSize: '0.88rem',
                     fontWeight: 600,
                     whiteSpace: 'nowrap',
                     background: activeTab === tab.id ? 'var(--accent-green)' : 'rgba(255,255,255,0.05)',
@@ -508,7 +468,7 @@ export const DiagnosisPage: React.FC = () => {
               <Card title="Symptoms & Disease Origin">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                    <h4 style={{ color: 'var(--warning)', marginBottom: '0.6rem', fontSize: '0.95rem' }}>⚠️ Key Visual Symptoms</h4>
+                    <h4 style={{ color: 'var(--warning)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Key Visual Symptoms</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
                       {diseaseDetail.symptoms.map((s, idx) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{s}</li>
@@ -517,7 +477,7 @@ export const DiagnosisPage: React.FC = () => {
                   </div>
 
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                    <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem' }}>🌡️ Environmental Drivers</h4>
+                    <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Environmental Drivers</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
                       {diseaseDetail.causes.map((c, idx) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{c}</li>
@@ -533,7 +493,7 @@ export const DiagnosisPage: React.FC = () => {
               <Card title="Agronomist Treatment Action Plan">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
                   <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--accent-emerald)' }}>
-                    <h4 style={{ color: 'var(--accent-emerald)', marginBottom: '0.6rem', fontSize: '0.95rem' }}>🌿 Organic & Biological Controls</h4>
+                    <h4 style={{ color: 'var(--accent-emerald)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Organic & Biological Controls</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
                       {diseaseDetail.organicTreatments.map((t, idx) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
@@ -542,7 +502,7 @@ export const DiagnosisPage: React.FC = () => {
                   </div>
 
                   <div style={{ background: 'rgba(59, 130, 246, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--info)' }}>
-                    <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem' }}>🔬 Chemical & Fungicide Solutions</h4>
+                    <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Chemical & Fungicide Solutions</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
                       {diseaseDetail.chemicalTreatments.map((t, idx) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
@@ -557,7 +517,7 @@ export const DiagnosisPage: React.FC = () => {
             {activeTab === 'prevention' && (
               <Card title="Integrated Pest Management (IPM) & Prevention">
                 <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                  <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.6rem', fontSize: '0.95rem' }}>🛡️ Long-Term Preventive Practices</h4>
+                  <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Long-Term Preventive Practices</h4>
                   <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
                     {diseaseDetail.prevention.map((p, idx) => (
                       <li key={idx} style={{ marginBottom: '0.5rem' }}>{p}</li>
@@ -587,7 +547,7 @@ export const DiagnosisPage: React.FC = () => {
                       }}
                     >
                       <div>
-                        <h4 style={{ color: 'var(--accent-green)', fontSize: '1rem' }}>{p.name}</h4>
+                        <h4 style={{ color: 'var(--accent-green)', fontSize: '1rem', fontWeight: 600 }}>{p.name}</h4>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
                           Category: <strong>{p.type}</strong> | Dosage: <strong>{p.dosage}</strong>
                         </p>
@@ -606,7 +566,7 @@ export const DiagnosisPage: React.FC = () => {
                         }}
                         onClick={() => alert(`Redirecting to Marketplace listing for ${p.name}`)}
                       >
-                        View in Marketplace 🛒
+                        View in Marketplace
                       </button>
                     </div>
                   ))}
@@ -622,7 +582,7 @@ export const DiagnosisPage: React.FC = () => {
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                        <h4 style={{ color: 'var(--accent-green)' }}>{t.productName}</h4>
+                        <h4 style={{ color: 'var(--accent-green)', fontWeight: 600 }}>{t.productName}</h4>
                         <span style={{ fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '6px', background: t.type === 'ORGANIC' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: t.type === 'ORGANIC' ? 'var(--success)' : 'var(--info)' }}>
                           {t.type}
                         </span>
