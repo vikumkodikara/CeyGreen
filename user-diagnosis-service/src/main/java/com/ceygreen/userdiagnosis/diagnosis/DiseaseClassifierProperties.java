@@ -20,6 +20,9 @@ public class DiseaseClassifierProperties {
     @NotBlank
     private String modelPath = "classpath:models/disease_model.onnx";
 
+    @NotBlank
+    private String labelsPath = "classpath:models/labels.txt";
+
     public String getImpl() {
         return impl;
     }
@@ -42,5 +45,13 @@ public class DiseaseClassifierProperties {
 
     public void setModelPath(String modelPath) {
         this.modelPath = modelPath;
+    }
+
+    public String getLabelsPath() {
+        return labelsPath;
+    }
+
+    public void setLabelsPath(String labelsPath) {
+        this.labelsPath = labelsPath;
     }
 }

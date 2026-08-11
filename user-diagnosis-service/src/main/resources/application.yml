@@ -57,14 +57,15 @@ ceygreen:
 
 disease:
   classifier:
-    # Selects the DiseaseClassifier implementation. Only "mock" is implemented today;
-    # "onnx" is reserved for the trained model and is not wired up yet.
-    impl: ${DISEASE_CLASSIFIER_IMPL:mock}
+    # Selects the DiseaseClassifier implementation. "onnx" uses the trained ResNet50V2 model;
+    # "mock" uses a deterministic stand-in for demos without the .onnx file.
+    impl: ${DISEASE_CLASSIFIER_IMPL:onnx}
     # Below this confidence the API returns "uncertain - consult an expert" rather than a
     # false-confident diagnosis.
     confidence-threshold: ${DISEASE_CONFIDENCE_THRESHOLD:0.6}
     # Reserved: the trained .onnx file will be dropped into src/main/resources/models/ later. Nothing reads this yet.
     model-path: ${DISEASE_MODEL_PATH:classpath:models/disease_model.onnx}
+    labels-path: ${DISEASE_LABELS_PATH:classpath:models/labels.txt}
   upload:
     directory: ${DIAGNOSIS_IMAGE_DIR:./data/diagnosis-images}
     max-file-size-bytes: ${DIAGNOSIS_MAX_IMAGE_BYTES:5242880}
