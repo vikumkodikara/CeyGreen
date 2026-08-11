@@ -6,27 +6,27 @@ All synchronous, user-facing traffic is routed through a central **API Gateway**
 
 ---
 
-## 🌟 Recent System Highlights & Major Updates
+## Recent System Highlights & Major Updates
 
-### 🤖 Pretrained ONNX ML Plant Disease Classification
+### Pretrained ONNX ML Plant Disease Classification
 - **Deep Learning Model**: Integrated a ResNet50V2-based ONNX model (`ml/disease-classifier/disease_model.onnx`, ~94 MB) running natively via Java ONNX Runtime (`onnxruntime 1.18.0`).
 - **25 Disease Classes**: Covers 25 distinct plant pathology labels across 5 crop categories (`ml/disease-classifier/labels.txt`).
 - **Native WebP & ImageIO Decoding**: Integrated TwelveMonkeys ImageIO (`imageio-webp:3.12.0`) to natively support `.webp`, `.png`, and `.jpeg` leaf uploads.
 - **Pure ONNX Preprocessing**: Feeds raw 224×224 NHWC float pixel tensors directly into the neural network graph.
 
-### 📱 Modern Mobile-Responsive React Client (`client/`)
+### Modern Mobile-Responsive React Client (`client/`)
 - **6-Crop Product Selector**: Interactive dropdown supporting **Tomato**, **Potato**, **Pepper / Bell Pepper**, **Strawberry**, **Grape**, and **Other Greenhouse Crops**.
-- **Confirm Password & Live Validation**: Real-time password matching badge (`✓ Passwords match` vs `✕ Passwords do not match`).
+- **Confirm Password & Live Validation**: Real-time password matching validation indicator.
 - **Touch-Friendly Eye Password Toggle**: Password field visibility toggle with 40×40 touch target size for mobile screens.
 - **iOS Safari Optimization**: Enforces 16px base font size on input fields to prevent iOS Safari auto-zoom glitches.
 - **Agronomist Diagnostic Dashboard**: Interactive drag-and-drop file preview, confidence gauge progress bar, and 4-tab agronomist report (Symptoms, Treatments, Prevention & IPM, Recommended Products).
 
-### ✨ Live Google Gemini 1.5 Flash AI Integration
+### Live Google Gemini 1.5 Flash AI Integration
 - Integrated Google's **Gemini 1.5 Flash API** (`client/src/api/gemini.ts`).
 - Generates live, personalized 14-day greenhouse recovery action plans, humidity control guidelines, and foliar spray schedules based on predicted disease and crop type.
 - Environment key configuration via `VITE_GEMINI_API_KEY` with seamless built-in fallback.
 
-### ☁️ AWS Cloud Deployment & Automated CI/CD
+### AWS Cloud Deployment & Automated CI/CD
 - **Live AWS EC2 Server**: Deployed on Ubuntu 24.04 LTS EC2 (`eu-north-1` Stockholm) at **[http://16.192.168.12:3000](http://16.192.168.12:3000)**.
 - **Nginx Reverse Proxy**: Custom Nginx configuration (`client/nginx.conf`) routing `/api/**` calls directly to `api-gateway:8080` within the Docker network.
 - **GitHub Actions CD Pipeline**: Automated workflow (`.github/workflows/cd.yml`) that builds Docker images and deploys directly to EC2 on `main` branch updates.
@@ -70,12 +70,12 @@ graph TD
 | Student | Microservice | Port | Database | Status |
 |---|---|---|---|---|
 | 1 | [IoT Telemetry & Control Service](iot-service/) | 8082 | Firebase Realtime DB | Placeholder |
-| 2 | [API Gateway](api-gateway/) + [User Mgmt & Disease Detection](user-diagnosis-service/) | 8080, 8081 | PostgreSQL + MongoDB | ✅ Complete |
+| 2 | [API Gateway](api-gateway/) + [User Mgmt & Disease Detection](user-diagnosis-service/) | 8080, 8081 | PostgreSQL + MongoDB | Complete |
 | 3 | [Treatment & Suggestion Service](treatment-service/) | 8083 | PostgreSQL | Placeholder |
 | 4 | [E-Commerce Marketplace Service](ecommerce-service/) | 8084 | PostgreSQL | Placeholder |
 | 5 | [Community Forum Service](forum-service/) | 8085 | MongoDB | Placeholder |
 | 6 | [Sales Analytics & Notification Service](analytics-notification-service/) | 8086 | PostgreSQL | Placeholder |
-| Client | [React Web Application](client/) | 3000 | Nginx / Vite SPA | ✅ Complete |
+| Client | [React Web Application](client/) | 3000 | Nginx / Vite SPA | Complete |
 
 ---
 
