@@ -19,10 +19,10 @@ public class ForumController {
         this.forumService = forumService;
     }
 
-    /** List posts, optionally filtered by category. */
+    /** List posts, optionally filtered by crop type. */
     @GetMapping("/posts")
-    public ResponseEntity<List<PostResponse>> listPosts(@RequestParam(required = false) String category) {
-        return ResponseEntity.ok(forumService.listPosts(category));
+    public ResponseEntity<List<PostResponse>> listPosts(@RequestParam(required = false) String cropType) {
+        return ResponseEntity.ok(forumService.listPosts(cropType));
     }
 
     /** Get a single post with its full reply thread. */

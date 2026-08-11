@@ -26,9 +26,9 @@ public class ForumService {
         this.eventPublisher = eventPublisher;
     }
 
-    public List<PostResponse> listPosts(String category) {
-        List<Post> posts = (category != null && !category.isBlank())
-                ? postRepository.findByCategoryIgnoreCase(category)
+    public List<PostResponse> listPosts(String cropType) {
+        List<Post> posts = (cropType != null && !cropType.isBlank())
+                ? postRepository.findByCropTypeIgnoreCase(cropType)
                 : postRepository.findAllByOrderByCreatedAtDesc();
         return posts.stream().map(this::toResponse).toList();
     }
@@ -42,10 +42,13 @@ public class ForumService {
     public PostResponse createPost(PostRequest request) {
         Post post = new Post();
         post.setTitle(request.title());
-        post.setContent(request.content());
+        post.setBody(request.body());
         post.setAuthorId(request.authorId());
         post.setAuthorName(request.authorName());
-        post.setCategory(request.category());
+        post.setCropType(request.cropType());
+        if (request.tags() != null) {
+            post.setTags(request.tags());
+        }
         Post saved = postRepository.save(post);
         log.info("Created post id={}, title={}", saved.getId(), saved.getTitle());
         return toResponse(saved);
@@ -56,7 +59,7 @@ public class ForumService {
                 .orElseThrow(() -> ApiException.notFound("Post not found: " + postId));
 
         Reply reply = new Reply();
-        reply.setContent(request.content());
+        reply.setBody(request.body());
         reply.setAuthorId(request.authorId());
         reply.setAuthorName(request.authorName());
         post.getReplies().add(reply);
@@ -77,8 +80,9 @@ public class ForumService {
     }
 
     private PostResponse toResponse(Post p) {
-        return new PostResponse(p.getId(), p.getTitle(), p.getContent(), p.getAuthorId(),
-                p.getAuthorName(), p.getCategory(), p.getReplies(),
+        return new PostResponse(p.getId(), p.getAuthorId(), p.getAuthorName(), p.getTitle(), p.getBody(),
+                p.getTags(), p.getCropType(), p.isResolved(), p.getAcceptedReplyId(), p.isFlagged(),
+                p.getFlagCount(), p.isAiAnswerAttempted(), p.getReplies(),
                 p.getReplies() != null ? p.getReplies().size() : 0,
                 p.getCreatedAt(), p.getUpdatedAt());
     }
