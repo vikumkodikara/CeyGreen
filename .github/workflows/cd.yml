@@ -96,7 +96,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd ~/ceygreen
+            cd ~/CeyGreen 2>/dev/null || cd ~/ceygreen
 
             git pull origin main
 
