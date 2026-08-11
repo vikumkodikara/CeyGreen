@@ -101,6 +101,17 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
 }
 
+/* Fix browser autofill background in dark theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px rgba(10, 20, 14, 0.95) inset !important;
+  -webkit-text-fill-color: var(--text-main) !important;
+  caret-color: var(--text-main);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 button {
   cursor: pointer;
   font-family: var(--font-heading);
