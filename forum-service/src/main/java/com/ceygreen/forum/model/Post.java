@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A forum discussion post with its replies embedded, so a full thread loads in a single read.
@@ -71,6 +72,6 @@ public class Post {
 
     /** Find an embedded reply by its id. */
     public Reply findReply(String replyId) {
-        return replies.stream().filter(r -> r.getId().equals(replyId)).findFirst().orElse(null);
+        return replies.stream().filter(r -> Objects.equals(r.getId(), replyId)).findFirst().orElse(null);
     }
 }
