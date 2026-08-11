@@ -1,38 +1,41 @@
 export interface Product {
   id: number;
-  name: string;
-  description: string;
   farmerId: string;
-  price: number;
+  cropName: string;
   quantity: number;
-  cropType: string;
-  available: boolean;
-  createdAt: string;
+  unitPrice: number;
+  harvestDate: string;
+  location: string;
+  active: boolean;
 }
 
-export interface ProductRequest {
-  name: string;
-  description?: string;
-  farmerId: string;
-  price: number;
+export interface ProductCreateRequest {
+  cropName: string;
   quantity: number;
-  cropType?: string;
+  unitPrice: number;
+  harvestDate: string;
+  location: string;
 }
 
-export interface CheckoutItem {
+export interface ProductUpdateRequest {
+  unitPrice?: number;
+  quantity?: number;
+  active?: boolean;
+}
+
+export interface CheckoutRequest {
   productId: number;
   quantity: number;
 }
 
-export interface CheckoutRequest {
-  buyerId: string;
-  items: CheckoutItem[];
-}
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
 
 export interface OrderResponse {
   id: number;
   buyerId: string;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
+  productId: number;
+  quantity: number;
+  totalPrice: number;
+  status: OrderStatus;
+  orderedAt: string;
 }
