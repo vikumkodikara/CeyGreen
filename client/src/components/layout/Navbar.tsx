@@ -18,7 +18,7 @@ export const Navbar: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '1rem 2rem',
+        padding: '0.75rem 1.25rem',
         borderBottom: '1px solid var(--border-color)',
         background: 'rgba(11, 19, 14, 0.85)',
         backdropFilter: 'blur(10px)',

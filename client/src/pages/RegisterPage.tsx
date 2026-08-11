@@ -68,7 +68,7 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '450px', margin: '3rem auto', padding: '0 1rem' }}>
+    <div className="auth-container">
       <Card title="Create Account" subtitle="Join CeyGreen Greenhouse Management">
         {error && (
           <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
@@ -100,15 +100,37 @@ export const RegisterPage: React.FC = () => {
             required
             minLength={8}
           />
-          <Input
-            label="Confirm Password"
-            type="password"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={8}
-          />
+          <div style={{ marginBottom: '1rem' }}>
+            <Input
+              label="Confirm Password"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={8}
+            />
+            {confirmPassword.length > 0 && (
+              <div
+                style={{
+                  fontSize: '0.8rem',
+                  marginTop: '-0.5rem',
+                  marginBottom: '0.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  color: password === confirmPassword ? 'var(--success)' : 'var(--danger)',
+                  fontWeight: 500,
+                }}
+              >
+                {password === confirmPassword ? (
+                  <><span>✓</span> Passwords match</>
+                ) : (
+                  <><span>✕</span> Passwords do not match</>
+                )}
+              </div>
+            )}
+          </div>
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>
               Account Role
@@ -116,7 +138,7 @@ export const RegisterPage: React.FC = () => {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as Role)}
-              style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(10, 20, 14, 0.6)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+              style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(10, 20, 14, 0.75)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
             >
               <option value="FARMER">Farmer (Greenhouse & Diagnostics)</option>
               <option value="BUYER">Buyer (Marketplace)</option>
