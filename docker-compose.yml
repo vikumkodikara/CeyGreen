@@ -97,7 +97,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
       DIAGNOSIS_IMAGE_DIR: /app/data/diagnosis-images
-      DISEASE_CLASSIFIER_IMPL: mock
+      DISEASE_CLASSIFIER_IMPL: ${DISEASE_CLASSIFIER_IMPL:-onnx}
     volumes:
       - diagnosis_images:/app/data/diagnosis-images
     depends_on:

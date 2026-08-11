@@ -26,11 +26,14 @@ export const DiagnosisPage: React.FC = () => {
   const [aiConsultation, setAiConsultation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
+      setUploadError(null);
     }
   };
 
@@ -38,12 +41,14 @@ export const DiagnosisPage: React.FC = () => {
     setFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
+    setUploadError(null);
   };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
     setLoading(true);
+    setUploadError(null);
     setDiagnosisResult(null);
     setDiseaseDetail(null);
     setTreatments([]);
@@ -71,7 +76,8 @@ export const DiagnosisPage: React.FC = () => {
         }
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Diagnosis upload failed. Please verify network connection.');
+      const msg = err.response?.data?.message || err.message || 'Diagnosis upload failed. Please verify image format and size.';
+      setUploadError(msg);
     } finally {
       setLoading(false);
     }
@@ -158,6 +164,11 @@ Immediate Greenhouse Environment Adjustments:
 
       {/* Upload Form Card */}
       <Card title="Upload Leaf Sample" subtitle="Select your crop type and attach a clear photo of the affected plant leaf">
+        {uploadError && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
+            {uploadError}
+          </div>
+        )}
         <form onSubmit={handleUpload}>
           {/* Crop Product Dropdown (6 Supported Products) */}
           <div style={{ marginBottom: '1.25rem' }}>
