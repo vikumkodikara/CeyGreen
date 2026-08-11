@@ -46,6 +46,7 @@ class DiagnosisIntegrationTest extends AbstractIntegrationTest {
         registry.add("disease.upload.directory",
                 () -> System.getProperty("java.io.tmpdir") + "/ceygreen-diagnosis-test-" + UUID.randomUUID());
         registry.add("disease.upload.cache-identical-uploads", () -> "true");
+        registry.add("disease.classifier.impl", () -> "mock");
     }
 
     @Test
