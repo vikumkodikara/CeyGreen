@@ -39,6 +39,9 @@ jobs:
           - service: user-diagnosis-service
             context: ./user-diagnosis-service
             image_name: ghcr.io/vikumkodikara/ceygreen-user-diagnosis-service
+          - service: client
+            context: ./client
+            image_name: ghcr.io/vikumkodikara/ceygreen-client
 
     steps:
       - name: Checkout code

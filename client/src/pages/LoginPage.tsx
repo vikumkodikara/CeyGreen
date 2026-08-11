@@ -38,7 +38,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '420px', margin: '4rem auto', padding: '0 1rem' }}>
+    <div className="auth-container">
       <Card title="Welcome Back" subtitle="Sign in to your CeyGreen account">
         {error && (
           <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
