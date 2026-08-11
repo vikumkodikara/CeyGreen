@@ -25,7 +25,13 @@ export const LoginPage: React.FC = () => {
       loginUser(token.access_token, user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your email and password.');
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.request) {
+        setError('Cannot connect to user service (Backend server is offline or unreachable).');
+      } else {
+        setError('Login failed. Please check your email and password.');
+      }
     } finally {
       setLoading(false);
     }

@@ -11,6 +11,7 @@ export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<Role>('FARMER');
   const [farmLocation, setFarmLocation] = useState('');
   const [contactInfo, setContactInfo] = useState('');
@@ -23,6 +24,12 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match. Please make sure both fields match.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -41,7 +48,20 @@ export const RegisterPage: React.FC = () => {
       loginUser(token.access_token, user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Check password length (min 8 chars) or email uniqueness.');
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (data.fieldErrors && Object.keys(data.fieldErrors).length > 0) {
+          setError(Object.entries(data.fieldErrors).map(([field, msg]) => `${field}: ${msg}`).join('. '));
+        } else if (data.message) {
+          setError(data.message);
+        } else {
+          setError('Registration failed. Check password length (min 8 chars) or email uniqueness.');
+        }
+      } else if (err.request) {
+        setError('Cannot connect to user service (Backend server is offline or unreachable).');
+      } else {
+        setError(err.message || 'Registration failed. Check your input.');
+      }
     } finally {
       setLoading(false);
     }
@@ -77,6 +97,15 @@ export const RegisterPage: React.FC = () => {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          <Input
+            label="Confirm Password"
+            type="password"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
             minLength={8}
           />
