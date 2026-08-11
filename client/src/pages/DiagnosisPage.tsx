@@ -6,6 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Treatment } from '../types/treatment';
 import { CROPS_LIST, getDiseaseDetail, DiseaseDetail } from '../data/diseaseKnowledge';
+import { generateGeminiAgronomistReport, getStoredGeminiKey, setStoredGeminiKey } from '../api/gemini';
 
 export const DiagnosisPage: React.FC = () => {
   const { user } = useAuth();
@@ -21,9 +22,12 @@ export const DiagnosisPage: React.FC = () => {
   const [loadingTreatments, setLoadingTreatments] = useState(false);
   const [activeTab, setActiveTab] = useState<'symptoms' | 'treatment' | 'prevention' | 'products'>('symptoms');
   
-  // AI Agronomist Custom Consultation State
+  // Gemini AI State
+  const [geminiKeyInput, setGeminiKeyInput] = useState(getStoredGeminiKey());
   const [aiConsultation, setAiConsultation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [showKeySetting, setShowKeySetting] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -47,6 +51,7 @@ export const DiagnosisPage: React.FC = () => {
     setDiseaseDetail(null);
     setTreatments([]);
     setAiConsultation(null);
+    setAiError(null);
 
     try {
       const farmerId = user?.farmerId || user?.id || 'farmer-1';
@@ -76,13 +81,38 @@ export const DiagnosisPage: React.FC = () => {
     }
   };
 
-  // Generate Gemini AI Custom Agronomist Report
-  const handleGenerateAiReport = () => {
-    if (!diseaseDetail) return;
-    setLoadingAi(true);
+  const handleSaveGeminiKey = () => {
+    setStoredGeminiKey(geminiKeyInput);
+    setShowKeySetting(false);
+    alert('Gemini API Key saved successfully!');
+  };
 
-    setTimeout(() => {
-      const report = `
+  // Generate Real Live Gemini AI Report
+  const handleGenerateAiReport = async () => {
+    if (!diseaseDetail) return;
+    const keyToUse = geminiKeyInput || getStoredGeminiKey();
+
+    if (!keyToUse) {
+      setShowKeySetting(true);
+      setAiError('Please enter your Gemini API Key below to generate live AI reports.');
+      return;
+    }
+
+    setLoadingAi(true);
+    setAiError(null);
+
+    try {
+      const liveReport = await generateGeminiAgronomistReport(
+        cropType,
+        diseaseDetail.displayName,
+        confidencePercent,
+        keyToUse
+      );
+      setAiConsultation(liveReport);
+    } catch (err: any) {
+      setAiError(err.message || 'Failed to call Gemini AI API.');
+      // Fallback to built-in template report if live API fails
+      const fallbackReport = `
 🔬 **CeyGreen AI Agronomist Action Report**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • **Target Crop**: ${cropType}
@@ -98,10 +128,11 @@ export const DiagnosisPage: React.FC = () => {
 • Day 1: Spray ${diseaseDetail.organicTreatments[0] || 'Organic Copper Soap'} thoroughly under leaf surfaces.
 • Day 5: Re-inspect foliage. Apply ${diseaseDetail.chemicalTreatments[0] || 'Protectant Fungicide'} if new spots emerge.
 • Day 10: Apply bio-stimulant foliar spray to boost plant immunity and restore chlorophyll levels.
-      `;
-      setAiConsultation(report.trim());
+      `.trim();
+      setAiConsultation(fallbackReport);
+    } finally {
       setLoadingAi(false);
-    }, 1200);
+    }
   };
 
   // Extract valid confidence score safely (handles confidenceScore, confidence, or fallback)
@@ -379,6 +410,47 @@ export const DiagnosisPage: React.FC = () => {
                 </button>
               </div>
 
+              {/* Gemini API Key Config Toggle */}
+              <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  🔑 Gemini API Status: {geminiKeyInput ? '✅ Key Active (••••' + geminiKeyInput.slice(-4) + ')' : '⚠️ Key Not Set (Using Template)'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowKeySetting(!showKeySetting)}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent-green)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {showKeySetting ? 'Close Setting' : 'Configure Gemini API Key ⚙️'}
+                </button>
+              </div>
+
+              {showKeySetting && (
+                <div style={{ padding: '1rem', background: 'rgba(10, 20, 14, 0.9)', border: '1px solid var(--border-focus)', borderRadius: '10px', marginTop: '0.5rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', fontWeight: 500 }}>
+                    Enter your Google Gemini API Key:
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <input
+                      type="password"
+                      placeholder="AIzaSy..."
+                      value={geminiKeyInput}
+                      onChange={(e) => setGeminiKeyInput(e.target.value)}
+                      style={{ flex: 1, minWidth: '200px', padding: '0.5rem 0.8rem', fontSize: '0.9rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveGeminiKey}
+                      style={{ padding: '0.5rem 1rem', background: 'var(--accent-green)', color: '#051d0d', fontWeight: 700, borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                    >
+                      Save Key
+                    </button>
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.4rem' }}>
+                    Or add <code>VITE_GEMINI_API_KEY=AIzaSy...</code> in your <code>client/.env</code> file.
+                  </p>
+                </div>
+              )}
+
               {/* Gemini AI Report Output Box */}
               {aiConsultation && (
                 <div
@@ -391,7 +463,7 @@ export const DiagnosisPage: React.FC = () => {
                     fontSize: '0.9rem',
                     lineHeight: 1.6,
                     whiteSpace: 'pre-wrap',
-                    marginTop: '0.5rem',
+                    marginTop: '0.75rem',
                   }}
                 >
                   {aiConsultation}
