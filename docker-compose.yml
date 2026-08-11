@@ -153,7 +153,10 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        VITE_GEMINI_API_KEY: ${VITE_GEMINI_API_KEY:-}
     ports:
       - "3000:80"
     depends_on:
