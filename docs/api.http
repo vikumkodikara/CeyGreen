@@ -1,0 +1,117 @@
+### CeyGreen Student 2 — API samples
+### Base URLs
+@gateway = http://localhost:8080
+@service = http://localhost:8081
+@apiKey = ceygreen-dev-api-key
+
+### ========== User Management (via gateway) ==========
+
+### Register a farmer
+POST {{gateway}}/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Nimal Perera",
+  "email": "nimal@ceygreen.test",
+  "password": "greenhouse123",
+  "role": "FARMER",
+  "farmLocation": "Nuwara Eliya",
+  "contactInfo": "+94771234567"
+}
+
+### Login — capture access_token from the response
+# @name login
+POST {{gateway}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "nimal@ceygreen.test",
+  "password": "greenhouse123"
+}
+
+###
+@token = {{login.response.body.access_token}}
+@userId = {{login.response.body.user_id}}
+
+### Get public profile
+GET {{gateway}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### Update own profile
+PUT {{gateway}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nimal K. Perera",
+  "farmLocation": "Bandarawela",
+  "contactInfo": "+94770000000"
+}
+
+### ========== Disease Detection (via gateway) ==========
+
+### Upload a leaf image for diagnosis
+POST {{gateway}}/api/diagnosis/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="leaf.jpg"
+Content-Type: image/jpeg
+
+< ./sample-leaf.jpg
+--WebAppBoundary
+Content-Disposition: form-data; name="farmerId"
+
+{{userId}}
+--WebAppBoundary
+Content-Disposition: form-data; name="cropType"
+
+tomato
+--WebAppBoundary--
+
+### Get one diagnosis (replace DIAGNOSIS_ID)
+GET {{gateway}}/api/diagnosis/DIAGNOSIS_ID
+Authorization: Bearer {{token}}
+
+### List diagnosis history for a farmer
+GET {{gateway}}/api/diagnosis/history/{{userId}}
+Authorization: Bearer {{token}}
+
+### Delete a diagnosis (replace DIAGNOSIS_ID)
+DELETE {{gateway}}/api/diagnosis/DIAGNOSIS_ID
+Authorization: Bearer {{token}}
+
+### ========== Negative cases ==========
+
+### 401 — protected route without token
+GET {{gateway}}/api/users/{{userId}}
+
+### 401 — direct service call without API key (bypassing gateway)
+GET {{service}}/users/{{userId}}
+Authorization: Bearer {{token}}
+
+### 403 — farmerId mismatch on upload
+POST {{gateway}}/api/diagnosis/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="image"; filename="leaf.jpg"
+Content-Type: image/jpeg
+
+< ./sample-leaf.jpg
+--WebAppBoundary
+Content-Disposition: form-data; name="farmerId"
+
+00000000-0000-0000-0000-000000000000
+--WebAppBoundary
+Content-Disposition: form-data; name="cropType"
+
+tomato
+--WebAppBoundary--
+
+### Direct service call WITH api key (standalone demo, no gateway)
+GET {{service}}/users/{{userId}}
+Authorization: Bearer {{token}}
+X-API-Key: {{apiKey}}
