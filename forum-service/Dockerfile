@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
-LABEL maintainer="Student 5"
 
 FROM maven:3.9-eclipse-temurin-17 AS build
+LABEL maintainer="Student 5"
 WORKDIR /build
 COPY pom.xml .
 COPY src ./src
