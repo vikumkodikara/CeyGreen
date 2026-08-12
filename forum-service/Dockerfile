@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+LABEL maintainer="Student 5"
 
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /build
