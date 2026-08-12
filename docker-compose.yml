@@ -249,26 +249,27 @@ services:
   #  Uncomment once Student 5's code is added to forum-service/
   # ═══════════════════════════════════════════════════════════════════════
 
-  # forum-service:
-  #   build: ./forum-service
-  #   ports:
-  #     - "8085:8085"
-  #   environment:
-  #     SERVER_PORT: 8085
-  #     MONGODB_URI: mongodb://mongo:27017/ceygreen_forum
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     mongo:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  forum-service:
+    build: ./forum-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      MONGODB_URI: mongodb://mongo:27017/ceygreen_forum
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 6 — Sales Analytics & Notification Service (port 8086)
