@@ -3,6 +3,7 @@ package com.ceygreen.forum.controller;
 import com.ceygreen.forum.dto.PageResponse;
 import com.ceygreen.forum.dto.PostRequest;
 import com.ceygreen.forum.dto.PostResponse;
+import com.ceygreen.forum.dto.ReplyActionRequest;
 import com.ceygreen.forum.dto.ReplyRequest;
 import com.ceygreen.forum.security.CurrentUser;
 import com.ceygreen.forum.service.ForumService;
@@ -55,11 +56,20 @@ public class ForumController {
         return ResponseEntity.status(HttpStatus.CREATED).body(forumService.createPost(request, currentUser));
     }
 
-    /** Add a reply to an existing post. */
+    /**
+     * Add a reply to a post, or apply a thread action (upvote / acceptAnswer / flag) to it. The
+     * single endpoint distinguishes the two by the presence of an {@code action} field: a new reply
+     * returns 201 Created, an action returns 200 OK.
+     */
     @PostMapping("/posts/{id}/replies")
-    public ResponseEntity<PostResponse> addReply(@PathVariable String id, @Valid @RequestBody ReplyRequest request,
-                                                 @AuthenticationPrincipal CurrentUser currentUser) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(forumService.addReply(id, request, currentUser));
+    public ResponseEntity<PostResponse> addReplyOrAct(@PathVariable String id,
+                                                      @Valid @RequestBody ReplyActionRequest request,
+                                                      @AuthenticationPrincipal CurrentUser currentUser) {
+        if (request.isAction()) {
+            return ResponseEntity.ok(forumService.applyReplyAction(id, request, currentUser));
+        }
+        PostResponse created = forumService.addReply(id, new ReplyRequest(request.body()), currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     /** Delete a post (author or admin). */
