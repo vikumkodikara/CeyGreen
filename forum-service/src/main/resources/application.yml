@@ -45,3 +45,12 @@ management:
 logging:
   level:
     com.ceygreen.forum: ${LOG_LEVEL:INFO}
+
+forum:
+  ai-fallback:
+    enabled: true
+    unanswered-threshold-hours: 24
+    check-interval-minutes: 30
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: gemini-1.5-flash
