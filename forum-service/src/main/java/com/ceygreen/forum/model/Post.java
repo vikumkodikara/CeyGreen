@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -24,8 +25,10 @@ public class Post {
     @Id private String id;
     @Indexed private String authorId;
     private String authorName;
-    private String title;
-    private String body;
+    // title + body form a single MongoDB text index; title is weighted higher so a title match
+    // ranks above a body-only match. Used by SimilarityService's full-text fallback.
+    @TextIndexed(weight = 3) private String title;
+    @TextIndexed private String body;
     @Indexed private List<String> tags = new ArrayList<>();
     @Indexed private String cropType;
     private boolean resolved;

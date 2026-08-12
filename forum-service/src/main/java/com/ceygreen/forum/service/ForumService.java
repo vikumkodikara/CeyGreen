@@ -4,6 +4,7 @@ import com.ceygreen.forum.common.ApiException;
 import com.ceygreen.forum.dto.PageResponse;
 import com.ceygreen.forum.dto.PostRequest;
 import com.ceygreen.forum.dto.PostResponse;
+import com.ceygreen.forum.dto.ReplyActionRequest;
 import com.ceygreen.forum.dto.ReplyRequest;
 import com.ceygreen.forum.kafka.ForumEventPublisher;
 import com.ceygreen.forum.model.Post;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ForumService {
@@ -35,6 +37,9 @@ public class ForumService {
 
     // Query params are clamped to sane bounds so a caller can't request an unbounded page.
     private static final int MAX_PAGE_SIZE = 100;
+
+    // Flags accumulate until this many, at which point the item is marked for moderation review.
+    private static final int FLAG_THRESHOLD = 3;
 
     /**
      * List posts with optional filters (any-of tags, exact case-insensitive crop type, resolved
@@ -82,6 +87,9 @@ public class ForumService {
     }
 
     public PostResponse addReply(String postId, ReplyRequest request, CurrentUser user) {
+        if (request.body() == null || request.body().isBlank()) {
+            throw ApiException.badRequest("Reply body is required");
+        }
         Post post = requirePost(postId);
 
         Reply reply = new Reply();
@@ -95,6 +103,76 @@ public class ForumService {
         eventPublisher.publishNewReply(saved, reply);
         log.info("Added reply id={} to post={} by author={}", reply.getId(), postId, reply.getAuthorId());
         return toResponse(saved);
+    }
+
+    /**
+     * Apply a thread action (upvote / acceptAnswer / flag) to a post or one of its replies. Unlike
+     * reply creation this does not emit a Kafka event. Returns the updated post.
+     */
+    public PostResponse applyReplyAction(String postId, ReplyActionRequest request, CurrentUser user) {
+        Post post = requirePost(postId);
+        String userId = user.requireUserId();
+        String action = request.action().trim();
+        switch (action) {
+            case "upvote" -> upvoteReply(post, request.replyId(), userId);
+            case "acceptAnswer" -> acceptAnswer(post, request.replyId(), userId);
+            case "flag" -> flag(post, request.replyId());
+            default -> throw ApiException.badRequest("Unknown action: " + request.action());
+        }
+        post.setUpdatedAt(Instant.now());
+        Post saved = postRepository.save(post);
+        return toResponse(saved);
+    }
+
+    /** Add one upvote from this user, idempotently — a repeat vote is a no-op. */
+    private void upvoteReply(Post post, String replyId, String userId) {
+        Reply reply = requireReply(post, replyId);
+        if (reply.getUpvotedBy().contains(userId)) {
+            return;
+        }
+        reply.getUpvotedBy().add(userId);
+        reply.setUpvotes(reply.getUpvotes() + 1);
+        log.info("Upvoted reply id={} on post={} by user={}", replyId, post.getId(), userId);
+    }
+
+    /** Mark a reply as the accepted answer. Only the post's own author may do this. */
+    private void acceptAnswer(Post post, String replyId, String userId) {
+        if (!Objects.equals(post.getAuthorId(), userId)) {
+            throw ApiException.forbidden("Only the post author may accept an answer");
+        }
+        Reply reply = requireReply(post, replyId);
+        post.setResolved(true);
+        post.setAcceptedReplyId(reply.getId());
+        log.info("Accepted reply id={} as answer on post={}", reply.getId(), post.getId());
+    }
+
+    /** Increment the flag count on a reply, or on the post itself when no replyId is given. */
+    private void flag(Post post, String replyId) {
+        if (replyId == null || replyId.isBlank()) {
+            post.setFlagCount(post.getFlagCount() + 1);
+            if (post.getFlagCount() >= FLAG_THRESHOLD) {
+                post.setFlagged(true);
+            }
+            log.info("Flagged post id={} (count={})", post.getId(), post.getFlagCount());
+            return;
+        }
+        Reply reply = requireReply(post, replyId);
+        reply.setFlagCount(reply.getFlagCount() + 1);
+        if (reply.getFlagCount() >= FLAG_THRESHOLD) {
+            reply.setFlagged(true);
+        }
+        log.info("Flagged reply id={} on post={} (count={})", replyId, post.getId(), reply.getFlagCount());
+    }
+
+    private Reply requireReply(Post post, String replyId) {
+        if (replyId == null || replyId.isBlank()) {
+            throw ApiException.badRequest("replyId is required for this action");
+        }
+        Reply reply = post.findReply(replyId);
+        if (reply == null) {
+            throw ApiException.notFound("Reply not found: " + replyId);
+        }
+        return reply;
     }
 
     /** Delete a post. Allowed for the post's author, or for an admin. */
