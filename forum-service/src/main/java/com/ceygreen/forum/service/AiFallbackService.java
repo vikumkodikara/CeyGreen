@@ -58,15 +58,7 @@ public class AiFallbackService {
         log.info("Starting AI fallback check for unanswered posts");
         Instant cutoff = Instant.now().minus(thresholdHours, ChronoUnit.HOURS);
         
-        Query query = new Query();
-        query.addCriteria(Criteria.where("aiAnswerAttempted").is(false));
-        query.addCriteria(Criteria.where("createdAt").lt(cutoff));
-        query.addCriteria(new Criteria().orOperator(
-            Criteria.where("replies").exists(false),
-            Criteria.where("replies").size(0)
-        ));
-        
-        List<Post> posts = mongoTemplate.find(query, Post.class);
+        List<Post> posts = postRepository.findUnansweredBefore(cutoff, 50);
         log.info("Found {} posts requiring AI fallback", posts.size());
         
         for (Post post : posts) {

@@ -84,4 +84,17 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(Post.class), Post.class)
                 .getMappedResults();
     }
+
+    @Override
+    public List<Post> findUnansweredBefore(java.time.Instant cutoff, int limit) {
+        Criteria criteria = new Criteria().andOperator(
+                Criteria.where("aiAnswerAttempted").is(false),
+                Criteria.where("createdAt").lt(cutoff),
+                Criteria.where("replies").not().elemMatch(Criteria.where("isAiGenerated").is(false))
+        );
+        Query query = Query.query(criteria)
+                .with(Sort.by(Sort.Direction.ASC, "createdAt"))
+                .limit(limit);
+        return mongoTemplate.find(query, Post.class);
+    }
 }
