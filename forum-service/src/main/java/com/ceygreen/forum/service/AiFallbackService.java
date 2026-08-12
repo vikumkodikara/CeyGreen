@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@ConditionalOnProperty(name = "forum.ai-fallback.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "forum.ai-fallback.enabled", havingValue = "true", matchIfMissing = false)
 public class AiFallbackService {
 
     private static final Logger log = LoggerFactory.getLogger(AiFallbackService.class);
