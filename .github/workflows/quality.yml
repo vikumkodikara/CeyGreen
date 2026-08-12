@@ -46,6 +46,8 @@ jobs:
             dockerfile: ./api-gateway/Dockerfile
           - service: user-diagnosis-service
             dockerfile: ./user-diagnosis-service/Dockerfile
+          - service: forum-service
+            dockerfile: ./forum-service/Dockerfile
 
     steps:
       - name: Checkout code
@@ -72,6 +74,8 @@ jobs:
             path: ./api-gateway
           - service: user-diagnosis-service
             path: ./user-diagnosis-service
+          - service: forum-service
+            path: ./forum-service
 
     steps:
       - name: Checkout code
