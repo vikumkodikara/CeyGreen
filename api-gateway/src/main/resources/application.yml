@@ -82,7 +82,7 @@ spring:
               predicates:
                 - Path=/api/orders/**
 
-            # ---- Student 5: Community Forum ----
+            # ---- Student 5: Community Forum Service ----
             - id: community-forum
               uri: ${FORUM_SERVICE_URL:http://forum-service:8085}
               predicates:
