@@ -1,5 +1,6 @@
 package com.ceygreen.forum.controller;
 
+import com.ceygreen.forum.dto.PageResponse;
 import com.ceygreen.forum.dto.PostRequest;
 import com.ceygreen.forum.dto.PostResponse;
 import com.ceygreen.forum.dto.ReplyRequest;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/forum")
@@ -21,10 +21,25 @@ public class ForumController {
         this.forumService = forumService;
     }
 
-    /** List posts, optionally filtered by crop type. */
+    /**
+     * List posts with optional filters and pagination.
+     *
+     * @param tags     comma-separated tags; a post matches if it carries any of them
+     * @param cropType exact crop type match (case-insensitive)
+     * @param resolved filter by resolved state when provided
+     * @param sort     {@code newest} (default) or {@code mostUpvoted}
+     * @param page     zero-based page index
+     * @param size     page size (clamped server-side)
+     */
     @GetMapping("/posts")
-    public ResponseEntity<List<PostResponse>> listPosts(@RequestParam(required = false) String cropType) {
-        return ResponseEntity.ok(forumService.listPosts(cropType));
+    public ResponseEntity<PageResponse<PostResponse>> listPosts(
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false) String cropType,
+            @RequestParam(required = false) Boolean resolved,
+            @RequestParam(defaultValue = "newest") String sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(forumService.listPosts(tags, cropType, resolved, sort, page, size));
     }
 
     /** Get a single post with its full reply thread. */

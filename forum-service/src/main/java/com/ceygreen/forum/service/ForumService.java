@@ -1,6 +1,7 @@
 package com.ceygreen.forum.service;
 
 import com.ceygreen.forum.common.ApiException;
+import com.ceygreen.forum.dto.PageResponse;
 import com.ceygreen.forum.dto.PostRequest;
 import com.ceygreen.forum.dto.PostResponse;
 import com.ceygreen.forum.dto.ReplyRequest;
@@ -8,12 +9,17 @@ import com.ceygreen.forum.kafka.ForumEventPublisher;
 import com.ceygreen.forum.model.Post;
 import com.ceygreen.forum.model.Reply;
 import com.ceygreen.forum.repository.PostRepository;
+import com.ceygreen.forum.repository.PostSearch;
+import com.ceygreen.forum.repository.PostSort;
 import com.ceygreen.forum.security.CurrentUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -27,11 +33,33 @@ public class ForumService {
         this.eventPublisher = eventPublisher;
     }
 
-    public List<PostResponse> listPosts(String cropType) {
-        List<Post> posts = (cropType != null && !cropType.isBlank())
-                ? postRepository.findByCropTypeIgnoreCase(cropType)
-                : postRepository.findAllByOrderByCreatedAtDesc();
-        return posts.stream().map(this::toListResponse).toList();
+    // Query params are clamped to sane bounds so a caller can't request an unbounded page.
+    private static final int MAX_PAGE_SIZE = 100;
+
+    /**
+     * List posts with optional filters (any-of tags, exact case-insensitive crop type, resolved
+     * flag), ordering ({@code newest} or {@code mostUpvoted}) and pagination. List entries omit the
+     * reply thread and expose {@code replyCount} only.
+     */
+    public PageResponse<PostResponse> listPosts(String tags, String cropType, Boolean resolved,
+                                                String sort, int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        PostSearch search = new PostSearch(parseTags(tags), cropType, resolved, PostSort.fromParam(sort));
+        Page<Post> result = postRepository.search(search, PageRequest.of(safePage, safeSize));
+        List<PostResponse> content = result.getContent().stream().map(this::toListResponse).toList();
+        return PageResponse.of(content, safePage, safeSize, result.getTotalElements());
+    }
+
+    /** Split a comma-separated {@code tags} query value into trimmed, non-empty tokens. */
+    private static List<String> parseTags(String tags) {
+        if (tags == null || tags.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(tags.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
     }
 
     public PostResponse getPost(String id) {
@@ -86,9 +114,11 @@ public class ForumService {
     }
 
     private PostResponse toListResponse(Post p) {
+        // List view carries no reply bodies — replies=null is omitted by @JsonInclude(NON_NULL),
+        // leaving replyCount as the only reply-related field.
         return new PostResponse(p.getId(), p.getAuthorId(), p.getAuthorName(), p.getTitle(), p.getBody(),
                 p.getTags(), p.getCropType(), p.isResolved(), p.getAcceptedReplyId(), p.isFlagged(),
-                p.getFlagCount(), p.isAiAnswerAttempted(), List.of(),
+                p.getFlagCount(), p.isAiAnswerAttempted(), null,
                 p.getReplies() != null ? p.getReplies().size() : 0,
                 p.getCreatedAt(), p.getUpdatedAt());
     }
