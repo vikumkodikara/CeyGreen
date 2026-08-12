@@ -78,7 +78,7 @@ public class AiFallbackService {
         
         if (similar.isPresent()) {
             Post match = similar.get();
-            replyBody = "This looks similar to an earlier resolved question — [link/reference to that post](/posts/" + match.getId() + ").";
+            replyBody = "This looks similar to an earlier resolved question — [link/reference to that post](/api/forum/posts/" + match.getId() + ").";
             log.info("Used similarity match for post {}", post.getId());
         } else {
             if (geminiApiKey == null || geminiApiKey.isBlank()) {
