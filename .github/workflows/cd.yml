@@ -39,6 +39,9 @@ jobs:
           - service: user-diagnosis-service
             context: ./user-diagnosis-service
             image_name: ghcr.io/vikumkodikara/ceygreen-user-diagnosis-service
+          - service: forum-service
+            context: ./forum-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-forum-service
           - service: client
             context: ./client
             image_name: ghcr.io/vikumkodikara/ceygreen-client
