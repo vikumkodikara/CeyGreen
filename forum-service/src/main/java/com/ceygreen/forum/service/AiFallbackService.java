@@ -83,7 +83,7 @@ public class AiFallbackService {
         } else {
             if (geminiApiKey == null || geminiApiKey.isBlank()) {
                 log.warn("Gemini API key is not configured, skipping LLM fallback for post {}", post.getId());
-                postRepository.save(post);
+                post.setAiAnswerAttempted(false);
                 return;
             }
             replyBody = callGemini(post);
