@@ -12,7 +12,7 @@ import java.time.Instant;
 
 /**
  * Publishes {@link ForumEvent}s to the {@code forum-events} topic. This service is a producer only
- * and is fire-and-forget: it does not care whether the notification service is listening.
+ * and is fire-and-forget: it does not care whether any downstream consumer is listening.
  */
 @Component
 public class ForumEventPublisher {
