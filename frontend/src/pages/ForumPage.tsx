@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { listPosts, createPost, addReply } from '../api/forum';
+import { listPosts, createPost, addReply, getPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -46,13 +46,22 @@ export const ForumPage: React.FC = () => {
     if (!text) return;
 
     try {
-      await addReply(postId, {
+      const updatedPost = await addReply(postId, {
         body: text,
       });
       setReplyText({ ...replyText, [postId]: '' });
-      fetchPosts();
+      setPosts(posts.map(p => p.id === postId ? updatedPost : p));
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to post reply');
+    }
+  };
+
+  const handleLoadReplies = async (postId: string) => {
+    try {
+      const fullPost = await getPost(postId);
+      setPosts(posts.map(p => p.id === postId ? fullPost : p));
+    } catch (err) {
+      console.error('Failed to load replies', err);
     }
   };
 
@@ -93,6 +102,12 @@ export const ForumPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+            )}
+            
+            {(!post.replies || post.replies.length === 0) && post.replyCount !== undefined && post.replyCount > 0 && (
+              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginBottom: '1rem' }} variant="secondary">
+                View {post.replyCount} {post.replyCount === 1 ? 'reply' : 'replies'}
+              </Button>
             )}
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
