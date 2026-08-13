@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Post } from '../types/forum';
 import { useAuth } from '../hooks/useAuth';
+import './ForumPage.css';
 
 export const ForumPage: React.FC = () => {
   const { user } = useAuth();
@@ -66,27 +67,33 @@ export const ForumPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '900px' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>💬 Community Forum</h1>
+    <div className="forum-layout-container">
+      <h1 className="forum-header-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Community Forum
+      </h1>
+      <p className="forum-header-subtitle">{posts.length} Posts</p>
 
-      <Card title="Start a Discussion">
-        <form onSubmit={handleCreatePost}>
-          <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pest control strategies for tomatoes" required />
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Discussion Content</label>
-            <textarea
-              rows={3}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your question or experience..."
-              required
-            />
-          </div>
-          <Button type="submit">Post to Forum</Button>
-        </form>
-      </Card>
+      <div className="forum-grid">
+        <div className="post-feed-column">
+          <Card title="Start a Discussion">
+            <form onSubmit={handleCreatePost}>
+              <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pest control strategies for tomatoes" required />
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Discussion Content</label>
+                <textarea
+                  rows={3}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Write your question or experience..."
+                  required
+                />
+              </div>
+              <Button type="submit">Post to Forum</Button>
+            </form>
+          </Card>
 
-      <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
           <Card key={post.id} title={post.title} subtitle={`Posted by ${post.authorName || post.authorId}`}>
             <p style={{ marginTop: '0.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>{post.body}</p>
@@ -120,6 +127,15 @@ export const ForumPage: React.FC = () => {
             </div>
           </Card>
         ))}
+          </div>
+        </div>
+
+        <div className="sidebar-column">
+          <Card>
+            <h3 style={{ color: 'var(--text-main)', marginBottom: '1rem' }}>AI Green Assistant</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Sidebar placeholder</p>
+          </Card>
+        </div>
       </div>
     </div>
   );
