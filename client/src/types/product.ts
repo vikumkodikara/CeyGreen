@@ -1,38 +1,49 @@
+export type ProductListingStatus = 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK';
+
 export interface Product {
   id: number;
-  name: string;
-  description: string;
   farmerId: string;
-  price: number;
+  cropName: string;
   quantity: number;
-  cropType: string;
-  available: boolean;
-  createdAt: string;
+  unitPrice: number;
+  harvestDate: string;
+  location: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  createdAt?: string;
+  active: boolean;
+  status: ProductListingStatus;
 }
 
-export interface ProductRequest {
-  name: string;
+export interface ProductCreateRequest {
+  cropName: string;
+  quantity: number;
+  unitPrice: number;
+  harvestDate: string;
+  location: string;
   description?: string;
-  farmerId: string;
-  price: number;
-  quantity: number;
-  cropType?: string;
+  imageUrl?: string;
 }
 
-export interface CheckoutItem {
-  productId: number;
-  quantity: number;
+export interface ProductUpdateRequest {
+  unitPrice?: number;
+  quantity?: number;
+  active?: boolean;
+  description?: string;
+  imageUrl?: string;
+  location?: string;
 }
 
-export interface CheckoutRequest {
-  buyerId: string;
-  items: CheckoutItem[];
-}
-
-export interface OrderResponse {
-  id: number;
-  buyerId: string;
-  totalAmount: number;
-  status: string;
-  createdAt: string;
+export interface ProductListParams {
+  q?: string;
+  cropName?: string;
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  active?: boolean;
+  status?: ProductListingStatus;
+  sort?: 'price_asc' | 'price_desc' | 'newest';
+  page?: number;
+  size?: number;
 }

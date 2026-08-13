@@ -81,6 +81,10 @@ spring:
               uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
               predicates:
                 - Path=/api/orders/**
+            - id: ecommerce-dashboard
+              uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
+              predicates:
+                - Path=/api/dashboard/**
 
             # ---- Student 5: Community Forum ----
             - id: community-forum
