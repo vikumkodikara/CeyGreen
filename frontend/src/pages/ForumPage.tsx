@@ -80,7 +80,7 @@ export const ForumPage: React.FC = () => {
       <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
           <Card key={post.id} title={post.title} subtitle={`Posted by ${post.authorName || post.authorId}`}>
-            <p style={{ marginTop: '0.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>{post.content}</p>
+            <p style={{ marginTop: '0.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>{post.body}</p>
 
             {/* Replies */}
             {post.replies && post.replies.length > 0 && (
@@ -89,7 +89,7 @@ export const ForumPage: React.FC = () => {
                 {post.replies.map((r, i) => (
                   <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '0.4rem 0' }}>
                     <strong style={{ fontSize: '0.85rem', color: 'var(--accent-green)' }}>{r.authorName || r.authorId}: </strong>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{r.content}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{r.body}</span>
                   </div>
                 ))}
               </div>
