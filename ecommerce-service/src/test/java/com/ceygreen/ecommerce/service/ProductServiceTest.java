@@ -7,25 +7,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ceygreen.ecommerce.common.ApiException;
+import com.ceygreen.ecommerce.config.MarketplaceProperties;
 import com.ceygreen.ecommerce.dto.ProductCreateRequest;
 import com.ceygreen.ecommerce.dto.ProductUpdateRequest;
 import com.ceygreen.ecommerce.entity.Product;
 import com.ceygreen.ecommerce.repository.ProductRepository;
-import com.ceygreen.ecommerce.service.StockEventService;
 import com.ceygreen.ecommerce.security.UserRole;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ProductServiceTest {
 
     private static final UUID FARMER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
@@ -37,8 +44,18 @@ class ProductServiceTest {
     @Mock
     private StockEventService stockEventService;
 
+    @Mock
+    private MarketplaceProperties marketplaceProperties;
+
     @InjectMocks
     private ProductService productService;
+
+    @BeforeEach
+    void setUp() {
+        MarketplaceProperties.Stock stock = new MarketplaceProperties.Stock();
+        stock.setLowThreshold(10);
+        when(marketplaceProperties.getStock()).thenReturn(stock);
+    }
 
     @Test
     void createProductPersistsSpecFields() {
@@ -50,7 +67,8 @@ class ProductServiceTest {
 
         var response = productService.createProduct(
                 FARMER_ID,
-                new ProductCreateRequest("Tomato", 20, new BigDecimal("150.00"), LocalDate.of(2026, 8, 1), "Kandy"));
+                new ProductCreateRequest(
+                        "Tomato", 20, new BigDecimal("150.00"), LocalDate.of(2026, 8, 1), "Kandy", null, null));
 
         assertThat(response.cropName()).isEqualTo("Tomato");
         assertThat(response.farmerId()).isEqualTo(FARMER_ID);
@@ -64,13 +82,14 @@ class ProductServiceTest {
     @Test
     void listProductsFiltersByCropAndLocation() {
         Product product = sampleProduct();
-        when(productRepository.findByActiveTrueAndCropNameIgnoreCaseAndLocationIgnoreCase("Tomato", "Kandy"))
-                .thenReturn(List.of(product));
+        when(productRepository.findAll(any(Specification.class), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(product)));
 
-        var results = productService.listProducts("Tomato", "Kandy");
+        var results = productService.listProducts(
+                null, "Tomato", "Kandy", null, null, null, null, null, null, null, PageRequest.of(0, 20));
 
-        assertThat(results).hasSize(1);
-        assertThat(results.get(0).cropName()).isEqualTo("Tomato");
+        assertThat(results.getContent()).hasSize(1);
+        assertThat(results.getContent().get(0).cropName()).isEqualTo("Tomato");
     }
 
     @Test
@@ -89,7 +108,7 @@ class ProductServiceTest {
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
         assertThatThrownBy(() -> productService.updateProduct(
-                        1L, OTHER_FARMER, UserRole.FARMER, new ProductUpdateRequest(null, null, false)))
+                        1L, OTHER_FARMER, UserRole.FARMER, new ProductUpdateRequest(null, null, false, null, null, null)))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus().value())
                 .isEqualTo(403);
@@ -102,7 +121,7 @@ class ProductServiceTest {
         when(productRepository.save(product)).thenReturn(product);
 
         var response = productService.updateProduct(
-                1L, FARMER_ID, UserRole.FARMER, new ProductUpdateRequest(null, null, false));
+                1L, FARMER_ID, UserRole.FARMER, new ProductUpdateRequest(null, null, false, null, null, null));
 
         assertThat(response.active()).isFalse();
     }
