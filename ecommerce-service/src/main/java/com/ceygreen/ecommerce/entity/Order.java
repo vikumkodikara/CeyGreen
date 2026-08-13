@@ -26,6 +26,15 @@ public class Order {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
+    @Column(name = "farmer_id", columnDefinition = "uuid")
+    private UUID farmerId;
+
+    @Column(name = "crop_name")
+    private String cropName;
+
+    @Column(name = "unit_price", precision = 12, scale = 2)
+    private BigDecimal unitPrice;
+
     @Column(nullable = false)
     private int quantity;
 
@@ -39,6 +48,21 @@ public class Order {
     @Column(name = "ordered_at", nullable = false)
     private Instant orderedAt = Instant.now();
 
+    @Column(name = "buyer_name")
+    private String buyerName;
+
+    @Column
+    private String phone;
+
+    @Column
+    private String address;
+
+    @Column
+    private String city;
+
+    @Column(name = "postal_code")
+    private String postalCode;
+
     public Order() {}
 
     public Long getId() { return id; }
@@ -47,6 +71,12 @@ public class Order {
     public void setBuyerId(UUID buyerId) { this.buyerId = buyerId; }
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
+    public UUID getFarmerId() { return farmerId; }
+    public void setFarmerId(UUID farmerId) { this.farmerId = farmerId; }
+    public String getCropName() { return cropName; }
+    public void setCropName(String cropName) { this.cropName = cropName; }
+    public BigDecimal getUnitPrice() { return unitPrice; }
+    public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public BigDecimal getTotalPrice() { return totalPrice; }
@@ -55,4 +85,14 @@ public class Order {
     public void setStatus(OrderStatus status) { this.status = status; }
     public Instant getOrderedAt() { return orderedAt; }
     public void setOrderedAt(Instant orderedAt) { this.orderedAt = orderedAt; }
+    public String getBuyerName() { return buyerName; }
+    public void setBuyerName(String buyerName) { this.buyerName = buyerName; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    public String getPostalCode() { return postalCode; }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
 }
