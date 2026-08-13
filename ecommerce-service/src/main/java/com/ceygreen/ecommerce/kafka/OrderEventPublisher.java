@@ -1,8 +1,10 @@
 package com.ceygreen.ecommerce.kafka;
 
 import com.ceygreen.ecommerce.dto.OrderEvent;
+import com.ceygreen.ecommerce.entity.Order;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +26,32 @@ public class OrderEventPublisher {
     }
 
     public void publishOrderCreated(OrderEvent event) {
+        publishPayload(event.orderId(), toPayload(event));
+    }
+
+    public void publishOrderEvent(Order order, String eventType) {
+        OrderEvent event = new OrderEvent(
+                UUID.randomUUID(),
+                order.getId(),
+                order.getBuyerId(),
+                order.getFarmerId(),
+                order.getProductId(),
+                order.getCropName(),
+                order.getQuantity(),
+                order.getUnitPrice(),
+                order.getTotalPrice(),
+                order.getStatus(),
+                order.getOrderedAt(),
+                eventType);
+        publishPayload(event.orderId(), toPayload(event));
+    }
+
+    private void publishPayload(Long orderId, Map<String, Object> payload) {
+        kafkaTemplate.send(topic, orderId.toString(), payload);
+        log.info("Published order event: orderId={}, eventType={}", orderId, payload.get("eventType"));
+    }
+
+    private static Map<String, Object> toPayload(OrderEvent event) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("eventId", event.eventId().toString());
         payload.put("orderId", event.orderId());
@@ -37,8 +65,6 @@ public class OrderEventPublisher {
         payload.put("status", event.status().name());
         payload.put("orderedAt", event.orderedAt().toString());
         payload.put("eventType", event.eventType());
-
-        kafkaTemplate.send(topic, event.orderId().toString(), payload);
-        log.info("Published order event: orderId={}, eventType={}", event.orderId(), event.eventType());
+        return payload;
     }
 }

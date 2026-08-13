@@ -54,7 +54,15 @@ class CheckoutConcurrencyTest {
                 ready.countDown();
                 try {
                     start.await();
-                    orderService.checkout(buyerId, new CheckoutRequest(productId, 4));
+                    orderService.checkout(buyerId, new CheckoutRequest(
+                            null,
+                            productId,
+                            4,
+                            "Buyer",
+                            "0770000000",
+                            "1 Test Road",
+                            "Colombo",
+                            "00100"));
                     successes.incrementAndGet();
                 } catch (ApiException ex) {
                     failures.incrementAndGet();
