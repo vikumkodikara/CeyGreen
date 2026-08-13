@@ -76,7 +76,14 @@ class StockEventKafkaTest {
                             .header("X-User-Role", "BUYER")
                             .header("X-Buyer-Id", BUYER_ID.toString())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(Map.of("productId", productId, "quantity", 5))))
+                            .content(objectMapper.writeValueAsString(Map.of(
+                                    "productId", productId,
+                                    "quantity", 5,
+                                    "buyerName", "Test Buyer",
+                                    "phone", "0771234567",
+                                    "address", "123 Main Street",
+                                    "city", "Colombo",
+                                    "postalCode", "00100"))))
                     .andExpect(status().isCreated());
 
             JsonNode payload = awaitStockEvent(consumer, productId, "LOW_STOCK");
