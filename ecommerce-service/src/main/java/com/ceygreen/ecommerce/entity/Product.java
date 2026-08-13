@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -37,6 +38,15 @@ public class Product {
     @Column(nullable = false)
     private String location;
 
+    @Column(columnDefinition = "text")
+    private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt = Instant.now();
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -59,6 +69,12 @@ public class Product {
     public void setHarvestDate(LocalDate harvestDate) { this.harvestDate = harvestDate; }
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     public long getVersion() { return version; }
