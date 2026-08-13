@@ -21,14 +21,11 @@ export interface Post {
 
 export interface PostRequest {
   title: string;
-  content: string;
-  authorId: string;
-  authorName?: string;
-  category?: string;
+  body: string;
+  tags?: string[];
+  cropType?: string;
 }
 
 export interface ReplyRequest {
-  content: string;
-  authorId: string;
-  authorName?: string;
+  body: string;
 }
