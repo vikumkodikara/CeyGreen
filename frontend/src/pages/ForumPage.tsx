@@ -31,9 +31,7 @@ export const ForumPage: React.FC = () => {
     try {
       await createPost({
         title,
-        content,
-        authorId: user?.id || 'user-1',
-        authorName: user?.fullName || 'Anonymous Farmer',
+        body: content,
       });
       setTitle('');
       setContent('');
@@ -49,9 +47,7 @@ export const ForumPage: React.FC = () => {
 
     try {
       await addReply(postId, {
-        content: text,
-        authorId: user?.id || 'user-1',
-        authorName: user?.fullName || 'Anonymous',
+        body: text,
       });
       setReplyText({ ...replyText, [postId]: '' });
       fetchPosts();
