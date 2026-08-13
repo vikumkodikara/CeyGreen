@@ -57,7 +57,7 @@ class ProductControllerTest {
                         .param("cropName", "Tomato")
                         .param("location", "Kandy"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$.content", hasSize(1)));
     }
 
     @Test
@@ -118,6 +118,6 @@ class ProductControllerTest {
                         .header("X-API-Key", API_KEY)
                         .param("cropName", "Beans"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.content", hasSize(0)));
     }
 }
