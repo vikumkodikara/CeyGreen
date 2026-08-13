@@ -34,16 +34,16 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            context: ./api-gateway
+            context: ./backend/api-gateway
             image_name: ghcr.io/vikumkodikara/ceygreen-api-gateway
           - service: user-diagnosis-service
-            context: ./user-diagnosis-service
+            context: ./backend/user-diagnosis-service
             image_name: ghcr.io/vikumkodikara/ceygreen-user-diagnosis-service
           - service: forum-service
-            context: ./forum-service
+            context: ./backend/forum-service
             image_name: ghcr.io/vikumkodikara/ceygreen-forum-service
           - service: client
-            context: ./client
+            context: ./frontend
             image_name: ghcr.io/vikumkodikara/ceygreen-client
 
     steps:
