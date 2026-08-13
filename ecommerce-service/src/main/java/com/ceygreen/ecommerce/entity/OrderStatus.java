@@ -2,6 +2,8 @@ package com.ceygreen.ecommerce.entity;
 
 public enum OrderStatus {
     PENDING,
-    COMPLETED,
+    CONFIRMED,
+    SHIPPED,
+    DELIVERED,
     CANCELLED
 }

@@ -9,15 +9,25 @@
 # @farmerId = <uuid>
 # @buyerId = <uuid>
 
-### List active products (direct service)
-GET {{service}}/products
-X-API-Key: {{apiKey}}
+### List products (paginated, searchable) — via gateway
+GET {{gateway}}/api/products?q=tomato&inStock=true&sort=newest&page=0&size=20
+Authorization: Bearer {{buyerToken}}
 
-### Filter products
-GET {{service}}/products?cropName=Tomato&location=Kandy
-X-API-Key: {{apiKey}}
+### Categories / featured / low stock
+GET {{gateway}}/api/products/categories
+Authorization: Bearer {{buyerToken}}
 
-### Create listing (farmer) — via gateway
+GET {{gateway}}/api/products/featured?limit=8
+Authorization: Bearer {{buyerToken}}
+
+GET {{gateway}}/api/products/low-stock
+Authorization: Bearer {{farmerToken}}
+
+### Farmer products
+GET {{gateway}}/api/products/farmer/{{farmerId}}?page=0&size=20
+Authorization: Bearer {{farmerToken}}
+
+### Create listing (farmer)
 POST {{gateway}}/api/products
 Authorization: Bearer {{farmerToken}}
 Content-Type: application/json
@@ -27,42 +37,80 @@ Content-Type: application/json
   "quantity": 20,
   "unitPrice": 150.00,
   "harvestDate": "2026-08-09",
-  "location": "Kandy"
+  "location": "Kandy",
+  "description": "Organic greenhouse tomatoes"
 }
 
-### Create listing (direct service, manual headers)
-POST {{service}}/products
-X-API-Key: {{apiKey}}
-X-User-Role: FARMER
-X-Farmer-Id: {{farmerId}}
+### Update / delete / patch stock & status
+PUT {{gateway}}/api/products/1
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "quantity": 25, "unitPrice": 160.00 }
+
+PATCH {{gateway}}/api/products/1/stock
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "quantity": 10 }
+
+PATCH {{gateway}}/api/products/1/status
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "active": false }
+
+DELETE {{gateway}}/api/products/1
+Authorization: Bearer {{farmerToken}}
+
+### Batch checkout (buyer) with shipping
+POST {{gateway}}/api/orders/checkout
+Authorization: Bearer {{buyerToken}}
 Content-Type: application/json
 
 {
-  "cropName": "Beans",
-  "quantity": 12,
-  "unitPrice": 90.00,
-  "harvestDate": "2026-08-09",
-  "location": "Galle"
+  "items": [
+    { "productId": 1, "quantity": 2 },
+    { "productId": 2, "quantity": 1 }
+  ],
+  "buyerName": "Nimal Perera",
+  "phone": "0771234567",
+  "address": "123 Green Lane",
+  "city": "Kandy",
+  "postalCode": "20000"
 }
 
-### Update listing / deactivate
-PUT {{service}}/products/1
-X-API-Key: {{apiKey}}
-X-User-Role: FARMER
-X-Farmer-Id: {{farmerId}}
-Content-Type: application/json
-
-{
-  "quantity": 25,
-  "active": true
-}
-
-### Checkout (buyer)
+### Legacy single-item checkout (still supported)
 POST {{gateway}}/api/orders/checkout
 Authorization: Bearer {{buyerToken}}
 Content-Type: application/json
 
 {
   "productId": 1,
-  "quantity": 2
+  "quantity": 2,
+  "buyerName": "Nimal Perera",
+  "phone": "0771234567",
+  "address": "123 Green Lane",
+  "city": "Kandy",
+  "postalCode": "20000"
 }
+
+### Order reads & status
+GET {{gateway}}/api/orders/my-orders?page=0&size=20
+Authorization: Bearer {{buyerToken}}
+
+GET {{gateway}}/api/orders/farmer
+Authorization: Bearer {{farmerToken}}
+
+GET {{gateway}}/api/orders/1
+Authorization: Bearer {{buyerToken}}
+
+PATCH {{gateway}}/api/orders/1/status
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "status": "CONFIRMED" }
+
+### Farmer dashboard summary
+GET {{gateway}}/api/dashboard/summary
+Authorization: Bearer {{farmerToken}}

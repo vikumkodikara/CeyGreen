@@ -32,6 +32,17 @@ class CheckoutControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private static Map<String, Object> checkoutBody(Long productId, int quantity) {
+        return Map.of(
+                "productId", productId,
+                "quantity", quantity,
+                "buyerName", "Test Buyer",
+                "phone", "0771234567",
+                "address", "123 Main Street",
+                "city", "Colombo",
+                "postalCode", "00100");
+    }
+
     @Test
     void successfulCheckoutDecrementsStockAndCreatesOrder() throws Exception {
         Long productId = createProduct(10);
@@ -41,11 +52,11 @@ class CheckoutControllerTest {
                         .header("X-User-Role", "BUYER")
                         .header("X-Buyer-Id", BUYER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("productId", productId, "quantity", 3))))
+                        .content(objectMapper.writeValueAsString(checkoutBody(productId, 3))))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.quantity").value(3))
-                .andExpect(jsonPath("$.totalPrice").value(361.50))
-                .andExpect(jsonPath("$.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.orders[0].quantity").value(3))
+                .andExpect(jsonPath("$.orders[0].totalPrice").value(361.50))
+                .andExpect(jsonPath("$.orders[0].status").value("PENDING"));
     }
 
     @Test
@@ -57,7 +68,7 @@ class CheckoutControllerTest {
                         .header("X-User-Role", "FARMER")
                         .header("X-Farmer-Id", FARMER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("productId", productId, "quantity", 1))))
+                        .content(objectMapper.writeValueAsString(checkoutBody(productId, 1))))
                 .andExpect(status().isForbidden());
     }
 
@@ -70,7 +81,7 @@ class CheckoutControllerTest {
                         .header("X-User-Role", "BUYER")
                         .header("X-Buyer-Id", BUYER_ID.toString())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("productId", productId, "quantity", 5))))
+                        .content(objectMapper.writeValueAsString(checkoutBody(productId, 5))))
                 .andExpect(status().isBadRequest());
     }
 

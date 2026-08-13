@@ -72,7 +72,7 @@ graph TD
 | 1 | [IoT Telemetry & Control Service](iot-service/) | 8082 | Firebase Realtime DB | Placeholder |
 | 2 | [API Gateway](api-gateway/) + [User Mgmt & Disease Detection](user-diagnosis-service/) | 8080, 8081 | PostgreSQL + MongoDB | Complete |
 | 3 | [Treatment & Suggestion Service](treatment-service/) | 8083 | PostgreSQL | Placeholder |
-| 4 | [E-Commerce Marketplace Service](ecommerce-service/) | 8084 | PostgreSQL | Placeholder |
+| 4 | [E-Commerce Marketplace Service](ecommerce-service/) | 8084 | PostgreSQL | Complete |
 | 5 | [Community Forum Service](forum-service/) | 8085 | MongoDB | Placeholder |
 | 6 | [Sales Analytics & Notification Service](analytics-notification-service/) | 8086 | PostgreSQL | Placeholder |
 | Client | [React Web Application](client/) | 3000 | Nginx / Vite SPA | Complete |
