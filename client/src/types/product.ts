@@ -1,3 +1,5 @@
+export type ProductListingStatus = 'ACTIVE' | 'INACTIVE' | 'OUT_OF_STOCK';
+
 export interface Product {
   id: number;
   farmerId: string;
@@ -6,7 +8,11 @@ export interface Product {
   unitPrice: number;
   harvestDate: string;
   location: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  createdAt?: string;
   active: boolean;
+  status: ProductListingStatus;
 }
 
 export interface ProductCreateRequest {
@@ -15,27 +21,29 @@ export interface ProductCreateRequest {
   unitPrice: number;
   harvestDate: string;
   location: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 export interface ProductUpdateRequest {
   unitPrice?: number;
   quantity?: number;
   active?: boolean;
+  description?: string;
+  imageUrl?: string;
+  location?: string;
 }
 
-export interface CheckoutRequest {
-  productId: number;
-  quantity: number;
-}
-
-export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
-
-export interface OrderResponse {
-  id: number;
-  buyerId: string;
-  productId: number;
-  quantity: number;
-  totalPrice: number;
-  status: OrderStatus;
-  orderedAt: string;
+export interface ProductListParams {
+  q?: string;
+  cropName?: string;
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  active?: boolean;
+  status?: ProductListingStatus;
+  sort?: 'price_asc' | 'price_desc' | 'newest';
+  page?: number;
+  size?: number;
 }
