@@ -24,6 +24,11 @@ export const addReply = async (postId: string, data: ReplyRequest): Promise<Post
   return res.data;
 };
 
+export const actOnPost = async (postId: string, action: string): Promise<Post> => {
+  const res = await apiClient.post<Post>(`/forum/posts/${postId}/replies`, { action });
+  return res.data;
+};
+
 export const deletePost = async (id: string): Promise<void> => {
   await apiClient.delete(`/forum/posts/${id}`);
 };
