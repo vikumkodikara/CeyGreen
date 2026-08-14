@@ -78,13 +78,13 @@ export const ForumPage: React.FC = () => {
           </h1>
           <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} Posts</p>
         </div>
-        <button className="reply-btn" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }} onClick={() => setIsCreateModalOpen(true)}>
-          + New Post
-        </button>
       </div>
 
       <div className="forum-grid">
         <div className="post-feed-column">
+          <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
+            Start a New Discussion
+          </button>
 
           <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
             <button 
