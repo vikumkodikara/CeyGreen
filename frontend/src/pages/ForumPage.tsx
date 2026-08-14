@@ -10,7 +10,7 @@ import './ForumPage.css';
 export const ForumPage: React.FC = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [sort, setSort] = useState<'newest' | 'trending'>('newest');
+  const [sort, setSort] = useState<'newest' | 'trending'>('trending');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -86,20 +86,7 @@ export const ForumPage: React.FC = () => {
             Start a New Discussion
           </button>
 
-          <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
-            <button 
-              onClick={() => setSort('newest')} 
-              style={{ background: 'none', border: 'none', padding: '0.5rem 1rem', color: sort === 'newest' ? 'var(--accent-green)' : 'var(--text-secondary)', borderBottom: sort === 'newest' ? '2px solid var(--accent-green)' : 'none', fontWeight: 600, fontSize: '1rem' }}
-            >
-              Latest
-            </button>
-            <button 
-              onClick={() => setSort('trending')} 
-              style={{ background: 'none', border: 'none', padding: '0.5rem 1rem', color: sort === 'trending' ? 'var(--accent-green)' : 'var(--text-secondary)', borderBottom: sort === 'trending' ? '2px solid var(--accent-green)' : 'none', fontWeight: 600, fontSize: '1rem' }}
-            >
-              Trending
-            </button>
-          </div>
+          <h2 className="trending-header">Trending Discussions</h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
