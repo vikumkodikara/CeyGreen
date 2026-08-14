@@ -70,18 +70,16 @@ export const ForumPage: React.FC = () => {
 
   return (
     <div className="forum-layout-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-        <div>
-          <h1 className="forum-header-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            Community Forum
-          </h1>
-          <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} Posts</p>
-        </div>
-      </div>
-
       <div className="forum-grid">
         <div className="post-feed-column">
+          <div style={{ marginBottom: '2rem' }}>
+            <h1 className="forum-header-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Community Forum
+            </h1>
+            <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} Posts</p>
+          </div>
+
           <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
             Start a New Discussion
           </button>
