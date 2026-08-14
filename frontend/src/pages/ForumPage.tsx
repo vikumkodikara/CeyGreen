@@ -15,6 +15,7 @@ export const ForumPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchPosts();
@@ -65,6 +66,16 @@ export const ForumPage: React.FC = () => {
       setPosts(posts.map(p => p.id === postId ? fullPost : p));
     } catch (err) {
       console.error('Failed to load replies', err);
+    }
+  };
+
+  const handleToggleReplies = (postId: string) => {
+    const isExpanded = !!expandedPosts[postId];
+    setExpandedPosts({ ...expandedPosts, [postId]: !isExpanded });
+    
+    // Only fetch replies if expanding and hasn't been fetched yet
+    if (!isExpanded) {
+      handleLoadReplies(postId);
     }
   };
 
@@ -122,33 +133,37 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 {post.views || 0}
               </div>
-              <div className="action-item action-item-muted" onClick={() => handleLoadReplies(post.id)} title="View replies">
+              <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer' }} title="Toggle replies">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 {post.replyCount || 0}
               </div>
             </div>
 
-            {/* Replies */}
-            {post.replies && post.replies.length > 0 && (
-              <div className="post-reply-section">
-                {post.replies.map((r, i) => (
-                  <div key={i} className="reply-item">
-                    <div className="reply-author">{r.authorName || r.authorId}</div>
-                    <div className="reply-body">{r.body}</div>
+            {/* Replies & Input - Only visible if expanded */}
+            {expandedPosts[post.id] && (
+              <>
+                {post.replies && post.replies.length > 0 && (
+                  <div className="post-reply-section">
+                    {post.replies.map((r, i) => (
+                      <div key={i} className="reply-item">
+                        <div className="reply-author">By {(r.authorName || r.authorId).substring(0, 8)}...</div>
+                        <div className="reply-body">{r.body}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+                
+                <div className="reply-input-wrapper">
+                  <input
+                    placeholder="Write a reply..."
+                    value={replyText[post.id] || ''}
+                    onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(post.id); }}
+                  />
+                  <button className="reply-btn" onClick={() => handleAddReply(post.id)}>Reply</button>
+                </div>
+              </>
             )}
-
-            <div className="reply-input-wrapper">
-              <input
-                placeholder="Write a reply..."
-                value={replyText[post.id] || ''}
-                onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(post.id); }}
-              />
-              <button className="reply-btn" onClick={() => handleAddReply(post.id)}>Reply</button>
-            </div>
           </div>
         ))}
           </div>
