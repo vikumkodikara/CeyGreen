@@ -72,7 +72,7 @@ export const ForumPage: React.FC = () => {
     <div className="forum-layout-container">
       <div className="forum-grid">
         <div className="post-feed-column">
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <h1 className="forum-header-title">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               Community Forum
