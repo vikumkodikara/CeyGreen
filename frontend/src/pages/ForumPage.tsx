@@ -94,7 +94,7 @@ export const ForumPage: React.FC = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <div className="post-meta-info">
-                <span className="post-author">Posted by {post.authorName || post.authorId}</span>
+                <span className="post-author">By {(post.authorName || post.authorId).substring(0, 8)}...</span>
                 <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
               </div>
             </div>
@@ -141,7 +141,7 @@ export const ForumPage: React.FC = () => {
             )}
             
             {(!post.replies || post.replies.length === 0) && post.replyCount !== undefined && post.replyCount > 0 && (
-              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '0.25rem', background: 'rgba(0,0,0,0.3)', border: 'none', padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '0.25rem', background: 'rgba(0,0,0,0.3)', border: 'none', padding: '0.25rem 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 View {post.replyCount} {post.replyCount === 1 ? 'reply' : 'replies'}
               </Button>
             )}
