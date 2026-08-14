@@ -10,17 +10,19 @@ import './ForumPage.css';
 export const ForumPage: React.FC = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [sort, setSort] = useState<'newest' | 'trending'>('trending');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [sort]);
 
   const fetchPosts = async () => {
     try {
-      const data = await listPosts();
+      const data = await listPosts(undefined, sort);
       setPosts(data);
     } catch {
       setPosts([]);
@@ -68,30 +70,21 @@ export const ForumPage: React.FC = () => {
 
   return (
     <div className="forum-layout-container">
-      <h1 className="forum-header-title">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Community Forum
-      </h1>
-      <p className="forum-header-subtitle">{posts.length} Posts</p>
-
       <div className="forum-grid">
         <div className="post-feed-column">
-          <Card title="Start a Discussion">
-            <form onSubmit={handleCreatePost}>
-              <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pest control strategies for tomatoes" required />
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Discussion Content</label>
-                <textarea
-                  rows={3}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your question or experience..."
-                  required
-                />
-              </div>
-              <Button type="submit">Post to Forum</Button>
-            </form>
-          </Card>
+          <div style={{ marginBottom: '1rem' }}>
+            <h1 className="forum-header-title">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              Community Forum
+            </h1>
+            <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} Posts</p>
+          </div>
+
+          <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
+            Start a New Discussion
+          </button>
+
+          <h2 className="trending-header">Trending Discussions</h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
@@ -115,11 +108,11 @@ export const ForumPage: React.FC = () => {
             <div className="post-actions">
               <div className="action-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                5k
+                {post.upvotes || 0}
               </div>
               <div className="action-item action-item-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                40
+                {post.flagCount || 0}
               </div>
               <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -127,7 +120,7 @@ export const ForumPage: React.FC = () => {
               <div className="action-spacer"></div>
               <div className="action-item action-item-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                2K
+                {post.views || 0}
               </div>
               <div className="action-item action-item-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -148,7 +141,7 @@ export const ForumPage: React.FC = () => {
             )}
             
             {(!post.replies || post.replies.length === 0) && post.replyCount !== undefined && post.replyCount > 0 && (
-              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.3)', border: 'none' }}>
+              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', border: 'none' }}>
                 View {post.replyCount} {post.replyCount === 1 ? 'reply' : 'replies'}
               </Button>
             )}
@@ -195,6 +188,35 @@ export const ForumPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {isCreateModalOpen && (
+        <div className="create-post-modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
+          <div className="create-post-modal-content" role="dialog" aria-modal="true" aria-labelledby="create-post-modal-title" onClick={e => e.stopPropagation()}>
+            <button type="button" className="modal-close-btn" aria-label="Close" onClick={() => setIsCreateModalOpen(false)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 id="create-post-modal-title" style={{ color: 'var(--text-main)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Start a Discussion</h2>
+            <form onSubmit={(e) => { handleCreatePost(e); setIsCreateModalOpen(false); }}>
+              <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pest control strategies for tomatoes" required />
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Discussion Content</label>
+                <textarea
+                  className="ai-sidebar-input"
+                  style={{ marginBottom: 0 }}
+                  rows={5}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Write your question or experience..."
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button type="submit" className="reply-btn" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>Post to Forum</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
