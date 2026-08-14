@@ -177,7 +177,7 @@ export const ForumPage: React.FC = () => {
                 
                 <div className="reply-input-wrapper">
                   <input
-                    ref={(el) => (replyInputRefs.current[post.id] = el)}
+                    ref={(el) => { replyInputRefs.current[post.id] = el; }}
                     placeholder="Write a reply..."
                     value={replyText[post.id] || ''}
                     onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
