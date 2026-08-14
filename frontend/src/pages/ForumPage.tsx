@@ -141,7 +141,7 @@ export const ForumPage: React.FC = () => {
             )}
             
             {(!post.replies || post.replies.length === 0) && post.replyCount !== undefined && post.replyCount > 0 && (
-              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.3)', border: 'none' }}>
+              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', border: 'none' }}>
                 View {post.replyCount} {post.replyCount === 1 ? 'reply' : 'replies'}
               </Button>
             )}
