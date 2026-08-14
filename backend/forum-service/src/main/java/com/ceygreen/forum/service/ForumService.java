@@ -196,7 +196,7 @@ public class ForumService {
         // leaving replyCount as the only reply-related field.
         return new PostResponse(p.getId(), p.getAuthorId(), p.getAuthorName(), p.getTitle(), p.getBody(),
                 p.getTags(), p.getCropType(), p.isResolved(), p.getAcceptedReplyId(), p.isFlagged(),
-                p.getFlagCount(), p.isAiAnswerAttempted(), null,
+                p.getFlagCount(), p.isAiAnswerAttempted(), p.getUpvotes(), p.getViews(), null,
                 p.getReplies() != null ? p.getReplies().size() : 0,
                 p.getCreatedAt(), p.getUpdatedAt());
     }
@@ -204,7 +204,7 @@ public class ForumService {
     private PostResponse toResponse(Post p) {
         return new PostResponse(p.getId(), p.getAuthorId(), p.getAuthorName(), p.getTitle(), p.getBody(),
                 p.getTags(), p.getCropType(), p.isResolved(), p.getAcceptedReplyId(), p.isFlagged(),
-                p.getFlagCount(), p.isAiAnswerAttempted(), p.getReplies(),
+                p.getFlagCount(), p.isAiAnswerAttempted(), p.getUpvotes(), p.getViews(), p.getReplies(),
                 p.getReplies() != null ? p.getReplies().size() : 0,
                 p.getCreatedAt(), p.getUpdatedAt());
     }
