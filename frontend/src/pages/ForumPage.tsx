@@ -83,7 +83,22 @@ export const ForumPage: React.FC = () => {
   const handleVote = async (postId: string, action: 'upvote' | 'downvote') => {
     try {
       const updatedPost = await actOnPost(postId, action);
-      setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+      const newPosts = posts.map(p => p.id === postId ? updatedPost : p);
+      
+      // Re-sort dynamically so the upvoted post moves up
+      newPosts.sort((a, b) => {
+        if (sort === 'trending') {
+          const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
+          const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
+          if (scoreB !== scoreA) return scoreB - scoreA;
+        } else if (sort === 'newest') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        // fallback to upvotes
+        return (b.upvotes || 0) - (a.upvotes || 0);
+      });
+      
+      setPosts(newPosts);
     } catch (err: any) {
       console.error('Failed to act on post', err);
     }
