@@ -1,8 +1,10 @@
 import { apiClient } from './client';
 import { Post, PostRequest, ReplyRequest } from '../types/forum';
 
-export const listPosts = async (category?: string): Promise<Post[]> => {
-  const params = category ? { category } : {};
+export const listPosts = async (category?: string, sort?: string): Promise<Post[]> => {
+  const params: Record<string, string> = {};
+  if (category) params.category = category;
+  if (sort) params.sort = sort;
   const res = await apiClient.get<any>('/forum/posts', { params });
   return res.data.content || res.data;
 };
