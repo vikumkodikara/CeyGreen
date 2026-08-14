@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: api-gateway
+        working-directory: backend/api-gateway
 
     steps:
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: api-gateway/pom.xml
+          cache-dependency-path: backend/api-gateway/pom.xml
 
       - name: Enable Testcontainers Reuse & Fix Permissions
         run: |
@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: api-gateway-jar
-          path: api-gateway/target/api-gateway-*.jar
+          path: backend/api-gateway/target/api-gateway-*.jar
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: user-diagnosis-service
+        working-directory: backend/user-diagnosis-service
 
     steps:
       - name: Checkout code
@@ -83,7 +83,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: user-diagnosis-service/pom.xml
+          cache-dependency-path: backend/user-diagnosis-service/pom.xml
 
       - name: Enable Testcontainers Reuse & Fix Permissions
         run: |
@@ -104,7 +104,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: user-diagnosis-service-jar
-          path: user-diagnosis-service/target/user-diagnosis-service-*.jar
+          path: backend/user-diagnosis-service/target/user-diagnosis-service-*.jar
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: forum-service
+        working-directory: backend/forum-service
 
     # The context-load test connects to MongoDB at startup (auto-index-creation),
     # so provide one as a service container reachable at localhost:27017. Kafka is
@@ -136,7 +136,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-          cache-dependency-path: forum-service/pom.xml
+          cache-dependency-path: backend/forum-service/pom.xml
 
       - name: Enable Testcontainers Reuse & Fix Permissions
         run: |
@@ -157,7 +157,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: forum-service-jar
-          path: forum-service/target/forum-service-*.jar
+          path: backend/forum-service/target/forum-service-*.jar
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -172,11 +172,11 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            context: ./api-gateway
+            context: ./backend/api-gateway
           - service: user-diagnosis-service
-            context: ./user-diagnosis-service
+            context: ./backend/user-diagnosis-service
           - service: forum-service
-            context: ./forum-service
+            context: ./backend/forum-service
 
     steps:
       - name: Checkout code
