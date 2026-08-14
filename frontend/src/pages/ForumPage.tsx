@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { listPosts, createPost, addReply, getPost } from '../api/forum';
+import { listPosts, createPost, addReply, getPost, actOnPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -79,6 +79,15 @@ export const ForumPage: React.FC = () => {
     }
   };
 
+  const handleVote = async (postId: string, action: 'upvote' | 'downvote') => {
+    try {
+      const updatedPost = await actOnPost(postId, action);
+      setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+    } catch (err: any) {
+      console.error('Failed to act on post', err);
+    }
+  };
+
   return (
     <div className="forum-layout-container">
       <div className="forum-grid">
@@ -117,13 +126,13 @@ export const ForumPage: React.FC = () => {
             </div>
 
             <div className="post-actions">
-              <div className="action-item">
+              <div className={`action-item ${post.upvotedBy?.includes(user?.id || '') ? 'action-item-active' : 'action-item-muted'}`} onClick={() => handleVote(post.id, 'upvote')} title="Upvote">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 {post.upvotes || 0}
               </div>
-              <div className="action-item action-item-muted">
+              <div className={`action-item ${post.downvotedBy?.includes(user?.id || '') ? 'action-item-active-down' : 'action-item-muted'}`} onClick={() => handleVote(post.id, 'downvote')} title="Downvote">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                {post.flagCount || 0}
+                {post.downvotes || 0}
               </div>
               <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>

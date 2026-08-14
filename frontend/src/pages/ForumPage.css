@@ -179,6 +179,18 @@
 .action-item-muted:hover {
   color: var(--text-main);
 }
+.action-item-active {
+  color: var(--accent-green);
+}
+.action-item-active svg {
+  fill: rgba(46, 204, 113, 0.2);
+}
+.action-item-active-down {
+  color: #e74c3c;
+}
+.action-item-active-down svg {
+  fill: rgba(231, 76, 60, 0.2);
+}
 
 .action-spacer {
   flex: 1;
