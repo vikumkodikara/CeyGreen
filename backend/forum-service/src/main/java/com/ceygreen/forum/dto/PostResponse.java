@@ -24,6 +24,8 @@ public record PostResponse(
         boolean flagged,
         int flagCount,
         boolean aiAnswerAttempted,
+        int upvotes,
+        int views,
         List<Reply> replies,
         int replyCount,
         Instant createdAt,
