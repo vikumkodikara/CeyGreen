@@ -10,17 +10,18 @@ import './ForumPage.css';
 export const ForumPage: React.FC = () => {
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [sort, setSort] = useState<'newest' | 'trending'>('newest');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [sort]);
 
   const fetchPosts = async () => {
     try {
-      const data = await listPosts();
+      const data = await listPosts(undefined, sort);
       setPosts(data);
     } catch {
       setPosts([]);
@@ -93,6 +94,21 @@ export const ForumPage: React.FC = () => {
             </form>
           </Card>
 
+          <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+            <button 
+              onClick={() => setSort('newest')} 
+              style={{ background: 'none', border: 'none', padding: '0.5rem 1rem', color: sort === 'newest' ? 'var(--accent-green)' : 'var(--text-secondary)', borderBottom: sort === 'newest' ? '2px solid var(--accent-green)' : 'none', fontWeight: 600, fontSize: '1rem' }}
+            >
+              Latest
+            </button>
+            <button 
+              onClick={() => setSort('trending')} 
+              style={{ background: 'none', border: 'none', padding: '0.5rem 1rem', color: sort === 'trending' ? 'var(--accent-green)' : 'var(--text-secondary)', borderBottom: sort === 'trending' ? '2px solid var(--accent-green)' : 'none', fontWeight: 600, fontSize: '1rem' }}
+            >
+              Trending
+            </button>
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
           <div key={post.id} className="forum-post-card">
@@ -115,11 +131,11 @@ export const ForumPage: React.FC = () => {
             <div className="post-actions">
               <div className="action-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                5k
+                {post.upvotes || 0}
               </div>
               <div className="action-item action-item-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                40
+                {post.flagCount || 0}
               </div>
               <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -127,7 +143,7 @@ export const ForumPage: React.FC = () => {
               <div className="action-spacer"></div>
               <div className="action-item action-item-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                2K
+                {post.views || 0}
               </div>
               <div className="action-item action-item-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
