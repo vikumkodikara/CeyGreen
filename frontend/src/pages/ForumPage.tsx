@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { listPosts, createPost, addReply, getPost, actOnPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -16,6 +16,7 @@ export const ForumPage: React.FC = () => {
   const [content, setContent] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+  const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     fetchPosts();
@@ -88,6 +89,15 @@ export const ForumPage: React.FC = () => {
     }
   };
 
+  const handleQuickReply = (postId: string) => {
+    if (!expandedPosts[postId]) {
+      handleToggleReplies(postId);
+    }
+    setTimeout(() => {
+      replyInputRefs.current[postId]?.focus();
+    }, 50);
+  };
+
   return (
     <div className="forum-layout-container">
       <div className="forum-grid">
@@ -146,6 +156,9 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 {post.replyCount || 0}
               </div>
+              <div className="action-item action-item-muted" onClick={() => handleQuickReply(post.id)} style={{ cursor: 'pointer', marginLeft: '0.25rem' }} title="Quick Reply">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+              </div>
             </div>
 
             {/* Replies & Input - Only visible if expanded */}
@@ -164,6 +177,7 @@ export const ForumPage: React.FC = () => {
                 
                 <div className="reply-input-wrapper">
                   <input
+                    ref={(el) => (replyInputRefs.current[post.id] = el)}
                     placeholder="Write a reply..."
                     value={replyText[post.id] || ''}
                     onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
