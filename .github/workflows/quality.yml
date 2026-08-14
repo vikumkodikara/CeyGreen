@@ -43,11 +43,11 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            dockerfile: ./api-gateway/Dockerfile
+            dockerfile: ./backend/api-gateway/Dockerfile
           - service: user-diagnosis-service
-            dockerfile: ./user-diagnosis-service/Dockerfile
+            dockerfile: ./backend/user-diagnosis-service/Dockerfile
           - service: forum-service
-            dockerfile: ./forum-service/Dockerfile
+            dockerfile: ./backend/forum-service/Dockerfile
 
     steps:
       - name: Checkout code
@@ -71,11 +71,11 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            path: ./api-gateway
+            path: ./backend/api-gateway
           - service: user-diagnosis-service
-            path: ./user-diagnosis-service
+            path: ./backend/user-diagnosis-service
           - service: forum-service
-            path: ./forum-service
+            path: ./backend/forum-service
 
     steps:
       - name: Checkout code
