@@ -122,7 +122,7 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 {post.views || 0}
               </div>
-              <div className="action-item action-item-muted">
+              <div className="action-item action-item-muted" onClick={() => handleLoadReplies(post.id)} title="View replies">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 {post.replyCount || 0}
               </div>
@@ -138,12 +138,6 @@ export const ForumPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-            )}
-            
-            {(!post.replies || post.replies.length === 0) && post.replyCount !== undefined && post.replyCount > 0 && (
-              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '0.25rem', background: 'rgba(0,0,0,0.3)', border: 'none', padding: '0.25rem 0.75rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                View {post.replyCount} {post.replyCount === 1 ? 'reply' : 'replies'}
-              </Button>
             )}
 
             <div className="reply-input-wrapper">
