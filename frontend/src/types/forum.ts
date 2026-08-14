@@ -17,6 +17,7 @@ export interface Post {
   replyCount: number;
   upvotes: number;
   views: number;
+  flagCount?: number;
   createdAt: string;
   updatedAt: string;
 }
