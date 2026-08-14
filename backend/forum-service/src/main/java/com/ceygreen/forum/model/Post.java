@@ -37,6 +37,9 @@ public class Post {
     private int flagCount;
     private boolean aiAnswerAttempted;
     private int upvotes;
+    private int downvotes;
+    private List<String> upvotedBy = new ArrayList<>();
+    private List<String> downvotedBy = new ArrayList<>();
     private int views;
     private List<Reply> replies = new ArrayList<>();
     @Indexed(direction = IndexDirection.DESCENDING) private Instant createdAt = Instant.now();
@@ -70,6 +73,12 @@ public class Post {
     public void setAiAnswerAttempted(boolean aiAnswerAttempted) { this.aiAnswerAttempted = aiAnswerAttempted; }
     public int getUpvotes() { return upvotes; }
     public void setUpvotes(int upvotes) { this.upvotes = upvotes; }
+    public int getDownvotes() { return downvotes; }
+    public void setDownvotes(int downvotes) { this.downvotes = downvotes; }
+    public List<String> getUpvotedBy() { return upvotedBy; }
+    public void setUpvotedBy(List<String> upvotedBy) { this.upvotedBy = upvotedBy; }
+    public List<String> getDownvotedBy() { return downvotedBy; }
+    public void setDownvotedBy(List<String> downvotedBy) { this.downvotedBy = downvotedBy; }
     public int getViews() { return views; }
     public void setViews(int views) { this.views = views; }
     public List<Reply> getReplies() { return replies; }
