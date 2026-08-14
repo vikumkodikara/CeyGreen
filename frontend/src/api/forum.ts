@@ -3,8 +3,8 @@ import { Post, PostRequest, ReplyRequest } from '../types/forum';
 
 export const listPosts = async (category?: string): Promise<Post[]> => {
   const params = category ? { category } : {};
-  const res = await apiClient.get<Post[]>('/forum/posts', { params });
-  return res.data;
+  const res = await apiClient.get<any>('/forum/posts', { params });
+  return res.data.content || res.data;
 };
 
 export const getPost = async (id: string): Promise<Post> => {

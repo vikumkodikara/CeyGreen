@@ -1,6 +1,6 @@
 export interface Reply {
   id: string;
-  content: string;
+  body: string;
   authorId: string;
   authorName: string;
   createdAt: string;
@@ -9,7 +9,7 @@ export interface Reply {
 export interface Post {
   id: string;
   title: string;
-  content: string;
+  body: string;
   authorId: string;
   authorName: string;
   category: string;
@@ -21,14 +21,11 @@ export interface Post {
 
 export interface PostRequest {
   title: string;
-  content: string;
-  authorId: string;
-  authorName?: string;
-  category?: string;
+  body: string;
+  tags?: string[];
+  cropType?: string;
 }
 
 export interface ReplyRequest {
-  content: string;
-  authorId: string;
-  authorName?: string;
+  body: string;
 }

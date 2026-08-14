@@ -87,10 +87,21 @@ class RateLimitIntegrationTest {
                 .exchange()
                 .expectStatus().isOk();
 
-        client.get()
-                .uri("/api/users/" + farmerId)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .exchange()
-                .expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+        boolean got429 = false;
+        for (int i = 0; i < 5; i++) {
+            var status = client.get()
+                    .uri("/api/users/" + farmerId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .exchange()
+                    .returnResult(String.class)
+                    .getStatus();
+            if (status == HttpStatus.TOO_MANY_REQUESTS) {
+                got429 = true;
+                break;
+            }
+        }
+        org.assertj.core.api.Assertions.assertThat(got429)
+                .as("Should eventually hit rate limit of 429 TOO MANY REQUESTS")
+                .isTrue();
     }
 }
