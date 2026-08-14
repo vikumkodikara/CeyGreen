@@ -89,7 +89,7 @@ class PostRepositoryCustomTest {
     }
 
     @Test
-    void mostUpvotedSortOrdersBySummedReplyUpvotes() {
+    void mostUpvotedSortOrdersByPostUpvotes() {
         Page<Post> page = postRepository.search(
                 new PostSearch(List.of(), null, null, PostSort.MOST_UPVOTED), PageRequest.of(0, 20));
 
@@ -121,6 +121,7 @@ class PostRepositoryCustomTest {
         post.setResolved(resolved);
         post.setCreatedAt(createdAt);
         post.setUpdatedAt(createdAt);
+        post.setUpvotes(upvotes);
 
         Reply reply = new Reply();
         reply.setAuthorId("replier");
