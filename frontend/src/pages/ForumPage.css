@@ -38,6 +38,26 @@
   gap: 1.5rem;
 }
 
+.start-discussion-btn {
+  width: 100%;
+  background: rgba(46, 204, 113, 0.2);
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 0.5rem;
+}
+.start-discussion-btn:hover {
+  background: var(--accent-green);
+  color: #000;
+  box-shadow: 0 0 25px rgba(46, 204, 113, 0.7);
+}
+
 .sidebar-column {
   position: sticky;
   top: 2rem;
