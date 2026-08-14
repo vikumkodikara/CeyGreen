@@ -185,47 +185,53 @@
 }
 
 .post-reply-section {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(46, 204, 113, 0.1);
 }
 
 .reply-item {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  background: rgba(14, 25, 17, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(46, 204, 113, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
 }
 .reply-author {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--accent-green);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 .reply-body {
-  background: rgba(0, 0, 0, 0.25);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--text-main);
+  line-height: 1.3;
 }
 
 .reply-input-wrapper {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
   background: rgba(10, 20, 14, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.2);
   border-radius: 20px;
-  padding: 0.15rem;
+  padding: 0.25rem 0.5rem;
+  align-items: center;
 }
 
 .reply-input-wrapper input {
+  flex: 1;
   background: transparent;
   border: none;
   box-shadow: none;
-  min-height: auto;
   color: var(--text-main);
   font-size: 0.8rem;
+  padding: 0.25rem;
 }
 .reply-input-wrapper input:focus {
   box-shadow: none;
+  outline: none;
 }
 
 .reply-btn {
