@@ -56,13 +56,6 @@ jobs:
       - name: Package JAR
         run: ./mvnw -B -ntp package -DskipTests
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-gateway-jar
-          path: backend/api-gateway/target/api-gateway-*.jar
-          retention-days: 7
-
   # ─────────────────────────────────────────────────────────────────────────
   #  User Diagnosis Service — Build & Test
   # ─────────────────────────────────────────────────────────────────────────
@@ -99,13 +92,6 @@ jobs:
 
       - name: Package JAR
         run: ./mvnw -B -ntp package -DskipTests
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: user-diagnosis-service-jar
-          path: backend/user-diagnosis-service/target/user-diagnosis-service-*.jar
-          retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────
   #  Forum Service — Build & Test
@@ -152,13 +138,6 @@ jobs:
 
       - name: Package JAR
         run: ./mvnw -B -ntp package -DskipTests
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: forum-service-jar
-          path: backend/forum-service/target/forum-service-*.jar
-          retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────
   #  Docker — Build Images (validates Dockerfiles compile)
