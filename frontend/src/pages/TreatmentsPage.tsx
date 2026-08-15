@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { getTreatmentsForDisease, searchTreatments } from '../api/treatments';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Treatment } from '../types/treatment';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const TreatmentsPage: React.FC = () => {
   const [diseaseSearch, setDiseaseSearch] = useState('');
@@ -31,15 +32,18 @@ export const TreatmentsPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '900px' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>💊 Treatment & Suggestion Catalog</h1>
+    <div className="page-wrap">
+      <PageHeader
+        title="Treatments"
+        subtitle="Search remedies by disease or crop name."
+      />
 
-      <Card title="Lookup Treatment Remedies">
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
+      <Card title="Find a remedy">
+        <form onSubmit={handleSearch} className="row">
+          <div className="grow">
             <Input
-              label="Disease Name or Crop Type"
-              placeholder="e.g. Leaf Blight, Powdery Mildew, Tomato"
+              label="Disease or crop"
+              placeholder="e.g. Early blight, Tomato"
               value={diseaseSearch}
               onChange={(e) => setDiseaseSearch(e.target.value)}
               required
@@ -51,17 +55,17 @@ export const TreatmentsPage: React.FC = () => {
         </form>
       </Card>
 
-      <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="stack" style={{ marginTop: '1.25rem' }}>
         {treatments.map((t) => (
-          <Card key={t.id} title={t.productName} subtitle={`Disease: ${t.diseaseName}`}>
-            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
-              <div><strong>Type:</strong> <span style={{ color: 'var(--accent-green)' }}>{t.type}</span></div>
-              <div><strong>Dosage:</strong> {t.dosage}</div>
-              <div><strong>Frequency:</strong> {t.frequency}</div>
+          <Card key={t.id} title={t.productName} subtitle={`For ${t.diseaseName}`}>
+            <div className="treatment-meta">
+              <span className="pill">{t.type}</span>
+              <span className="pill">Dosage: {t.dosage}</span>
+              <span className="pill">{t.frequency}</span>
             </div>
             {t.safetyNotes && (
-              <p style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                🛡️ {t.safetyNotes}
+              <p style={{ marginTop: '0.85rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Safety: {t.safetyNotes}
               </p>
             )}
           </Card>

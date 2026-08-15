@@ -35,8 +35,10 @@ public class OpenApiConfig {
                                 This service never calls another microservice.""")
                         .license(new License().name("Coursework use")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080/api").description("Through the API Gateway"),
-                        new Server().url("http://localhost:8081").description("Direct to this service")))
+                        new Server().url("http://localhost:8080/api").description("Through the API Gateway (Local)"),
+                        new Server().url("http://localhost:8081").description("Direct to this service (Local)"),
+                        new Server().url("http://16.192.168.12:8080/api").description("Through the API Gateway (AWS EC2)"),
+                        new Server().url("http://16.192.168.12:8081").description("Direct to this service (AWS EC2)")))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
