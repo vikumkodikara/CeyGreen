@@ -83,14 +83,29 @@ export const ForumPage: React.FC = () => {
   const sortPostsArray = (postArray: Post[]) => {
     const copy = [...postArray];
     copy.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
       if (sort === 'trending') {
-        const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
-        const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
+        const netA = (a.upvotes || 0) - (a.downvotes || 0);
+        const netB = (b.upvotes || 0) - (b.downvotes || 0);
+        const scoreA = netA + (a.views || 0) + (a.replyCount || 0);
+        const scoreB = netB + (b.views || 0) + (b.replyCount || 0);
+        
         if (scoreB !== scoreA) return scoreB - scoreA;
-      } else if (sort === 'newest') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return timeB - timeA; // Tie-breaker: newest
+      } 
+      
+      if (sort === 'newest') {
+        return timeB - timeA;
       }
-      return (b.upvotes || 0) - (a.upvotes || 0);
+      
+      // Default strict net-score fallback
+      const netA = (a.upvotes || 0) - (a.downvotes || 0);
+      const netB = (b.upvotes || 0) - (b.downvotes || 0);
+      if (netB !== netA) return netB - netA;
+      
+      return timeB - timeA;
     });
     return copy;
   };
