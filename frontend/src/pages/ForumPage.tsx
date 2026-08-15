@@ -55,7 +55,7 @@ export const ForumPage: React.FC = () => {
         body: text,
       });
       setReplyText({ ...replyText, [postId]: '' });
-      setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+      setPosts(sortPostsArray(posts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to post reply');
     }
@@ -64,7 +64,7 @@ export const ForumPage: React.FC = () => {
   const handleLoadReplies = async (postId: string) => {
     try {
       const fullPost = await getPost(postId);
-      setPosts(posts.map(p => p.id === postId ? fullPost : p));
+      setPosts(sortPostsArray(posts.map(p => p.id === postId ? fullPost : p)));
     } catch (err) {
       console.error('Failed to load replies', err);
     }
@@ -78,6 +78,21 @@ export const ForumPage: React.FC = () => {
     if (!isExpanded) {
       handleLoadReplies(postId);
     }
+  };
+
+  const sortPostsArray = (postArray: Post[]) => {
+    const copy = [...postArray];
+    copy.sort((a, b) => {
+      if (sort === 'trending') {
+        const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
+        const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+      } else if (sort === 'newest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return (b.upvotes || 0) - (a.upvotes || 0);
+    });
+    return copy;
   };
 
   const handleVote = async (postId: string, action: 'upvote' | 'downvote') => {
@@ -111,21 +126,6 @@ export const ForumPage: React.FC = () => {
         }
       }
     }
-
-    const sortPostsArray = (postArray: Post[]) => {
-      const copy = [...postArray];
-      copy.sort((a, b) => {
-        if (sort === 'trending') {
-          const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
-          const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
-          if (scoreB !== scoreA) return scoreB - scoreA;
-        } else if (sort === 'newest') {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        return (b.upvotes || 0) - (a.upvotes || 0);
-      });
-      return copy;
-    };
 
     // Update UI instantly
     setPosts(sortPostsArray(posts.map(p => p.id === postId ? optPost : p)));
