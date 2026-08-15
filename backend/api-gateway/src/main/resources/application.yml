@@ -89,11 +89,25 @@ spring:
               predicates:
                 - Path=/api/dashboard/**
 
+            # ---- Block direct access to internal endpoints ----
+            - id: block-internal
+              uri: no://op
+              predicates:
+                - Path=/api/*/internal/**
+              filters:
+                - SetStatus=403
+                
             # ---- Student 5: Community Forum Service ----
             - id: community-forum
               uri: ${FORUM_SERVICE_URL:http://forum-service:8085}
               predicates:
                 - Path=/api/forum/**
+
+            # ---- Student 5: AI Assistant Service ----
+            - id: ai-assistant
+              uri: ${AI_ASSISTANT_SERVICE_URL:http://ai-assistant-service:8089}
+              predicates:
+                - Path=/api/ai/**
 
             # ---- Student 6: Sales Analytics ----
             - id: sales-analytics
