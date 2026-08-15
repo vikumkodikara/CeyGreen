@@ -134,7 +134,7 @@ services:
       FORUM_SERVICE_URL: ${FORUM_SERVICE_URL:-http://forum-service:8085}
       ANALYTICS_SERVICE_URL: ${ANALYTICS_SERVICE_URL:-http://analytics-service:8086}
       DOWNSTREAM_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173,http://16.192.168.12:3000,http://16.192.168.12}
       RATE_LIMIT_REQUESTS_PER_MIN: ${RATE_LIMIT_REQUESTS_PER_MIN:-60}
     depends_on:
       redis:
