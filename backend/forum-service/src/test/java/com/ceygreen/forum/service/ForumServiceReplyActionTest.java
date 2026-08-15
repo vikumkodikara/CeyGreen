@@ -105,11 +105,11 @@ class ForumServiceReplyActionTest {
     }
 
     @Test
-    void upvoteRequiresReplyId() {
+    void upvoteWithoutReplyIdUpvotesPost() {
         ReplyActionRequest req = new ReplyActionRequest("upvote", null, null);
-        assertThatThrownBy(() -> forumService.applyReplyAction("p1", req, OTHER))
-                .isInstanceOfSatisfying(ApiException.class,
-                        e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST));
+        forumService.applyReplyAction("p1", req, OTHER);
+        assertThat(post.getUpvotes()).isEqualTo(1);
+        assertThat(post.getUpvotedBy()).containsExactly("u-other");
     }
 
     @Test

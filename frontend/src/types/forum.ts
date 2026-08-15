@@ -15,6 +15,12 @@ export interface Post {
   category: string;
   replies: Reply[];
   replyCount: number;
+  upvotes: number;
+  downvotes: number;
+  upvotedBy: string[];
+  downvotedBy: string[];
+  views: number;
+  flagCount?: number;
   createdAt: string;
   updatedAt: string;
 }

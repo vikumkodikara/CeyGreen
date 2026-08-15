@@ -6,6 +6,7 @@ import { Card } from '../../components/ui/Card';
 import { Spinner } from '../../components/ui/Spinner';
 import { DashboardSummary } from '../../types/dashboard';
 import { Product } from '../../types/product';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { getApiErrorMessage } from '../../utils/apiError';
 import '../../styles/marketplace.css';
 
@@ -43,10 +44,10 @@ export const FarmerDashboardPage: React.FC = () => {
 
   return (
     <div className="marketplace-page">
-      <div className="marketplace-header">
-        <h1>Farmer Dashboard</h1>
-        <p>Overview of your marketplace listings and sales.</p>
-      </div>
+      <PageHeader
+        title="Farm sales"
+        subtitle="Listings, stock, and order status."
+      />
 
       <div className="dashboard-stats-grid">
         {stats.map((s) => (

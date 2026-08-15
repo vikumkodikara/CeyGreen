@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Treatment } from '../types/treatment';
 import { CROPS_LIST, getDiseaseDetail, DiseaseDetail } from '../data/diseaseKnowledge';
 import { generateGeminiAgronomistReport, getStoredGeminiKey } from '../api/gemini';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const DiagnosisPage: React.FC = () => {
   const { user } = useAuth();
@@ -151,23 +152,16 @@ Immediate Greenhouse Environment Adjustments:
   const numericConfidence = parseFloat(confidencePercent);
 
   return (
-    <div className="auth-container" style={{ maxWidth: '900px', margin: '1.5rem auto' }}>
-      {/* Page Title Header */}
-      <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-          AI Plant Disease Diagnostics
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.4rem', fontSize: '0.95rem' }}>
-          Upload a high-resolution leaf sample for automated neural network classification and targeted agronomist recovery plans.
-        </p>
-      </div>
+    <div className="page-wrap">
+      <PageHeader
+        title="Diagnosis"
+        subtitle="Upload a leaf photo for classification and a treatment outline."
+      />
 
       {/* Upload Form Card */}
       <Card title="Upload Leaf Sample" subtitle="Select your crop type and attach a clear photo of the affected plant leaf">
         {uploadError && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
-            {uploadError}
-          </div>
+          <div className="alert alert-error">{uploadError}</div>
         )}
         <form onSubmit={handleUpload}>
           {/* Crop Product Dropdown (6 Supported Products) */}
@@ -183,7 +177,7 @@ Immediate Greenhouse Environment Adjustments:
                   width: '100%',
                   padding: '0.85rem 1rem',
                   borderRadius: '12px',
-                  background: 'rgba(10, 20, 14, 0.85)',
+                  background: 'var(--bg-input)',
                   border: '1px solid var(--border-focus)',
                   color: 'var(--text-main)',
                   fontSize: '1rem',
@@ -192,9 +186,9 @@ Immediate Greenhouse Environment Adjustments:
                   appearance: 'none',
                 }}
               >
-                {CROPS_LIST.map((crop) => (
+                {CROPS_LIST.map((crop: any) => (
                   <option key={crop.id} value={crop.id}>
-                    {crop.label} — ({crop.description})
+                    {crop.icon} {crop.name}
                   </option>
                 ))}
               </select>
@@ -220,7 +214,7 @@ Immediate Greenhouse Environment Adjustments:
                   padding: '2.5rem 1rem',
                   borderRadius: '14px',
                   border: '2px dashed var(--border-color)',
-                  background: 'rgba(255, 255, 255, 0.02)',
+                  background: 'var(--bg-elevated)',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   textAlign: 'center',
@@ -248,7 +242,7 @@ Immediate Greenhouse Environment Adjustments:
                   position: 'relative',
                   padding: '0.75rem',
                   borderRadius: '14px',
-                  background: 'rgba(10, 20, 14, 0.9)',
+                  background: 'var(--bg-card)',
                   border: '1px solid var(--border-color)',
                   display: 'flex',
                   alignItems: 'center',
@@ -344,7 +338,7 @@ Immediate Greenhouse Environment Adjustments:
                       {diseaseDetail.severity} Risk
                     </span>
 
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-elevated)', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
                       {diseaseDetail.category} Pathogen
                     </span>
                   </div>
@@ -364,7 +358,7 @@ Immediate Greenhouse Environment Adjustments:
                     {confidencePercent}%
                   </p>
                   {/* Progress Bar */}
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginTop: '0.2rem', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '6px', background: 'var(--bg-elevated)', borderRadius: '3px', marginTop: '0.2rem', overflow: 'hidden' }}>
                     <div
                       style={{
                         width: `${confidencePercent}%`,
@@ -379,7 +373,7 @@ Immediate Greenhouse Environment Adjustments:
               </div>
 
               {/* Leaf Image & Summary Box */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center', background: 'rgba(10, 20, 14, 0.6)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center', background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 {previewUrl && (
                   <img
                     src={previewUrl}
@@ -405,8 +399,8 @@ Immediate Greenhouse Environment Adjustments:
                     width: '100%',
                     padding: '0.8rem',
                     borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #10b981, #14b8a6)',
-                    color: '#051d0d',
+                    background: 'linear-gradient(135deg, var(--accent-green), var(--accent-teal))',
+                    color: 'var(--on-accent)',
                     fontWeight: 700,
                     fontSize: '0.95rem',
                     border: 'none',
@@ -462,8 +456,8 @@ Immediate Greenhouse Environment Adjustments:
                     fontSize: '0.88rem',
                     fontWeight: 600,
                     whiteSpace: 'nowrap',
-                    background: activeTab === tab.id ? 'var(--accent-green)' : 'rgba(255,255,255,0.05)',
-                    color: activeTab === tab.id ? '#051d0d' : 'var(--text-muted)',
+                    background: activeTab === tab.id ? 'var(--accent-green)' : 'var(--bg-elevated)',
+                    color: activeTab === tab.id ? 'var(--on-accent)' : 'var(--text-muted)',
                     border: 'none',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
@@ -478,19 +472,19 @@ Immediate Greenhouse Environment Adjustments:
             {activeTab === 'symptoms' && (
               <Card title="Symptoms & Disease Origin">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                     <h4 style={{ color: 'var(--warning)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Key Visual Symptoms</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.symptoms.map((s, idx) => (
+                      {diseaseDetail.symptoms.map((s: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{s}</li>
                       ))}
                     </ul>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                     <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Environmental Drivers</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.causes.map((c, idx) => (
+                      {diseaseDetail.causes.map((c: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{c}</li>
                       ))}
                     </ul>
@@ -506,7 +500,7 @@ Immediate Greenhouse Environment Adjustments:
                   <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--accent-emerald)' }}>
                     <h4 style={{ color: 'var(--accent-emerald)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Organic & Biological Controls</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.organicTreatments.map((t, idx) => (
+                      {diseaseDetail.organicTreatments.map((t: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
                       ))}
                     </ul>
@@ -515,7 +509,7 @@ Immediate Greenhouse Environment Adjustments:
                   <div style={{ background: 'rgba(59, 130, 246, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--info)' }}>
                     <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Chemical & Fungicide Solutions</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.chemicalTreatments.map((t, idx) => (
+                      {diseaseDetail.chemicalTreatments.map((t: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
                       ))}
                     </ul>
@@ -527,10 +521,10 @@ Immediate Greenhouse Environment Adjustments:
             {/* Tab 3: Prevention */}
             {activeTab === 'prevention' && (
               <Card title="Integrated Pest Management (IPM) & Prevention">
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                   <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Long-Term Preventive Practices</h4>
                   <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                    {diseaseDetail.prevention.map((p, idx) => (
+                    {diseaseDetail.prevention.map((p: string, idx: number) => (
                       <li key={idx} style={{ marginBottom: '0.5rem' }}>{p}</li>
                     ))}
                   </ul>
@@ -542,7 +536,7 @@ Immediate Greenhouse Environment Adjustments:
             {activeTab === 'products' && (
               <Card title="Recommended Remedies & Marketplace Products">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {diseaseDetail.recommendedProducts.map((p, idx) => (
+                  {diseaseDetail.recommendedProducts.map((p: any, idx: number) => (
                     <div
                       key={idx}
                       style={{
@@ -552,7 +546,7 @@ Immediate Greenhouse Environment Adjustments:
                         alignItems: 'center',
                         padding: '1rem',
                         borderRadius: '10px',
-                        background: 'rgba(10, 20, 14, 0.7)',
+                        background: 'var(--bg-elevated)',
                         border: '1px solid var(--border-color)',
                         gap: '0.5rem',
                       }}
@@ -569,7 +563,7 @@ Immediate Greenhouse Environment Adjustments:
                           padding: '0.5rem 1rem',
                           borderRadius: '8px',
                           background: 'var(--accent-green)',
-                          color: '#051d0d',
+                          color: 'var(--on-accent)',
                           fontWeight: 700,
                           fontSize: '0.85rem',
                           border: 'none',
@@ -588,7 +582,7 @@ Immediate Greenhouse Environment Adjustments:
                       style={{
                         padding: '1rem',
                         borderRadius: '10px',
-                        background: 'rgba(10, 20, 14, 0.7)',
+                        background: 'var(--bg-elevated)',
                         border: '1px solid var(--border-color)',
                       }}
                     >

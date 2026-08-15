@@ -28,7 +28,7 @@
   padding: 0.55rem 1.1rem;
   border-radius: 999px;
   border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-elevated);
   color: var(--text-secondary);
   font-size: 0.9rem;
   cursor: pointer;
@@ -37,8 +37,7 @@
 
 .marketplace-tab.active {
   background: linear-gradient(135deg, var(--accent-green), var(--accent-emerald));
-  color: #051d0d;
-  border-color: transparent;
+  color: var(--on-accent);
   font-weight: 600;
 }
 
@@ -70,21 +69,21 @@
 }
 
 .marketplace-alert.error {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
 }
 
 .marketplace-alert.success {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #6ee7b7;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
 }
 
 .marketplace-alert.info {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
 }
 
 .marketplace-empty {
@@ -173,7 +172,7 @@
   padding: 0.55rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-input);
   color: var(--text-main);
 }
 
@@ -357,14 +356,14 @@
   text-transform: uppercase;
 }
 
-.status-pending { background: rgba(251, 191, 36, 0.2); color: #fcd34d; }
-.status-confirmed { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-.status-shipped { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; }
-.status-delivered { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
-.status-cancelled { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
-.status-active { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
-.status-inactive { background: rgba(107, 114, 128, 0.2); color: #d1d5db; }
-.status-out-of-stock { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.status-pending { background: #fef3c7; color: #b45309; }
+.status-confirmed { background: #dbeafe; color: #1d4ed8; }
+.status-shipped { background: #ede9fe; color: #6d28d9; }
+.status-delivered { background: #d1fae5; color: #047857; }
+.status-cancelled { background: #fee2e2; color: #b91c1c; }
+.status-active { background: #d1fae5; color: #047857; }
+.status-inactive { background: #e5e7eb; color: #4b5563; }
+.status-out-of-stock { background: #fee2e2; color: #b91c1c; }
 
 .dashboard-stats-grid {
   display: grid;
@@ -436,7 +435,7 @@
 }
 
 .order-step.cancelled {
-  color: #fca5a5;
+  color: var(--danger);
 }
 
 .order-detail-dl {
@@ -488,13 +487,13 @@
   padding: 0.75rem 1.25rem;
   border-radius: 10px;
   font-size: 0.9rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(20, 83, 45, 0.12);
   animation: slideIn 0.25s ease;
 }
 
-.toast-success { background: #065f46; color: #d1fae5; }
-.toast-error { background: #7f1d1d; color: #fecaca; }
-.toast-info { background: #1e3a5f; color: #bfdbfe; }
+.toast-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.toast-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.toast-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
 
 @keyframes slideIn {
   from { transform: translateX(100%); opacity: 0; }
@@ -510,7 +509,7 @@
 .skeleton-card {
   height: 280px;
   border-radius: 16px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background: linear-gradient(90deg, #eef8f1 25%, #dcfce7 50%, #eef8f1 75%);
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
 }
@@ -518,37 +517,6 @@
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
-}
-
-.app-sidebar {
-  width: 240px;
-  padding: 1.5rem 1rem;
-  border-right: 1px solid var(--border-color);
-  min-height: calc(100vh - 70px);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  text-decoration: none;
-  color: var(--text-muted);
-  transition: all 0.2s ease;
-}
-
-.sidebar-link.active {
-  color: #051d0d;
-  background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-emerald) 100%);
-  font-weight: 600;
-}
-
-.sidebar-icon {
-  font-size: 1.2rem;
 }
 
 .related-products {

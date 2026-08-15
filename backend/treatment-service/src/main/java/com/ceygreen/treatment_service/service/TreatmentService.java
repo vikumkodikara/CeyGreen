@@ -49,7 +49,7 @@ public class TreatmentService {
         } else if (severity != null) {
             results = treatmentRepository.findBySeverityIgnoreCaseAndActiveTrue(severity);
         } else {
-            results = treatmentRepository.findAll();
+            results = treatmentRepository.findByActiveTrue();
         }
         return results.stream().map(this::toResponse).toList();
     }

@@ -36,9 +36,14 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     public Page<Post> search(PostSearch search, Pageable pageable) {
         Criteria criteria = buildCriteria(search);
         long total = mongoTemplate.count(Query.query(criteria), Post.class);
-        List<Post> content = search.sort() == PostSort.MOST_UPVOTED
-                ? findByUpvotes(criteria, pageable)
-                : findNewest(criteria, pageable);
+        List<Post> content;
+        if (search.sort() == PostSort.MOST_UPVOTED) {
+            content = findByUpvotes(criteria, pageable);
+        } else if (search.sort() == PostSort.TRENDING) {
+            content = findTrending(criteria, pageable);
+        } else {
+            content = findNewest(criteria, pageable);
+        }
         return new PageImpl<>(content, pageable, total);
     }
 
@@ -69,18 +74,34 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     }
 
     private List<Post> findByUpvotes(Criteria criteria, Pageable pageable) {
-        // $addFields totalUpvotes = sum of the embedded replies' upvotes, then order by it. Emitted
-        // as a raw stage to avoid ambiguity in the fluent builder; totalUpvotes is transient and is
-        // ignored when the result maps back onto Post.
-        AggregationOperation addTotalUpvotes = context -> new Document("$addFields",
-                new Document("totalUpvotes", new Document("$sum", "$replies.upvotes")));
+        // Sort by the post's own upvotes
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(criteria),
-                addTotalUpvotes,
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "totalUpvotes")
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "upvotes")
                         .and(Sort.by(Sort.Direction.DESC, "createdAt"))),
                 Aggregation.skip(pageable.getOffset()),
                 Aggregation.limit(pageable.getPageSize()));
+        return mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(Post.class), Post.class)
+                .getMappedResults();
+    }
+
+    private List<Post> findTrending(Criteria criteria, Pageable pageable) {
+        // Trending score = upvotes + views + size(replies)
+        AggregationOperation addTrendingScore = context -> new Document("$addFields",
+                new Document("trendingScore", new Document("$add", java.util.Arrays.asList(
+                        new Document("$ifNull", java.util.Arrays.asList("$upvotes", 0)),
+                        new Document("$ifNull", java.util.Arrays.asList("$views", 0)),
+                        new Document("$size", new Document("$ifNull", java.util.Arrays.asList("$replies", java.util.Collections.emptyList())))
+                ))));
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(criteria),
+                addTrendingScore,
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "trendingScore")
+                        .and(Sort.by(Sort.Direction.DESC, "createdAt"))),
+                Aggregation.skip(pageable.getOffset()),
+                Aggregation.limit(pageable.getPageSize()));
+
         return mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(Post.class), Post.class)
                 .getMappedResults();
     }
