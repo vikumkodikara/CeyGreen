@@ -36,9 +36,12 @@ jobs:
           - service: api-gateway
             context: ./backend/api-gateway
             image_name: ghcr.io/vikumkodikara/ceygreen-api-gateway
-          - service: user-diagnosis-service
-            context: ./backend/user-diagnosis-service
-            image_name: ghcr.io/vikumkodikara/ceygreen-user-diagnosis-service
+          - service: user-service
+            context: ./backend/user-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-user-service
+          - service: diagnosis-service
+            context: ./backend/diagnosis-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-diagnosis-service
           - service: forum-service
             context: ./backend/forum-service
             image_name: ghcr.io/vikumkodikara/ceygreen-forum-service

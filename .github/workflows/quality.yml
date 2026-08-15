@@ -44,8 +44,10 @@ jobs:
         include:
           - service: api-gateway
             dockerfile: ./backend/api-gateway/Dockerfile
-          - service: user-diagnosis-service
-            dockerfile: ./backend/user-diagnosis-service/Dockerfile
+          - service: user-service
+            dockerfile: ./backend/user-service/Dockerfile
+          - service: diagnosis-service
+            dockerfile: ./backend/diagnosis-service/Dockerfile
           - service: forum-service
             dockerfile: ./backend/forum-service/Dockerfile
 
@@ -72,8 +74,10 @@ jobs:
         include:
           - service: api-gateway
             path: ./backend/api-gateway
-          - service: user-diagnosis-service
-            path: ./backend/user-diagnosis-service
+          - service: user-service
+            path: ./backend/user-service
+          - service: diagnosis-service
+            path: ./backend/diagnosis-service
           - service: forum-service
             path: ./backend/forum-service
 
