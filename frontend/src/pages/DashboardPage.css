@@ -4,8 +4,14 @@
   gap: 1.15rem;
   max-width: 1240px;
   align-items: start;
+  height: 100%;
 }
-.dash-center { min-width: 0; }
+.dash-center {
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
 .dash-h, .section-head h2, .story-card h3, .panel h3 {
   font-size: 0.95rem;
   color: var(--jade);
@@ -182,7 +188,14 @@
 .price b { color: var(--jade); font-size: 1.15rem; }
 .up { color: #166534; font-size: 0.78rem; font-weight: 700; }
 
-.dash-rail { display: flex; flex-direction: column; gap: 0.75rem; }
+.dash-rail { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.75rem; 
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
 .panel { padding: 1rem 1.05rem; }
 .panel select {
   margin-bottom: 0.7rem;
