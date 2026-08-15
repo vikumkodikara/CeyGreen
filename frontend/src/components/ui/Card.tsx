@@ -10,7 +10,7 @@ interface CardProps {
 
 export const Card: React.FC<CardProps> = ({ children, title, subtitle, className = '', style }) => {
   return (
-    <div className={`glass-panel ${className}`} style={{ padding: '1.5rem', ...style }}>
+    <div className={`ui-card ${className}`} style={{ padding: '1.5rem', ...style }}>
       {title && (
         <div style={{ marginBottom: '1rem' }}>
           <h3 style={{ fontSize: '1.25rem', color: 'var(--text-main)' }}>{title}</h3>

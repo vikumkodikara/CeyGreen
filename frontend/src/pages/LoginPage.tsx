@@ -3,15 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { Logo } from '../components/layout/Logo';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
@@ -19,57 +18,41 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const { token, user } = await login({ email, password });
       loginUser(token.access_token, user);
       navigate('/');
     } catch (err: any) {
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.request) {
-        setError('Cannot connect to user service (Backend server is offline or unreachable).');
-      } else {
-        setError('Login failed. Please check your email and password.');
-      }
+      if (err.response?.data?.message) setError(err.response.data.message);
+      else if (err.request) setError('Cannot reach the server. Try again shortly.');
+      else setError('Sign in failed. Check your email and password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <Card title="Welcome Back" subtitle="Sign in to your CeyGreen account">
-        {error && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid var(--danger)', color: 'var(--danger)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <Input
-            label="Email Address"
-            type="email"
-            placeholder="farmer@ceygreen.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" isLoading={loading} style={{ width: '100%', marginTop: '1rem' }}>
-            Sign In
-          </Button>
-        </form>
-        <p style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-          Don't have an account? <Link to="/register" style={{ color: 'var(--accent-green)' }}>Register here</Link>
-        </p>
-      </Card>
+    <div className="auth-shell">
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'center' }}>
+          <Logo to="/" />
+        </div>
+        <div className="auth-card">
+          <h2>Sign in</h2>
+          <p className="lead">White card on the green house. Enter your account.</p>
+          {error && <div className="alert alert-error">{error}</div>}
+          <form onSubmit={handleSubmit}>
+            <Input label="Email" type="email" placeholder="you@farm.lk" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Input label="Password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Button type="submit" isLoading={loading} style={{ width: '100%', marginTop: '0.35rem' }}>
+              Enter
+            </Button>
+          </form>
+          <p className="auth-foot">
+            New here? <Link to="/register">Create an account</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };
