@@ -45,6 +45,24 @@ public class InMemoryTelemetryRepository implements TelemetryRepository {
     }
 
     @Override
+    public Optional<SensorReading> findLatestReading(String greenhouseId) {
+        SensorReading latest = null;
+        for (Map.Entry<String, List<SensorReading>> entry : readings.entrySet()) {
+            if (!entry.getKey().startsWith(greenhouseId + "::") || entry.getValue().isEmpty()) {
+                continue;
+            }
+            SensorReading candidate = entry.getValue().get(entry.getValue().size() - 1);
+            if (latest == null
+                    || (candidate.getTimestamp() != null
+                    && latest.getTimestamp() != null
+                    && candidate.getTimestamp().compareTo(latest.getTimestamp()) > 0)) {
+                latest = candidate;
+            }
+        }
+        return Optional.ofNullable(latest);
+    }
+
+    @Override
     public List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> newSuggestions) {
         String key = readingKey(greenhouseId, zoneId);
         suggestions.put(key, new ArrayList<>(newSuggestions));
