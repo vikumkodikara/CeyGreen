@@ -1,7 +1,7 @@
 .forum-layout-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 1rem 2rem; /* Increased top padding to prevent header clipping under navbar */
+  padding: 0.5rem 1rem 2rem;
 }
 
 .forum-header-title {
