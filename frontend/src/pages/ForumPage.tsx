@@ -55,7 +55,7 @@ export const ForumPage: React.FC = () => {
         body: text,
       });
       setReplyText({ ...replyText, [postId]: '' });
-      setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+      setPosts(sortPostsArray(posts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to post reply');
     }
@@ -64,7 +64,7 @@ export const ForumPage: React.FC = () => {
   const handleLoadReplies = async (postId: string) => {
     try {
       const fullPost = await getPost(postId);
-      setPosts(posts.map(p => p.id === postId ? fullPost : p));
+      setPosts(sortPostsArray(posts.map(p => p.id === postId ? fullPost : p)));
     } catch (err) {
       console.error('Failed to load replies', err);
     }
@@ -80,27 +80,64 @@ export const ForumPage: React.FC = () => {
     }
   };
 
+  const sortPostsArray = (postArray: Post[]) => {
+    const copy = [...postArray];
+    copy.sort((a, b) => {
+      if (sort === 'trending') {
+        const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
+        const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+      } else if (sort === 'newest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return (b.upvotes || 0) - (a.upvotes || 0);
+    });
+    return copy;
+  };
+
   const handleVote = async (postId: string, action: 'upvote' | 'downvote') => {
+    // 1. Optimistic Update (Immediate UI response)
+    const targetPost = posts.find(p => p.id === postId);
+    if (!targetPost) return;
+
+    const optPost = { ...targetPost };
+    const currentUserId = user?.id || '';
+    
+    if (action === 'upvote') {
+      if (!optPost.upvotedBy) optPost.upvotedBy = [];
+      if (!optPost.downvotedBy) optPost.downvotedBy = [];
+      if (!optPost.upvotedBy.includes(currentUserId)) {
+        optPost.upvotedBy.push(currentUserId);
+        optPost.upvotes = (optPost.upvotes || 0) + 1;
+        if (optPost.downvotedBy.includes(currentUserId)) {
+          optPost.downvotedBy = optPost.downvotedBy.filter(id => id !== currentUserId);
+          optPost.downvotes = Math.max(0, (optPost.downvotes || 0) - 1);
+        }
+      }
+    } else {
+      if (!optPost.downvotedBy) optPost.downvotedBy = [];
+      if (!optPost.upvotedBy) optPost.upvotedBy = [];
+      if (!optPost.downvotedBy.includes(currentUserId)) {
+        optPost.downvotedBy.push(currentUserId);
+        optPost.downvotes = (optPost.downvotes || 0) + 1;
+        if (optPost.upvotedBy.includes(currentUserId)) {
+          optPost.upvotedBy = optPost.upvotedBy.filter(id => id !== currentUserId);
+          optPost.upvotes = Math.max(0, (optPost.upvotes || 0) - 1);
+        }
+      }
+    }
+
+    // Update UI instantly
+    setPosts(sortPostsArray(posts.map(p => p.id === postId ? optPost : p)));
+
+    // 2. Perform Backend Call
     try {
       const updatedPost = await actOnPost(postId, action);
-      const newPosts = posts.map(p => p.id === postId ? updatedPost : p);
-      
-      // Re-sort dynamically so the upvoted post moves up
-      newPosts.sort((a, b) => {
-        if (sort === 'trending') {
-          const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
-          const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
-          if (scoreB !== scoreA) return scoreB - scoreA;
-        } else if (sort === 'newest') {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        // fallback to upvotes
-        return (b.upvotes || 0) - (a.upvotes || 0);
-      });
-      
-      setPosts(newPosts);
+      setPosts(currentPosts => sortPostsArray(currentPosts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
       console.error('Failed to act on post', err);
+      // Revert if API fails
+      setPosts(sortPostsArray(posts)); 
     }
   };
 
