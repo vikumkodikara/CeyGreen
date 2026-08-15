@@ -1,32 +1,32 @@
 # CeyGreen — Microservices-Based Greenhouse Management System
 
-CeyGreen is an end-to-end, distributed microservices platform that modernizes greenhouse farming by combining IoT sensing, machine-learning-assisted plant diagnostics, e-commerce marketplace, treatment recommendations, community forum, and sales analytics & notifications into a unified ecosystem. 
+CeyGreen is an end-to-end, distributed microservices platform that modernizes greenhouse farming by combining IoT sensing, machine-learning-assisted plant diagnostics, e-commerce marketplace, treatment recommendations, community forum, and sales analytics & notifications into a unified ecosystem.
 
 All synchronous, user-facing traffic is securely routed through a central **Spring Cloud API Gateway** with Redis rate limiting and JWT verification, while an **Apache Kafka (KRaft)** event backbone enables asynchronous, resilient inter-service communication. The entire stack is containerized with **Docker Compose**, continuously integrated and deployed via **GitHub Actions**, and hosted live on **AWS EC2**.
 
 ---
 
-## 🌟 Live Deployment & Architecture Highlights
+## Live Deployment & Architecture Highlights
 
-### 🚀 Live AWS Deployment
+### Live AWS Deployment
 - **Live Server**: **[http://16.192.168.12:3000](http://16.192.168.12:3000)** (Hosted on AWS EC2, Ubuntu 24.04 LTS).
 - **Reverse Proxy**: Nginx container routing `/api/**` traffic directly to `api-gateway:8080` internally.
 - **Automated CI/CD**: GitHub Actions workflow (`.github/workflows/cd.yml`) automatically builds pre-built container images and updates the live EC2 host on `main` branch merges.
 
-### 🧠 Pretrained ONNX ML Plant Disease Classification
+### Pretrained ONNX ML Plant Disease Classification
 - **Deep Learning Model**: ResNet50V2-based ONNX model (`backend/diagnosis-service/src/main/resources/models/disease_model.onnx`, ~94 MB) executed using Java ONNX Runtime.
 - **25 Disease Classes**: Detects 25 pathology labels across Tomato, Potato, Pepper, Grape, Apple, and Corn crops.
 - **Native Image Decoding**: Integrated TwelveMonkeys ImageIO (`imageio-webp:3.12.0`) supporting `.webp`, `.png`, `.jpg`, and `.jpeg` leaf image uploads.
 - **Google Gemini 1.5 Flash AI**: Integrated for instant 14-day agronomic recovery plans and foliar spray schedules.
 
-### 📱 Modern Mobile-First React Client (`frontend/`)
+### Modern Mobile-First React Client (`frontend/`)
 - **Interactive Crop Selector**: Dedicated detection views for 6 major greenhouse crop categories.
 - **Agronomist Diagnostic Dashboard**: Visual confidence gauge, drag-and-drop image preview, and 4-tab clinical report (Key Symptoms, Environmental Drivers, Action Plan, Marketplace Products).
 - **Comprehensive Teammate Modules**: Marketplace store, shopping cart, IoT greenhouse live telemetry, community discussion forum, treatment advisor, and sales analytics.
 
 ---
 
-## 📐 System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
@@ -63,24 +63,24 @@ graph TD
 
 ---
 
-## 👥 Team & Microservice Ownership
+## Team & Microservice Ownership
 
 | Service Name | Port | Database / Storage | Tech Stack | Status |
 |---|---|---|---|---|
-| **API Gateway** | `8080` | Redis 7 | Spring Cloud Gateway, WebFlux | ✅ Live |
-| **User Service** | `8081` | PostgreSQL (`ceygreen_users`) | Spring Boot 3, JPA, RSA JWT Issuer | ✅ Live |
-| **Disease Detection Service** | `8087` | MongoDB (`ceygreen_diagnoses`) | Spring Boot 3, ONNX Runtime, TwelveMonkeys | ✅ Live |
-| **IoT Telemetry & Control Service** | `8082` | Firebase Realtime DB | Spring Boot 3, Firebase Admin SDK, Kafka | ✅ Live |
-| **Treatment & Suggestion Service** | `8083` | PostgreSQL (`ceygreen_treatments`) | Spring Boot 3, JPA, Kafka Producer | ✅ Live |
-| **E-Commerce Marketplace Service** | `8084` | PostgreSQL (`ceygreen_ecommerce`) | Spring Boot 3, JPA, Kafka Producer | ✅ Live |
-| **Community Forum Service** | `8085` | MongoDB (`ceygreen_forum`) | Spring Boot 3, Spring Data Mongo, Gemini AI | ✅ Live |
-| **Sales Analytics Service** | `8086` | PostgreSQL (`ceygreen_analytics`) | Spring Boot 3, JPA, Kafka Consumer | ✅ Live |
-| **Notification Service** | `8088` | PostgreSQL (`ceygreen_notifications`) | Spring Boot 3, JPA, Kafka Consumer | ✅ Live |
-| **Frontend Web Application** | `3000` | Nginx SPA | React 18, Vite, TypeScript, TailwindCSS | ✅ Live |
+| **API Gateway** | `8080` | Redis 7 | Spring Cloud Gateway, WebFlux | Live |
+| **User Service** | `8081` | PostgreSQL (`ceygreen_users`) | Spring Boot 3, JPA, RSA JWT Issuer | Live |
+| **Disease Detection Service** | `8087` | MongoDB (`ceygreen_diagnoses`) | Spring Boot 3, ONNX Runtime, TwelveMonkeys | Live |
+| **IoT Telemetry & Control Service** | `8082` | Firebase Realtime DB | Spring Boot 3, Firebase Admin SDK, Kafka | Live |
+| **Treatment & Suggestion Service** | `8083` | PostgreSQL (`ceygreen_treatments`) | Spring Boot 3, JPA, Kafka Producer | Live |
+| **E-Commerce Marketplace Service** | `8084` | PostgreSQL (`ceygreen_ecommerce`) | Spring Boot 3, JPA, Kafka Producer | Live |
+| **Community Forum Service** | `8085` | MongoDB (`ceygreen_forum`) | Spring Boot 3, Spring Data Mongo, Gemini AI | Live |
+| **Sales Analytics Service** | `8086` | PostgreSQL (`ceygreen_analytics`) | Spring Boot 3, JPA, Kafka Consumer | Live |
+| **Notification Service** | `8088` | PostgreSQL (`ceygreen_notifications`) | Spring Boot 3, JPA, Kafka Consumer | Live |
+| **Frontend Web Application** | `3000` | Nginx SPA | React 18, Vite, TypeScript, TailwindCSS | Live |
 
 ---
 
-## 🔒 Service Independence Architecture
+## Service Independence Architecture
 
 > **Hard Rule**: No internal service makes direct synchronous REST calls to another microservice. All cross-service coordination is either **client-orchestrated** or **event-driven via Apache Kafka**.
 
@@ -91,7 +91,7 @@ graph TD
 
 ---
 
-## 🗄️ Polyglot Persistence
+## Polyglot Persistence
 
 | Storage Engine | Attached Services | Purpose |
 |---|---|---|
@@ -102,7 +102,7 @@ graph TD
 
 ---
 
-## 📡 Kafka Event Backbone
+## Kafka Event Backbone
 
 | Topic | Producer | Consumer(s) | Trigger Condition |
 |---|---|---|---|
@@ -115,7 +115,7 @@ graph TD
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```text
 CeyGreen/
@@ -139,7 +139,7 @@ CeyGreen/
 
 ---
 
-## 🚀 Quick Start & Local Execution
+## Quick Start & Local Execution
 
 ### Prerequisites
 - **Docker Desktop** (v24+ / Compose v2+)
@@ -169,7 +169,7 @@ CeyGreen/
    docker compose ps
    ```
 
-### 🔗 Service Endpoints
+### Service Endpoints
 
 | Resource | Local Endpoint | Live AWS Endpoint |
 |---|---|---|
