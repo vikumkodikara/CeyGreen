@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * REST API for ESP32 sensor ingest.
  */
 @RestController
-@RequestMapping("/api/iot/readings")
+@RequestMapping("/iot/readings")
 public class ReadingController {
 
     private final ReadingService readingService;

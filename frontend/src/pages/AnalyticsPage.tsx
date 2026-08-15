@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useAuth } from '../hooks/useAuth';
 import { LeaderboardResponse, SalesSummary } from '../types/analytics';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const AnalyticsPage: React.FC = () => {
   const { user } = useAuth();
@@ -33,57 +34,64 @@ export const AnalyticsPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '900px' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>📈 Sales Analytics & Leaderboards</h1>
+    <div className="page-wrap">
+      <PageHeader
+        title="Analytics"
+        subtitle="Revenue and orders for a farmer account."
+      />
 
-      <Card title="Lookup Farmer Performance">
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
+      <Card title="Look up a farmer">
+        <div className="row">
+          <div className="grow">
             <Input label="Farmer ID" value={farmerId} onChange={(e) => setFarmerId(e.target.value)} />
           </div>
           <Button onClick={fetchAnalytics} isLoading={loading} style={{ marginBottom: '1rem' }}>
-            Fetch Analytics
+            Fetch
           </Button>
         </div>
       </Card>
 
       {summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginTop: '1.5rem' }}>
-          <Card title="Total Revenue">
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--accent-green)' }}>
-              ${summary.totalRevenue}
-            </p>
-          </Card>
-          <Card title="Completed Orders">
-            <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--accent-teal)' }}>
-              {summary.totalOrders}
-            </p>
-          </Card>
+        <div className="dash-stats" style={{ marginTop: '1.25rem' }}>
+          <div className="stat-tile">
+            <div className="k">Total revenue</div>
+            <div className="v">${summary.totalRevenue}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="k">Completed orders</div>
+            <div className="v">{summary.totalOrders}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="k">Farmer</div>
+            <div className="v" style={{ fontSize: '1.05rem' }}>{farmerId}</div>
+          </div>
         </div>
       )}
 
       {leaderboard && (
-        <Card title="Top Farmers Leaderboard" style={{ marginTop: '2rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '0.75rem' }}>Rank</th>
-                <th style={{ padding: '0.75rem' }}>Farmer ID</th>
-                <th style={{ padding: '0.75rem' }}>Total Revenue</th>
-                <th style={{ padding: '0.75rem' }}>Orders</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboard.farmers.map((f) => (
-                <tr key={f.farmerId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '0.75rem', fontWeight: 700 }}>#{f.rank}</td>
-                  <td style={{ padding: '0.75rem' }}>{f.farmerId}</td>
-                  <td style={{ padding: '0.75rem', color: 'var(--accent-green)' }}>${f.totalRevenue}</td>
-                  <td style={{ padding: '0.75rem' }}>{f.totalOrders}</td>
+        <Card title="Top farmers" style={{ marginTop: '1.25rem' }}>
+          <div className="orders-table-wrap">
+            <table className="marketplace-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Farmer</th>
+                  <th>Revenue</th>
+                  <th>Orders</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {leaderboard.farmers.map((f) => (
+                  <tr key={f.farmerId}>
+                    <td>#{f.rank}</td>
+                    <td>{f.farmerId}</td>
+                    <td>${f.totalRevenue}</td>
+                    <td>{f.totalOrders}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
     </div>
