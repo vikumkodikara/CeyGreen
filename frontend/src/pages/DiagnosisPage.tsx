@@ -186,9 +186,9 @@ Immediate Greenhouse Environment Adjustments:
                   appearance: 'none',
                 }}
               >
-                {CROPS_LIST.map((crop) => (
+                {CROPS_LIST.map((crop: any) => (
                   <option key={crop.id} value={crop.id}>
-                    {crop.label} — ({crop.description})
+                    {crop.icon} {crop.name}
                   </option>
                 ))}
               </select>
@@ -475,7 +475,7 @@ Immediate Greenhouse Environment Adjustments:
                   <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                     <h4 style={{ color: 'var(--warning)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Key Visual Symptoms</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.symptoms.map((s, idx) => (
+                      {diseaseDetail.symptoms.map((s: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{s}</li>
                       ))}
                     </ul>
@@ -484,7 +484,7 @@ Immediate Greenhouse Environment Adjustments:
                   <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                     <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Environmental Drivers</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.causes.map((c, idx) => (
+                      {diseaseDetail.causes.map((c: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{c}</li>
                       ))}
                     </ul>
@@ -500,7 +500,7 @@ Immediate Greenhouse Environment Adjustments:
                   <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--accent-emerald)' }}>
                     <h4 style={{ color: 'var(--accent-emerald)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Organic & Biological Controls</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.organicTreatments.map((t, idx) => (
+                      {diseaseDetail.organicTreatments.map((t: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
                       ))}
                     </ul>
@@ -509,7 +509,7 @@ Immediate Greenhouse Environment Adjustments:
                   <div style={{ background: 'rgba(59, 130, 246, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--info)' }}>
                     <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Chemical & Fungicide Solutions</h4>
                     <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.chemicalTreatments.map((t, idx) => (
+                      {diseaseDetail.chemicalTreatments.map((t: string, idx: number) => (
                         <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
                       ))}
                     </ul>
@@ -524,7 +524,7 @@ Immediate Greenhouse Environment Adjustments:
                 <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
                   <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Long-Term Preventive Practices</h4>
                   <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                    {diseaseDetail.prevention.map((p, idx) => (
+                    {diseaseDetail.prevention.map((p: string, idx: number) => (
                       <li key={idx} style={{ marginBottom: '0.5rem' }}>{p}</li>
                     ))}
                   </ul>
@@ -536,7 +536,7 @@ Immediate Greenhouse Environment Adjustments:
             {activeTab === 'products' && (
               <Card title="Recommended Remedies & Marketplace Products">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {diseaseDetail.recommendedProducts.map((p, idx) => (
+                  {diseaseDetail.recommendedProducts.map((p: any, idx: number) => (
                     <div
                       key={idx}
                       style={{
