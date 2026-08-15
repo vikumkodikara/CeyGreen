@@ -20,21 +20,13 @@ is in `forum-service-api-plan.md` — read that before implementing anything in 
 `main` is protected. Every change, no matter how small, goes through a feature branch and a Pull
 Request. Never run `git push origin main` or any command that pushes directly to `main`.
 
-### 1.2 Always work on a feature branch
-Before making any code change, confirm the current branch is not `main`. If it is, create a new
-branch first:
-```
-git checkout main
-git pull origin main
-git checkout -b feature/forum-service
-```
+### 1.2 Always work on a feature branch (Automated Branching Rule)
+Before making or committing any changes, always check the existing git branches. If there is an already existing branch that logically matches the current task, feature, or fix, switch to it, commit the changes, and automatically run `git push`. If there is no matching branch for the current task, create a new branch with an appropriate name (e.g., feature/<name> or fix/<name>), switch to it, make the commit, and automatically push the new branch to the remote repository.
+
 **Branch naming convention (confirmed from this repo's existing branches):** `feature/<kebab-case-description>`,
 matching the pattern used by other services — e.g. `feature/iot-service`, `feature/treatment-service`,
 `feature/user-diagnosis-service`, `feature/ecommerce-marketplace`. No student-number prefix is used.
 Bug fixes use `fix/<kebab-case-description>` (e.g. `fix/kafka-listener-binding`).
-
-For this service, use `feature/forum-service` as the working branch. If a task is large enough to
-warrant splitting further, use a more specific name in the same style, e.g. `feature/forum-ai-fallback`.
 
 ### 1.3 Commit often, in small logical units
 Do not batch a whole feature into one giant commit. Make a separate commit for each logical step —
