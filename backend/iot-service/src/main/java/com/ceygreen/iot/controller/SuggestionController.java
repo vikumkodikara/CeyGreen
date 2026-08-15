@@ -13,7 +13,7 @@ import java.util.List;
  * REST API for greenhouse suggestions shown on the web dashboard.
  */
 @RestController
-@RequestMapping("/api/iot/suggestions")
+@RequestMapping("/iot/suggestions")
 public class SuggestionController {
 
     private final SuggestionService suggestionService;

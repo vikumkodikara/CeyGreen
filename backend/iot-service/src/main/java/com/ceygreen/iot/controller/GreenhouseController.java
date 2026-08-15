@@ -13,10 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST API for greenhouse blueprints.
- * Gateway route: {@code /api/iot/**} → this service on port 8082.
+ * Public path via gateway: {@code POST /api/iot/greenhouses}.
+ * After StripPrefix=1 this service listens on {@code /iot/greenhouses}.
  */
 @RestController
-@RequestMapping("/api/iot/greenhouses")
+@RequestMapping("/iot/greenhouses")
 public class GreenhouseController {
 
     private final GreenhouseService greenhouseService;
