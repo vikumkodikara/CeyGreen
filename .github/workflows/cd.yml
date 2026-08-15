@@ -133,12 +133,14 @@ jobs:
             sleep 60
             echo "--- Service Health Status ---"
             curl -sf http://localhost:8080/actuator/health && echo " ✔ API Gateway (8080)" || echo " ✖ API Gateway (8080)"
-            curl -sf http://localhost:8081/actuator/health && echo " ✔ User/Diagnosis (8081)" || echo " ✖ User/Diagnosis (8081)"
+            curl -sf http://localhost:8081/actuator/health && echo " ✔ User Service (8081)" || echo " ✖ User Service (8081)"
+            curl -sf http://localhost:8087/actuator/health && echo " ✔ Diagnosis Service (8087)" || echo " ✖ Diagnosis Service (8087)"
             curl -sf http://localhost:8082/actuator/health && echo " ✔ IoT Service (8082)" || echo " ✖ IoT Service (8082)"
             curl -sf http://localhost:8083/actuator/health && echo " ✔ Treatment Service (8083)" || echo " ✖ Treatment Service (8083)"
             curl -sf http://localhost:8084/actuator/health && echo " ✔ E-Commerce Service (8084)" || echo " ✖ E-Commerce Service (8084)"
             curl -sf http://localhost:8085/actuator/health && echo " ✔ Forum Service (8085)" || echo " ✖ Forum Service (8085)"
             curl -sf http://localhost:8086/actuator/health && echo " ✔ Analytics Service (8086)" || echo " ✖ Analytics Service (8086)"
+            curl -sf http://localhost:8088/actuator/health && echo " ✔ Notification Service (8088)" || echo " ✖ Notification Service (8088)"
             curl -sf http://localhost:3000 > /dev/null && echo " ✔ Client Frontend (3000)" || echo " ✖ Client Frontend (3000)"
 
             echo "Deployment complete!"
