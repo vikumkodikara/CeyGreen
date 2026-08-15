@@ -39,9 +39,21 @@ jobs:
           - service: user-diagnosis-service
             context: ./backend/user-diagnosis-service
             image_name: ghcr.io/vikumkodikara/ceygreen-user-diagnosis-service
+          - service: iot-service
+            context: ./backend/iot-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-iot-service
+          - service: treatment-service
+            context: ./backend/treatment-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-treatment-service
+          - service: ecommerce-service
+            context: ./backend/ecommerce-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-ecommerce-service
           - service: forum-service
             context: ./backend/forum-service
             image_name: ghcr.io/vikumkodikara/ceygreen-forum-service
+          - service: analytics-notification-service
+            context: ./backend/analytics-notification-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-analytics-notification-service
           - service: client
             context: ./frontend
             image_name: ghcr.io/vikumkodikara/ceygreen-client
