@@ -351,13 +351,13 @@ button {
 
 .app-main {
   flex: 1;
+  min-height: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   padding: 1.4rem 1.5rem 2.4rem;
   background: var(--paper);
   overflow-y: auto;
-  height: 100%;
 }
 .app-footer {
   padding: 0.7rem 1.4rem;
