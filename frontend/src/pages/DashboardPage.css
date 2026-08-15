@@ -3,8 +3,9 @@
   grid-template-columns: minmax(0, 1fr) 292px;
   gap: 1.15rem;
   max-width: 1240px;
-  align-items: start;
   height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 .dash-center {
   min-width: 0;
