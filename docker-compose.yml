@@ -173,6 +173,7 @@ services:
 
   iot-service:
     build: ./backend/iot-service
+    image: ghcr.io/vikumkodikara/ceygreen-iot-service:latest
     ports:
       - "8082:8082"
     environment:
@@ -200,6 +201,7 @@ services:
 
   treatment-service:
      build: ./backend/treatment-service
+     image: ghcr.io/vikumkodikara/ceygreen-treatment-service:latest
      ports:
        - "8083:8083"
      environment:
@@ -227,6 +229,7 @@ services:
 
   ecommerce-service:
     build: ./backend/ecommerce-service
+    image: ghcr.io/vikumkodikara/ceygreen-ecommerce-service:latest
     ports:
       - "8084:8084"
     environment:
@@ -281,28 +284,29 @@ services:
   #  Uncomment once Student 6's code is added to analytics-notification-service/
   # ═══════════════════════════════════════════════════════════════════════
 
-  # analytics-notification-service:
-  #   build: ./backend/analytics-notification-service
-  #   ports:
-  #     - "8086:8086"
-  #   environment:
-  #     SERVER_PORT: 8086
-  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_analytics
-  #     POSTGRES_USER: ceygreen
-  #     POSTGRES_PASSWORD: ceygreen
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  analytics-notification-service:
+    build: ./backend/analytics-notification-service
+    image: ghcr.io/vikumkodikara/ceygreen-analytics-notification-service:latest
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_analytics
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  GRAFANA — Dashboards (port 3001)
