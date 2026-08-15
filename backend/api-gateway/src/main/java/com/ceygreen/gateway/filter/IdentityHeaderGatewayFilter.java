@@ -24,11 +24,12 @@ public class IdentityHeaderGatewayFilter implements GlobalFilter, Ordered {
     public static final String HEADER_API_KEY = "X-API-Key";
     public static final String HEADER_USER_ID = "X-User-Id";
     public static final String HEADER_USER_ROLE = "X-User-Role";
+    public static final String HEADER_USER_NAME = "X-User-Name";
     public static final String HEADER_FARMER_ID = "X-Farmer-Id";
     public static final String HEADER_BUYER_ID = "X-Buyer-Id";
 
     private static final List<String> STRIPPED = List.of(
-            HEADER_API_KEY, HEADER_USER_ID, HEADER_USER_ROLE, HEADER_FARMER_ID, HEADER_BUYER_ID);
+            HEADER_API_KEY, HEADER_USER_ID, HEADER_USER_ROLE, HEADER_USER_NAME, HEADER_FARMER_ID, HEADER_BUYER_ID);
 
     private final GatewayProperties properties;
 
@@ -57,6 +58,10 @@ public class IdentityHeaderGatewayFilter implements GlobalFilter, Ordered {
         String role = jwt.getClaimAsString("role");
         if (role != null) {
             builder.header(HEADER_USER_ROLE, role);
+        }
+        String name = jwt.getClaimAsString("name");
+        if (name != null) {
+            builder.header(HEADER_USER_NAME, name);
         }
         String farmerId = jwt.getClaimAsString("farmerId");
         if (farmerId != null) {

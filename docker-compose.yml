@@ -31,16 +31,17 @@ services:
       retries: 10
 
   mongo:
-    image: mongo:7.0
+    image: mongo:7
     ports:
       - "27020:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 5s
-      timeout: 5s
+      interval: 10s
+      timeout: 20s
       retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -75,17 +76,20 @@ services:
       CLUSTER_ID: ceygreenKRaftCluster01
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
-      interval: 10s
-      timeout: 10s
+      interval: 15s
+      timeout: 25s
       retries: 10
-      start_period: 20s
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
-  #  STUDENT 2 — User Management + Disease Detection (port 8081)
+  #  STUDENT 2 — User Management (port 8081)
+  #  Also the OAuth 2.0 token issuer: it owns the private signing key.
+  #  Postgres only — a Mongo outage can no longer take down login.
   # ═══════════════════════════════════════════════════════════════════════
 
-  user-diagnosis-service:
-    build: ./backend/user-diagnosis-service
+  user-service:
+    build: ./backend/user-service
+    image: ghcr.io/vikumkodikara/ceygreen-user-service:latest
     ports:
       - "8081:8081"
     environment:
@@ -93,6 +97,29 @@ services:
       POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_users
       POSTGRES_USER: ceygreen
       POSTGRES_PASSWORD: ceygreen
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 2 — Disease Detection (port 8087)
+  #  Validates tokens with the public key alone — never calls user-service.
+  # ═══════════════════════════════════════════════════════════════════════
+
+  diagnosis-service:
+    build: ./backend/diagnosis-service
+    image: ghcr.io/vikumkodikara/ceygreen-diagnosis-service:latest
+    ports:
+      - "8087:8087"
+    environment:
+      SERVER_PORT: 8087
       MONGODB_URI: mongodb://mongo:27017/ceygreen_diagnoses
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
@@ -101,18 +128,16 @@ services:
     volumes:
       - diagnosis_images:/app/data/diagnosis-images
     depends_on:
-      postgres:
-        condition: service_healthy
       mongo:
         condition: service_healthy
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 2 — API Gateway (port 8080)
@@ -120,33 +145,38 @@ services:
 
   api-gateway:
     build: ./backend/api-gateway
+    image: ghcr.io/vikumkodikara/ceygreen-api-gateway:latest
     ports:
       - "8080:8080"
     environment:
       SERVER_PORT: 8080
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      USER_DIAGNOSIS_SERVICE_URL: http://user-diagnosis-service:8081
+      USER_SERVICE_URL: http://user-service:8081
+      DIAGNOSIS_SERVICE_URL: http://diagnosis-service:8087
       # Placeholder teammate URLs — gateway starts without these services existing.
       IOT_SERVICE_URL: ${IOT_SERVICE_URL:-http://iot-service:8082}
       TREATMENT_SERVICE_URL: ${TREATMENT_SERVICE_URL:-http://treatment-service:8083}
       ECOMMERCE_SERVICE_URL: ${ECOMMERCE_SERVICE_URL:-http://ecommerce-service:8084}
       FORUM_SERVICE_URL: ${FORUM_SERVICE_URL:-http://forum-service:8085}
       ANALYTICS_SERVICE_URL: ${ANALYTICS_SERVICE_URL:-http://analytics-service:8086}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8088}
       DOWNSTREAM_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173,http://16.192.168.12:3000,http://16.192.168.12}
       RATE_LIMIT_REQUESTS_PER_MIN: ${RATE_LIMIT_REQUESTS_PER_MIN:-60}
     depends_on:
       redis:
         condition: service_healthy
-      user-diagnosis-service:
+      # Login is the critical boot path, so the gateway waits on the token issuer only.
+      # Every other downstream is reached lazily per request.
+      user-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  CLIENT — Web Application (port 3000)
@@ -157,6 +187,7 @@ services:
       context: ./frontend
       args:
         VITE_GEMINI_API_KEY: ${VITE_GEMINI_API_KEY:-}
+    image: ghcr.io/vikumkodikara/ceygreen-client:latest
     ports:
       - "3000:80"
     depends_on:
@@ -169,6 +200,7 @@ services:
 
   iot-service:
     build: ./backend/iot-service
+    image: ghcr.io/vikumkodikara/ceygreen-iot-service:latest
     ports:
       - "8082:8082"
     environment:
@@ -185,9 +217,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 3 — Treatment & Suggestion Service (port 8083)
@@ -196,6 +228,7 @@ services:
 
   treatment-service:
      build: ./backend/treatment-service
+     image: ghcr.io/vikumkodikara/ceygreen-treatment-service:latest
      ports:
        - "8083:8083"
      environment:
@@ -213,9 +246,9 @@ services:
      healthcheck:
        test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
        interval: 10s
-       timeout: 5s
-       retries: 12
-       start_period: 40s
+       timeout: 10s
+       retries: 15
+       start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  E-Commerce Marketplace Service (port 8084)
@@ -223,6 +256,7 @@ services:
 
   ecommerce-service:
     build: ./backend/ecommerce-service
+    image: ghcr.io/vikumkodikara/ceygreen-ecommerce-service:latest
     ports:
       - "8084:8084"
     environment:
@@ -240,9 +274,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 5 — Community Forum Service (port 8085)
@@ -251,6 +285,7 @@ services:
 
   forum-service:
     build: ./backend/forum-service
+    image: ghcr.io/vikumkodikara/ceygreen-forum-service:latest
     ports:
       - "8085:8085"
     environment:
@@ -267,37 +302,68 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
-  #  STUDENT 6 — Sales Analytics & Notification Service (port 8086)
-  #  Uncomment once Student 6's code is added to analytics-notification-service/
+  #  STUDENT 6 — Sales Analytics (port 8086)
+  #  Consumes order-events only, on its own consumer group.
   # ═══════════════════════════════════════════════════════════════════════
 
-  # analytics-notification-service:
-  #   build: ./backend/analytics-notification-service
-  #   ports:
-  #     - "8086:8086"
-  #   environment:
-  #     SERVER_PORT: 8086
-  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_analytics
-  #     POSTGRES_USER: ceygreen
-  #     POSTGRES_PASSWORD: ceygreen
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  analytics-service:
+    build: ./backend/analytics-service
+    image: ghcr.io/vikumkodikara/ceygreen-analytics-service:latest
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_analytics
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+
+  # ═══════════════════════════════════════════════════════════════════════
+  #  STUDENT 6 — Notifications (port 8088)
+  #  Consumes the five user-facing topics on its own consumer group, and
+  #  owns its own database so analytics reporting cannot lock it out.
+  # ═══════════════════════════════════════════════════════════════════════
+
+  notification-service:
+    build: ./backend/notification-service
+    image: ghcr.io/vikumkodikara/ceygreen-notification-service:latest
+    ports:
+      - "8088:8088"
+    environment:
+      SERVER_PORT: 8088
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_notifications
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/actuator/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  GRAFANA — Dashboards (port 3001)
