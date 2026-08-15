@@ -58,7 +58,7 @@ class GatewayIntegrationTest {
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", REDIS::getHost);
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
-        registry.add("USER_DIAGNOSIS_SERVICE_URL", () -> downstream.url("/").toString().replaceAll("/$", ""));
+        registry.add("USER_SERVICE_URL", () -> downstream.url("/").toString().replaceAll("/$", ""));
         registry.add("ceygreen.rate-limit.requests-per-minute", () -> "60");
         registry.add("ceygreen.rate-limit.replenish-rate", () -> "60");
         registry.add("ceygreen.rate-limit.burst-capacity", () -> "3600");

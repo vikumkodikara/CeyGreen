@@ -3,3 +3,4 @@
 CREATE DATABASE ceygreen_ecommerce;
 CREATE DATABASE ceygreen_treatments;
 CREATE DATABASE ceygreen_analytics;
+CREATE DATABASE ceygreen_notifications;
