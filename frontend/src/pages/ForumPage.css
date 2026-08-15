@@ -7,22 +7,22 @@
 .forum-header-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
   color: var(--text-main);
 }
 
 .forum-header-subtitle {
   color: var(--text-secondary);
-  font-size: 1rem;
-  margin-bottom: 2rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .forum-grid {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 2rem;
+  grid-template-columns: 1fr 280px;
+  gap: 1.5rem;
   align-items: start;
 }
 
@@ -35,7 +35,7 @@
 .post-feed-column {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .start-discussion-btn {
@@ -43,14 +43,14 @@
   background: rgba(46, 204, 113, 0.2);
   color: var(--accent-green);
   border: 1px solid var(--accent-green);
-  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
   border-radius: 8px;
-  padding: 1rem;
-  font-size: 1.1rem;
+  padding: 0.5rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 .start-discussion-btn:hover {
   background: var(--accent-green);
@@ -59,12 +59,12 @@
 }
 
 .trending-header {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.25rem;
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -79,7 +79,7 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(46, 204, 113, 0.15);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.5rem;
   transition: border-color 0.2s;
 }
 .forum-post-card:hover {
@@ -89,12 +89,12 @@
 .post-header {
   display: flex;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 .post-avatar {
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--accent-green);
   margin-right: 0.75rem;
@@ -127,17 +127,21 @@
 }
 
 .post-title {
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .post-body {
   color: rgba(240, 253, 244, 0.8);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .post-see-more {
@@ -152,8 +156,8 @@
 .post-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding-top: 0.5rem;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
   border-top: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -166,8 +170,8 @@
   cursor: pointer;
 }
 .action-item svg {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 }
 .action-item-muted {
   color: var(--text-secondary);
@@ -175,52 +179,71 @@
 .action-item-muted:hover {
   color: var(--text-main);
 }
+.action-item-active {
+  color: var(--accent-green);
+}
+.action-item-active svg {
+  fill: rgba(46, 204, 113, 0.2);
+}
+.action-item-active-down {
+  color: #e74c3c;
+}
+.action-item-active-down svg {
+  fill: rgba(231, 76, 60, 0.2);
+}
 
 .action-spacer {
   flex: 1;
 }
 
 .post-reply-section {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(46, 204, 113, 0.1);
 }
 
 .reply-item {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  background: rgba(14, 25, 17, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(46, 204, 113, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
 }
 .reply-author {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--accent-green);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 .reply-body {
-  background: rgba(0, 0, 0, 0.25);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--text-main);
+  line-height: 1.3;
 }
 
 .reply-input-wrapper {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
   background: rgba(10, 20, 14, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.2);
   border-radius: 20px;
-  padding: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  align-items: center;
 }
 
 .reply-input-wrapper input {
+  flex: 1;
   background: transparent;
   border: none;
   box-shadow: none;
-  min-height: auto;
   color: var(--text-main);
+  font-size: 0.8rem;
+  padding: 0.25rem;
 }
 .reply-input-wrapper input:focus {
   box-shadow: none;
+  outline: none;
 }
 
 .reply-btn {
@@ -229,9 +252,10 @@
   border: 1px solid var(--accent-green);
   box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
   border-radius: 16px;
-  padding: 0.4rem 1.2rem;
+  padding: 0.2rem 0.75rem;
   font-weight: 600;
   transition: all 0.2s;
+  font-size: 0.8rem;
 }
 .reply-btn:hover {
   background: var(--accent-green);
@@ -245,50 +269,50 @@
   backdrop-filter: blur(12px);
   border: 1px solid rgba(46, 204, 113, 0.2);
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .ai-sidebar-title {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .ai-sidebar-desc {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin-bottom: 1.5rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  margin-bottom: 1rem;
 }
 
 .ai-sidebar-logo-wrapper {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .ai-sidebar-logo {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   color: var(--accent-green);
   opacity: 0.9;
-  filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.4));
+  filter: drop-shadow(0 0 6px rgba(46, 204, 113, 0.4));
 }
 
 .ai-sidebar-input {
   background: rgba(10, 20, 14, 0.8);
   border: 1px solid rgba(46, 204, 113, 0.3);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.75rem;
   width: 100%;
   color: var(--text-main);
   font-family: inherit;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   resize: vertical;
-  min-height: 80px;
-  margin-bottom: 1.5rem;
+  min-height: 60px;
+  margin-bottom: 1rem;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 .ai-sidebar-input:focus {
@@ -298,25 +322,25 @@
 }
 
 .ai-insights-title {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .ai-insights-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .ai-insight-pill {
   background: rgba(46, 204, 113, 0.08);
   border: 1px solid rgba(46, 204, 113, 0.2);
   color: var(--accent-green);
-  padding: 0.6rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
