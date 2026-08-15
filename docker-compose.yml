@@ -320,6 +320,7 @@ services:
       FORUM_SERVICE_URL: http://forum-service:8085
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
     depends_on:
       forum-service:
         condition: service_healthy

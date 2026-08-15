@@ -21,6 +21,10 @@ forum:
     check-interval-minutes: 30
     unanswered-threshold-hours: 24
 
+openrouter:
+  api-key: ${OPENROUTER_API_KEY:}
+  model: ${OPENROUTER_MODEL:meta-llama/llama-3.3-70b-instruct:free}
+
 gemini:
   api-key: ${GEMINI_API_KEY:}
   model: ${GEMINI_MODEL:gemini-1.5-flash}
