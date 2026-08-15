@@ -31,9 +31,10 @@ ESP32 → POST /api/iot/readings
 
 ## Endpoints
 
-All paths are under `/api/iot` (API Gateway routes `/api/iot/**` here).
+All **public** paths are under `/api/iot` (the gateway routes `/api/iot/**` here and strips `/api`).
+This service therefore maps controllers at `/iot/**`, not `/api/iot/**`.
 
-| Method | Path | Description |
+| Method | Public path (via gateway) | Description |
 |---|---|---|
 | POST | `/api/iot/greenhouses` | Create greenhouse + zones + ESP32 devices |
 | POST | `/api/iot/readings` | Ingest one ESP32 reading |

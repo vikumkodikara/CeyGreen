@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * REST API for updating zone rule thresholds from the web app.
  */
 @RestController
-@RequestMapping("/api/iot/thresholds")
+@RequestMapping("/iot/thresholds")
 public class ThresholdController {
 
     private final ThresholdService thresholdService;
