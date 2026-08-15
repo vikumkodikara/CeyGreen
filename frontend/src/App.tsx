@@ -1,9 +1,10 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { useAuth } from './hooks/useAuth';
 
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
@@ -28,39 +29,74 @@ import { FarmerDashboardPage } from './pages/marketplace/FarmerDashboardPage';
 import { FarmerProductsPage } from './pages/marketplace/FarmerProductsPage';
 import { FarmerOrdersPage } from './pages/marketplace/FarmerOrdersPage';
 
-const AppContent: React.FC = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-    <Navbar />
-    <div style={{ display: 'flex', flex: 1 }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: '2rem' }}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+const ShellContext = createContext({
+  navOpen: false,
+  toggleNav: () => {},
+  closeNav: () => {},
+});
+export const useShell = () => useContext(ShellContext);
 
-          <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/diagnosis" element={<ProtectedRoute><DiagnosisPage /></ProtectedRoute>} />
-          <Route path="/treatments" element={<ProtectedRoute><TreatmentsPage /></ProtectedRoute>} />
-          <Route path="/greenhouse" element={<ProtectedRoute><GreenhousePage /></ProtectedRoute>} />
-          <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
-          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+const AppRoutes: React.FC = () => (
+  <Routes>
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="/register" element={<RegisterPage />} />
 
-          <Route path="/marketplace" element={<ProtectedRoute><MarketplaceBrowsePage /></ProtectedRoute>} />
-          <Route path="/marketplace/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
-          <Route path="/marketplace/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-          <Route path="/marketplace/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-          <Route path="/marketplace/orders" element={<ProtectedRoute><BuyerOrdersPage /></ProtectedRoute>} />
-          <Route path="/marketplace/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+    <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+    <Route path="/diagnosis" element={<ProtectedRoute><DiagnosisPage /></ProtectedRoute>} />
+    <Route path="/treatments" element={<ProtectedRoute><TreatmentsPage /></ProtectedRoute>} />
+    <Route path="/greenhouse" element={<ProtectedRoute><GreenhousePage /></ProtectedRoute>} />
+    <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
+    <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
 
-          <Route path="/farmer/dashboard" element={<ProtectedRoute><FarmerDashboardPage /></ProtectedRoute>} />
-          <Route path="/farmer/products" element={<ProtectedRoute><FarmerProductsPage /></ProtectedRoute>} />
-          <Route path="/farmer/orders" element={<ProtectedRoute><FarmerOrdersPage /></ProtectedRoute>} />
-        </Routes>
-      </main>
-    </div>
-    <Footer />
-  </div>
+    <Route path="/marketplace" element={<ProtectedRoute><MarketplaceBrowsePage /></ProtectedRoute>} />
+    <Route path="/marketplace/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
+    <Route path="/marketplace/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+    <Route path="/marketplace/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+    <Route path="/marketplace/orders" element={<ProtectedRoute><BuyerOrdersPage /></ProtectedRoute>} />
+    <Route path="/marketplace/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
+
+    <Route path="/farmer/dashboard" element={<ProtectedRoute><FarmerDashboardPage /></ProtectedRoute>} />
+    <Route path="/farmer/products" element={<ProtectedRoute><FarmerProductsPage /></ProtectedRoute>} />
+    <Route path="/farmer/orders" element={<ProtectedRoute><FarmerOrdersPage /></ProtectedRoute>} />
+  </Routes>
 );
+
+const AppContent: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const { pathname } = useLocation();
+  const [navOpen, setNavOpen] = useState(false);
+  const shell = useMemo(
+    () => ({
+      navOpen,
+      toggleNav: () => setNavOpen((v) => !v),
+      closeNav: () => setNavOpen(false),
+    }),
+    [navOpen]
+  );
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+
+  if (isAuthPage) {
+    return <AppRoutes />;
+  }
+
+  return (
+    <ShellContext.Provider value={shell}>
+      <div className={`app-shell${navOpen ? ' nav-open' : ''}`}>
+        <Navbar />
+        <div className="app-body">
+          {isAuthenticated && <Sidebar />}
+          {navOpen && (
+            <button type="button" className="nav-scrim" aria-label="Close menu" onClick={() => setNavOpen(false)} />
+          )}
+          <main className="app-main">
+            <AppRoutes />
+          </main>
+        </div>
+        <Footer />
+      </div>
+    </ShellContext.Provider>
+  );
+};
 
 export const App: React.FC = () => (
   <ErrorBoundary>

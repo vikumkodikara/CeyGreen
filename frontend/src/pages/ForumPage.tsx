@@ -117,26 +117,23 @@ export const ForumPage: React.FC = () => {
     <div className="forum-layout-container">
       <div className="forum-grid">
         <div className="post-feed-column">
-          <div style={{ marginBottom: '1rem' }}>
-            <h1 className="forum-header-title">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              Community Forum
-            </h1>
-            <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} Posts</p>
-          </div>
+          <header className="page-hero">
+            <h1 className="forum-header-title">Forum</h1>
+            <p className="forum-header-subtitle">{posts.length} threads</p>
+          </header>
 
           <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
-            Start a New Discussion
+            Start discussion
           </button>
 
-          <h2 className="trending-header">Trending Discussions</h2>
+          <h2 className="trending-header">Threads</h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
           <div key={post.id} className="forum-post-card">
             <div className="post-header">
               <div className="post-avatar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <div className="post-meta-info">
                 <span className="post-author">By {(post.authorName || post.authorId).substring(0, 8)}...</span>
