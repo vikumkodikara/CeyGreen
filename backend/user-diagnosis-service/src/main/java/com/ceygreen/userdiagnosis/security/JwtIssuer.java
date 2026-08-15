@@ -41,6 +41,7 @@ public class JwtIssuer {
         Map<String, Object> claims = new LinkedHashMap<>();
         claims.put(CLAIM_ROLE, user.getRole().name());
         claims.put("email", user.getEmail());
+        claims.put("name", user.getName());
         if (user.getRole() == Role.FARMER) {
             claims.put(CLAIM_FARMER_ID, user.getId().toString());
         } else if (user.getRole() == Role.BUYER) {

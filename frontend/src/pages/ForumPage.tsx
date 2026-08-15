@@ -150,6 +150,15 @@ export const ForumPage: React.FC = () => {
     }, 50);
   };
 
+  const renderAuthorName = (name?: string, id?: string) => {
+    const author = name || id || 'Unknown User';
+    // If it looks like a UUID (long string with hyphens), show a fallback format
+    if (author.length > 20 && author.includes('-')) {
+      return `User ${author.substring(0, 6)}`;
+    }
+    return author;
+  };
+
   return (
     <div className="forum-layout-container">
       <div className="forum-grid">
@@ -173,7 +182,7 @@ export const ForumPage: React.FC = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <div className="post-meta-info">
-                <span className="post-author">By {(post.authorName || post.authorId).substring(0, 8)}...</span>
+                <span className="post-author">{renderAuthorName(post.authorName, post.authorId)}</span>
                 <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
               </div>
             </div>
@@ -217,7 +226,7 @@ export const ForumPage: React.FC = () => {
                   <div className="post-reply-section">
                     {post.replies.map((r, i) => (
                       <div key={i} className="reply-item">
-                        <div className="reply-author">By {(r.authorName || r.authorId).substring(0, 8)}...</div>
+                        <div className="reply-author">{renderAuthorName(r.authorName, r.authorId)}</div>
                         <div className="reply-body">{r.body}</div>
                       </div>
                     ))}
