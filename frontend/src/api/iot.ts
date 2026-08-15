@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Greenhouse, ReadingRequest, Suggestion } from '../types/iot';
+import { Greenhouse, LiveReading, ReadingRequest, Suggestion } from '../types/iot';
 
 export const registerGreenhouse = async (
   name: string,
@@ -32,6 +32,11 @@ export const ingestReading = async (data: ReadingRequest): Promise<void> => {
     p: data.phosphorus,
     k: data.potassium,
   });
+};
+
+export const getLatestReading = async (greenhouseId: string): Promise<LiveReading> => {
+  const res = await apiClient.get<LiveReading>(`/iot/readings/${greenhouseId}/latest`);
+  return res.data;
 };
 
 export const getSuggestions = async (greenhouseId: string): Promise<Suggestion[]> => {

@@ -20,6 +20,8 @@ public interface TelemetryRepository {
 
     SensorReading saveReading(SensorReading reading);
 
+    Optional<SensorReading> findLatestReading(String greenhouseId);
+
     List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> suggestions);
 
     List<Suggestion> findSuggestions(String greenhouseId);

@@ -22,6 +22,19 @@ export interface Suggestion {
   createdAt?: string;
 }
 
+export interface LiveReading {
+  greenhouseId: string;
+  zoneId: string;
+  timestamp: string;
+  temperature: number;
+  humidity: number;
+  soilMoisture: number;
+  n: number;
+  p: number;
+  k: number;
+  status?: string;
+}
+
 export interface ReadingRequest {
   greenhouseId: string;
   zoneId: string;
