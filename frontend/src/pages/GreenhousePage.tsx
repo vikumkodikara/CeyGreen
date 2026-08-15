@@ -10,6 +10,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
   const [ghName, setGhName] = useState('Greenhouse Alpha');
+  const [requestedId, setRequestedId] = useState('GH001');
   const [greenhouseId, setGreenhouseId] = useState('');
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -26,17 +27,34 @@ export const GreenhousePage: React.FC = () => {
     setLoading(true);
     try {
       const farmerId = user?.farmerId || user?.id || 'farmer-001';
-      const res = await registerGreenhouse(ghName, farmerId);
+      const res = await registerGreenhouse(ghName, farmerId, requestedId.trim() || 'GH001');
       setGreenhouseId(res.id);
       setSuggestions([]);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Greenhouse registration failed');
+      const msg = err.response?.data?.message || 'Greenhouse registration failed';
+      if (String(msg).toLowerCase().includes('already exists')) {
+        setGreenhouseId(requestedId.trim() || 'GH001');
+      } else {
+        alert(msg);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleIngest = async (e: React.FormEvent) => {
+  const loadSuggestions = async () => {
+    const id = greenhouseId || requestedId.trim() || 'GH001';
+    try {
+      const list = await getSuggestions(id);
+      setGreenhouseId(id);
+      setSuggestions(list);
+      if (list.length === 0) {
+        alert('No suggestions yet. Wait for the ESP32 to send a reading, then click again.');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Could not load suggestions');
+    }
+  };
     e.preventDefault();
     if (!greenhouseId) return;
     try {
@@ -71,8 +89,19 @@ export const GreenhousePage: React.FC = () => {
             <div className="grow">
               <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
             </div>
+            <div className="grow">
+              <Input
+                label="Greenhouse ID"
+                value={requestedId}
+                onChange={(e) => setRequestedId(e.target.value.toUpperCase())}
+                required
+              />
+            </div>
             <Button type="submit" isLoading={loading} style={{ marginBottom: '1rem' }}>
               Register
+            </Button>
+            <Button type="button" variant="secondary" style={{ marginBottom: '1rem' }} onClick={loadSuggestions}>
+              Load suggestions
             </Button>
           </form>
           {greenhouseId && (
