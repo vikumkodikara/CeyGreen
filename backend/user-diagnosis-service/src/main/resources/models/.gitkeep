@@ -1,7 +1,0 @@
-# The trained plant-disease classification model (disease_model.onnx) will be placed in
-# this directory once training finishes in Google Colab.
-#
-# Nothing loads a model today: disease.classifier.impl defaults to "mock", which is served
-# by MockDiseaseClassifier. When the model is ready, drop disease_model.onnx here, implement
-# OnnxDiseaseClassifier, and set disease.classifier.impl=onnx. The onnxruntime dependency is
-# already in pom.xml, so no build-file change is needed.
