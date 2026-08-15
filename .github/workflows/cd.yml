@@ -42,9 +42,24 @@ jobs:
           - service: diagnosis-service
             context: ./backend/diagnosis-service
             image_name: ghcr.io/vikumkodikara/ceygreen-diagnosis-service
+          - service: iot-service
+            context: ./backend/iot-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-iot-service
+          - service: treatment-service
+            context: ./backend/treatment-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-treatment-service
+          - service: ecommerce-service
+            context: ./backend/ecommerce-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-ecommerce-service
           - service: forum-service
             context: ./backend/forum-service
             image_name: ghcr.io/vikumkodikara/ceygreen-forum-service
+          - service: analytics-service
+            context: ./backend/analytics-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-analytics-service
+          - service: notification-service
+            context: ./backend/notification-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-notification-service
           - service: client
             context: ./frontend
             image_name: ghcr.io/vikumkodikara/ceygreen-client
@@ -112,11 +127,18 @@ jobs:
             echo "${{ secrets.DEPLOY_ENV_FILE }}" > .env
 
             docker compose pull
-            docker compose up -d --build --remove-orphans
+            docker compose up -d --remove-orphans
 
             echo "Waiting for services to be healthy..."
-            sleep 30
-            curl -sf http://localhost:8080/actuator/health || echo "Gateway health check pending..."
-            curl -sf http://localhost:8081/actuator/health || echo "Service health check pending..."
+            sleep 60
+            echo "--- Service Health Status ---"
+            curl -sf http://localhost:8080/actuator/health && echo " ✔ API Gateway (8080)" || echo " ✖ API Gateway (8080)"
+            curl -sf http://localhost:8081/actuator/health && echo " ✔ User/Diagnosis (8081)" || echo " ✖ User/Diagnosis (8081)"
+            curl -sf http://localhost:8082/actuator/health && echo " ✔ IoT Service (8082)" || echo " ✖ IoT Service (8082)"
+            curl -sf http://localhost:8083/actuator/health && echo " ✔ Treatment Service (8083)" || echo " ✖ Treatment Service (8083)"
+            curl -sf http://localhost:8084/actuator/health && echo " ✔ E-Commerce Service (8084)" || echo " ✖ E-Commerce Service (8084)"
+            curl -sf http://localhost:8085/actuator/health && echo " ✔ Forum Service (8085)" || echo " ✖ Forum Service (8085)"
+            curl -sf http://localhost:8086/actuator/health && echo " ✔ Analytics Service (8086)" || echo " ✖ Analytics Service (8086)"
+            curl -sf http://localhost:3000 > /dev/null && echo " ✔ Client Frontend (3000)" || echo " ✖ Client Frontend (3000)"
 
             echo "Deployment complete!"

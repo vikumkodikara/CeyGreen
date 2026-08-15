@@ -12,4 +12,6 @@ public interface TreatmentRepository extends JpaRepository<Treatment, Long> {
     List<Treatment> findByCropTypeIgnoreCaseAndActiveTrue(String cropType);
 
     List<Treatment> findBySeverityIgnoreCaseAndActiveTrue(String severity);
+
+    List<Treatment> findByActiveTrue();
 }

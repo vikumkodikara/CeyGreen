@@ -127,7 +127,7 @@ ceygreen:
   cors:
     # Comma-separated browser origins permitted to call the gateway.
     # Quoted so YAML does not split the default value on commas.
-    allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}"
+    allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://16.192.168.12:3000,http://16.192.168.12}"
   downstream:
     # Forwarded as X-API-Key so each microservice's own API-key check passes for traffic
     # arriving through the gateway, and fails for traffic that bypasses it.

@@ -40,22 +40,20 @@
 
 .start-discussion-btn {
   width: 100%;
-  background: rgba(46, 204, 113, 0.2);
-  color: var(--accent-green);
+  background: var(--accent-green);
+  color: var(--on-accent);
   border: 1px solid var(--accent-green);
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
   border-radius: 8px;
   padding: 0.5rem;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
   margin-bottom: 0.25rem;
 }
 .start-discussion-btn:hover {
-  background: var(--accent-green);
-  color: #000;
-  box-shadow: 0 0 25px rgba(46, 204, 113, 0.7);
+  background: var(--accent-emerald);
+  color: var(--on-accent);
+  box-shadow: none;
 }
 
 .trending-header {
@@ -65,7 +63,7 @@
   margin-top: 0.5rem;
   margin-bottom: 0.25rem;
   padding-bottom: 0.25rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-column {
@@ -75,15 +73,16 @@
 
 /* Post Card Styling */
 .forum-post-card {
-  background: rgba(14, 25, 17, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(46, 204, 113, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 0.5rem;
-  transition: border-color 0.2s;
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .forum-post-card:hover {
-  border-color: rgba(46, 204, 113, 0.3);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-lg);
 }
 
 .post-header {
@@ -134,7 +133,7 @@
 }
 
 .post-body {
-  color: rgba(240, 253, 244, 0.8);
+  color: var(--text-secondary);
   font-size: 0.8rem;
   line-height: 1.2;
   margin-bottom: 0.25rem;
@@ -158,7 +157,7 @@
   align-items: center;
   gap: 0.75rem;
   padding-top: 0.25rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid var(--border-color);
 }
 
 .action-item {
@@ -204,9 +203,8 @@
 
 .reply-item {
   margin-bottom: 0.5rem;
-  background: rgba(14, 25, 17, 0.5);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(46, 204, 113, 0.1);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
 }
@@ -225,8 +223,8 @@
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
-  background: rgba(10, 20, 14, 0.8);
-  border: 1px solid rgba(46, 204, 113, 0.2);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 0.25rem 0.5rem;
   align-items: center;
@@ -247,10 +245,10 @@
 }
 
 .reply-btn {
-  background: rgba(46, 204, 113, 0.2);
-  color: var(--accent-green);
+  background: var(--accent-green);
+  color: var(--on-accent);
   border: 1px solid var(--accent-green);
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 2px 8px var(--accent-glow);
   border-radius: 16px;
   padding: 0.2rem 0.75rem;
   font-weight: 600;
@@ -258,19 +256,18 @@
   font-size: 0.8rem;
 }
 .reply-btn:hover {
-  background: var(--accent-green);
-  color: #000;
-  box-shadow: 0 0 15px rgba(46, 204, 113, 0.6);
+  background: var(--accent-emerald);
+  color: var(--on-accent);
+  box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 /* Sidebar AI Assistant */
 .ai-sidebar-panel {
-  background: rgba(14, 25, 17, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(46, 204, 113, 0.2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-sm);
 }
 
 .ai-sidebar-title {
@@ -302,8 +299,8 @@
 }
 
 .ai-sidebar-input {
-  background: rgba(10, 20, 14, 0.8);
-  border: 1px solid rgba(46, 204, 113, 0.3);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 0.75rem;
   width: 100%;
@@ -313,12 +310,12 @@
   resize: vertical;
   min-height: 60px;
   margin-bottom: 1rem;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: none;
 }
 .ai-sidebar-input:focus {
   outline: none;
   border-color: var(--accent-green);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 10px rgba(46, 204, 113, 0.2);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .ai-insights-title {
@@ -367,9 +364,9 @@
 }
 
 .create-post-modal-content {
-  background: rgba(14, 25, 17, 0.95);
-  border: 1px solid rgba(46, 204, 113, 0.3);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(46, 204, 113, 0.1);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
   border-radius: 12px;
   width: 100%;
   max-width: 600px;
