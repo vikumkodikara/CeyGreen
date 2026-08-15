@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { listPosts, createPost, addReply, getPost } from '../api/forum';
+import React, { useState, useEffect, useRef } from 'react';
+import { listPosts, createPost, addReply, getPost, actOnPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -15,6 +15,8 @@ export const ForumPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+  const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     fetchPosts();
@@ -68,6 +70,49 @@ export const ForumPage: React.FC = () => {
     }
   };
 
+  const handleToggleReplies = (postId: string) => {
+    const isExpanded = !!expandedPosts[postId];
+    setExpandedPosts({ ...expandedPosts, [postId]: !isExpanded });
+    
+    // Only fetch replies if expanding and hasn't been fetched yet
+    if (!isExpanded) {
+      handleLoadReplies(postId);
+    }
+  };
+
+  const handleVote = async (postId: string, action: 'upvote' | 'downvote') => {
+    try {
+      const updatedPost = await actOnPost(postId, action);
+      const newPosts = posts.map(p => p.id === postId ? updatedPost : p);
+      
+      // Re-sort dynamically so the upvoted post moves up
+      newPosts.sort((a, b) => {
+        if (sort === 'trending') {
+          const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
+          const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
+          if (scoreB !== scoreA) return scoreB - scoreA;
+        } else if (sort === 'newest') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        // fallback to upvotes
+        return (b.upvotes || 0) - (a.upvotes || 0);
+      });
+      
+      setPosts(newPosts);
+    } catch (err: any) {
+      console.error('Failed to act on post', err);
+    }
+  };
+
+  const handleQuickReply = (postId: string) => {
+    if (!expandedPosts[postId]) {
+      handleToggleReplies(postId);
+    }
+    setTimeout(() => {
+      replyInputRefs.current[postId]?.focus();
+    }, 50);
+  };
+
   return (
     <div className="forum-layout-container">
       <div className="forum-grid">
@@ -94,7 +139,7 @@ export const ForumPage: React.FC = () => {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <div className="post-meta-info">
-                <span className="post-author">Posted by {post.authorName || post.authorId}</span>
+                <span className="post-author">By {(post.authorName || post.authorId).substring(0, 8)}...</span>
                 <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
               </div>
             </div>
@@ -106,13 +151,13 @@ export const ForumPage: React.FC = () => {
             </div>
 
             <div className="post-actions">
-              <div className="action-item">
+              <div className={`action-item ${post.upvotedBy?.includes(user?.id || '') ? 'action-item-active' : 'action-item-muted'}`} onClick={() => handleVote(post.id, 'upvote')} title="Upvote">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 {post.upvotes || 0}
               </div>
-              <div className="action-item action-item-muted">
+              <div className={`action-item ${post.downvotedBy?.includes(user?.id || '') ? 'action-item-active-down' : 'action-item-muted'}`} onClick={() => handleVote(post.id, 'downvote')} title="Downvote">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                {post.flagCount || 0}
+                {post.downvotes || 0}
               </div>
               <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -122,39 +167,41 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 {post.views || 0}
               </div>
-              <div className="action-item action-item-muted">
+              <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer' }} title="Toggle replies">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 {post.replyCount || 0}
               </div>
-            </div>
-
-            {/* Replies */}
-            {post.replies && post.replies.length > 0 && (
-              <div className="post-reply-section">
-                {post.replies.map((r, i) => (
-                  <div key={i} className="reply-item">
-                    <div className="reply-author">{r.authorName || r.authorId}</div>
-                    <div className="reply-body">{r.body}</div>
-                  </div>
-                ))}
+              <div className="action-item action-item-muted" onClick={() => handleQuickReply(post.id)} style={{ cursor: 'pointer', marginLeft: '0.25rem' }} title="Quick Reply">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
               </div>
-            )}
-            
-            {(!post.replies || post.replies.length === 0) && post.replyCount !== undefined && post.replyCount > 0 && (
-              <Button size="sm" onClick={() => handleLoadReplies(post.id)} style={{ marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', border: 'none' }}>
-                View {post.replyCount} {post.replyCount === 1 ? 'reply' : 'replies'}
-              </Button>
-            )}
-
-            <div className="reply-input-wrapper">
-              <input
-                placeholder="Write a reply..."
-                value={replyText[post.id] || ''}
-                onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(post.id); }}
-              />
-              <button className="reply-btn" onClick={() => handleAddReply(post.id)}>Reply</button>
             </div>
+
+            {/* Replies & Input - Only visible if expanded */}
+            {expandedPosts[post.id] && (
+              <>
+                {post.replies && post.replies.length > 0 && (
+                  <div className="post-reply-section">
+                    {post.replies.map((r, i) => (
+                      <div key={i} className="reply-item">
+                        <div className="reply-author">By {(r.authorName || r.authorId).substring(0, 8)}...</div>
+                        <div className="reply-body">{r.body}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="reply-input-wrapper">
+                  <input
+                    ref={(el) => { replyInputRefs.current[post.id] = el; }}
+                    placeholder="Write a reply..."
+                    value={replyText[post.id] || ''}
+                    onChange={(e) => setReplyText({ ...replyText, [post.id]: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddReply(post.id); }}
+                  />
+                  <button className="reply-btn" onClick={() => handleAddReply(post.id)}>Reply</button>
+                </div>
+              </>
+            )}
           </div>
         ))}
           </div>

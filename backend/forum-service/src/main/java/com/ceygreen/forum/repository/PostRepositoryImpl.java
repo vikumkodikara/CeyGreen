@@ -74,15 +74,10 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     }
 
     private List<Post> findByUpvotes(Criteria criteria, Pageable pageable) {
-        // $addFields totalUpvotes = sum of the embedded replies' upvotes, then order by it. Emitted
-        // as a raw stage to avoid ambiguity in the fluent builder; totalUpvotes is transient and is
-        // ignored when the result maps back onto Post.
-        AggregationOperation addTotalUpvotes = context -> new Document("$addFields",
-                new Document("totalUpvotes", new Document("$sum", "$replies.upvotes")));
+        // Sort by the post's own upvotes
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(criteria),
-                addTotalUpvotes,
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "totalUpvotes")
+                Aggregation.sort(Sort.by(Sort.Direction.DESC, "upvotes")
                         .and(Sort.by(Sort.Direction.DESC, "createdAt"))),
                 Aggregation.skip(pageable.getOffset()),
                 Aggregation.limit(pageable.getPageSize()));
