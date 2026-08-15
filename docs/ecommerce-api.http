@@ -1,0 +1,116 @@
+### CeyGreen E-Commerce Marketplace API samples
+@gateway = http://localhost:8080
+@service = http://localhost:8084
+@apiKey = ceygreen-dev-api-key
+
+### Register/login via gateway first (Student 2 user service), then set:
+# @farmerToken = <farmer-jwt>
+# @buyerToken = <buyer-jwt>
+# @farmerId = <uuid>
+# @buyerId = <uuid>
+
+### List products (paginated, searchable) — via gateway
+GET {{gateway}}/api/products?q=tomato&inStock=true&sort=newest&page=0&size=20
+Authorization: Bearer {{buyerToken}}
+
+### Categories / featured / low stock
+GET {{gateway}}/api/products/categories
+Authorization: Bearer {{buyerToken}}
+
+GET {{gateway}}/api/products/featured?limit=8
+Authorization: Bearer {{buyerToken}}
+
+GET {{gateway}}/api/products/low-stock
+Authorization: Bearer {{farmerToken}}
+
+### Farmer products
+GET {{gateway}}/api/products/farmer/{{farmerId}}?page=0&size=20
+Authorization: Bearer {{farmerToken}}
+
+### Create listing (farmer)
+POST {{gateway}}/api/products
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{
+  "cropName": "Tomato",
+  "quantity": 20,
+  "unitPrice": 150.00,
+  "harvestDate": "2026-08-09",
+  "location": "Kandy",
+  "description": "Organic greenhouse tomatoes"
+}
+
+### Update / delete / patch stock & status
+PUT {{gateway}}/api/products/1
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "quantity": 25, "unitPrice": 160.00 }
+
+PATCH {{gateway}}/api/products/1/stock
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "quantity": 10 }
+
+PATCH {{gateway}}/api/products/1/status
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "active": false }
+
+DELETE {{gateway}}/api/products/1
+Authorization: Bearer {{farmerToken}}
+
+### Batch checkout (buyer) with shipping
+POST {{gateway}}/api/orders/checkout
+Authorization: Bearer {{buyerToken}}
+Content-Type: application/json
+
+{
+  "items": [
+    { "productId": 1, "quantity": 2 },
+    { "productId": 2, "quantity": 1 }
+  ],
+  "buyerName": "Nimal Perera",
+  "phone": "0771234567",
+  "address": "123 Green Lane",
+  "city": "Kandy",
+  "postalCode": "20000"
+}
+
+### Legacy single-item checkout (still supported)
+POST {{gateway}}/api/orders/checkout
+Authorization: Bearer {{buyerToken}}
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 2,
+  "buyerName": "Nimal Perera",
+  "phone": "0771234567",
+  "address": "123 Green Lane",
+  "city": "Kandy",
+  "postalCode": "20000"
+}
+
+### Order reads & status
+GET {{gateway}}/api/orders/my-orders?page=0&size=20
+Authorization: Bearer {{buyerToken}}
+
+GET {{gateway}}/api/orders/farmer
+Authorization: Bearer {{farmerToken}}
+
+GET {{gateway}}/api/orders/1
+Authorization: Bearer {{buyerToken}}
+
+PATCH {{gateway}}/api/orders/1/status
+Authorization: Bearer {{farmerToken}}
+Content-Type: application/json
+
+{ "status": "CONFIRMED" }
+
+### Farmer dashboard summary
+GET {{gateway}}/api/dashboard/summary
+Authorization: Bearer {{farmerToken}}

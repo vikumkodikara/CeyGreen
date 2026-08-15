@@ -23,6 +23,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ceygreen -d ceygreen_users"]
       interval: 5s
@@ -55,14 +56,16 @@ services:
   kafka:
     image: apache/kafka:3.9.0
     ports:
-      - "9092:9092"
+      - "9092:9092"   # in-network Docker clients (bootstrap: kafka:9092)
+      - "9094:9094"   # host machine (Maven, local tools)
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092,EXTERNAL://:9094,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -82,7 +85,7 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   user-diagnosis-service:
-    build: ./user-diagnosis-service
+    build: ./backend/user-diagnosis-service
     ports:
       - "8081:8081"
     environment:
@@ -94,7 +97,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
       DIAGNOSIS_IMAGE_DIR: /app/data/diagnosis-images
-      DISEASE_CLASSIFIER_IMPL: mock
+      DISEASE_CLASSIFIER_IMPL: ${DISEASE_CLASSIFIER_IMPL:-onnx}
     volumes:
       - diagnosis_images:/app/data/diagnosis-images
     depends_on:
@@ -116,7 +119,7 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   api-gateway:
-    build: ./api-gateway
+    build: ./backend/api-gateway
     ports:
       - "8080:8080"
     environment:
@@ -150,7 +153,10 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   client:
-    build: ./client
+    build:
+      context: ./frontend
+      args:
+        VITE_GEMINI_API_KEY: ${VITE_GEMINI_API_KEY:-}
     ports:
       - "3000:80"
     depends_on:
@@ -162,7 +168,7 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   iot-service:
-    build: ./iot-service
+    build: ./backend/iot-service
     ports:
       - "8082:8082"
     environment:
@@ -189,7 +195,7 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   treatment-service:
-     build: ./treatment-service
+     build: ./backend/treatment-service
      ports:
        - "8083:8083"
      environment:
@@ -212,58 +218,58 @@ services:
        start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
-  #  STUDENT 4 — E-Commerce Marketplace Service (port 8084)
-  #  Uncomment once Student 4's code is added to ecommerce-service/
+  #  E-Commerce Marketplace Service (port 8084)
   # ═══════════════════════════════════════════════════════════════════════
 
-  # ecommerce-service:
-  #   build: ./ecommerce-service
-  #   ports:
-  #     - "8084:8084"
-  #   environment:
-  #     SERVER_PORT: 8084
-  #     POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_ecommerce
-  #     POSTGRES_USER: ceygreen
-  #     POSTGRES_PASSWORD: ceygreen
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  ecommerce-service:
+    build: ./backend/ecommerce-service
+    ports:
+      - "8084:8084"
+    environment:
+      SERVER_PORT: 8084
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_ecommerce
+      POSTGRES_USER: ceygreen
+      POSTGRES_PASSWORD: ceygreen
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 5 — Community Forum Service (port 8085)
   #  Uncomment once Student 5's code is added to forum-service/
   # ═══════════════════════════════════════════════════════════════════════
 
-  # forum-service:
-  #   build: ./forum-service
-  #   ports:
-  #     - "8085:8085"
-  #   environment:
-  #     SERVER_PORT: 8085
-  #     MONGODB_URI: mongodb://mongo:27017/ceygreen_forum
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-  #   depends_on:
-  #     mongo:
-  #       condition: service_healthy
-  #     kafka:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 40s
+  forum-service:
+    build: ./backend/forum-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      MONGODB_URI: mongodb://mongo:27017/ceygreen_forum
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 6 — Sales Analytics & Notification Service (port 8086)
@@ -271,7 +277,7 @@ services:
   # ═══════════════════════════════════════════════════════════════════════
 
   # analytics-notification-service:
-  #   build: ./analytics-notification-service
+  #   build: ./backend/analytics-notification-service
   #   ports:
   #     - "8086:8086"
   #   environment:
