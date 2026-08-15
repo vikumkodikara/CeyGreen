@@ -112,9 +112,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 2 — API Gateway (port 8080)
@@ -147,9 +147,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  CLIENT — Web Application (port 3000)
@@ -190,9 +190,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 3 — Treatment & Suggestion Service (port 8083)
@@ -219,9 +219,9 @@ services:
      healthcheck:
        test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
        interval: 10s
-       timeout: 5s
-       retries: 12
-       start_period: 40s
+       timeout: 10s
+       retries: 15
+       start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  E-Commerce Marketplace Service (port 8084)
@@ -247,9 +247,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 5 — Community Forum Service (port 8085)
@@ -275,9 +275,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 6 — Sales Analytics & Notification Service (port 8086)
@@ -304,9 +304,9 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
       interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 40s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  GRAFANA — Dashboards (port 3001)
