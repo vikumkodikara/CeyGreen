@@ -1,0 +1,30 @@
+server:
+  port: ${SERVER_PORT:8089}
+
+spring:
+  application:
+    name: ai-assistant-service
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: ${JWT_PUBLIC_KEY_LOCATION:classpath:keys/dev-public.pem}
+
+ceygreen:
+  security:
+    api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
+
+forum:
+  ai-fallback:
+    enabled: true
+    check-interval-minutes: 30
+    unanswered-threshold-hours: 24
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-1.5-flash}
+
+logging:
+  level:
+    com.ceygreen: ${LOG_LEVEL:INFO}
