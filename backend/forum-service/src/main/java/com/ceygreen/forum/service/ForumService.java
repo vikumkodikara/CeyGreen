@@ -114,7 +114,20 @@ public class ForumService {
         String userId = user.requireUserId();
         String action = request.action().trim();
         switch (action) {
-            case "upvote" -> upvoteReply(post, request.replyId(), userId);
+            case "upvote" -> {
+                if (request.replyId() == null || request.replyId().isBlank()) {
+                    upvotePost(post, userId);
+                } else {
+                    upvoteReply(post, request.replyId(), userId);
+                }
+            }
+            case "downvote" -> {
+                if (request.replyId() == null || request.replyId().isBlank()) {
+                    downvotePost(post, userId);
+                } else {
+                    throw ApiException.badRequest("Downvoting replies is not supported yet");
+                }
+            }
             case "acceptAnswer" -> acceptAnswer(post, request.replyId(), userId);
             case "flag" -> flag(post, request.replyId());
             default -> throw ApiException.badRequest("Unknown action: " + request.action());
@@ -124,7 +137,35 @@ public class ForumService {
         return toResponse(saved);
     }
 
-    /** Add one upvote from this user, idempotently — a repeat vote is a no-op. */
+    /** Add one upvote to the post itself, enforcing idempotency and exclusivity with downvotes. */
+    private void upvotePost(Post post, String userId) {
+        if (post.getUpvotedBy().contains(userId)) {
+            return; // Already upvoted
+        }
+        if (post.getDownvotedBy().contains(userId)) {
+            post.getDownvotedBy().remove(userId);
+            post.setDownvotes(Math.max(0, post.getDownvotes() - 1));
+        }
+        post.getUpvotedBy().add(userId);
+        post.setUpvotes(post.getUpvotes() + 1);
+        log.info("Upvoted post id={} by user={}", post.getId(), userId);
+    }
+
+    /** Add one downvote to the post itself, enforcing idempotency and exclusivity with upvotes. */
+    private void downvotePost(Post post, String userId) {
+        if (post.getDownvotedBy().contains(userId)) {
+            return; // Already downvoted
+        }
+        if (post.getUpvotedBy().contains(userId)) {
+            post.getUpvotedBy().remove(userId);
+            post.setUpvotes(Math.max(0, post.getUpvotes() - 1));
+        }
+        post.getDownvotedBy().add(userId);
+        post.setDownvotes(post.getDownvotes() + 1);
+        log.info("Downvoted post id={} by user={}", post.getId(), userId);
+    }
+
+    /** Add one upvote from this user to a reply, idempotently — a repeat vote is a no-op. */
     private void upvoteReply(Post post, String replyId, String userId) {
         Reply reply = requireReply(post, replyId);
         if (reply.getUpvotedBy().contains(userId)) {
@@ -196,7 +237,8 @@ public class ForumService {
         // leaving replyCount as the only reply-related field.
         return new PostResponse(p.getId(), p.getAuthorId(), p.getAuthorName(), p.getTitle(), p.getBody(),
                 p.getTags(), p.getCropType(), p.isResolved(), p.getAcceptedReplyId(), p.isFlagged(),
-                p.getFlagCount(), p.isAiAnswerAttempted(), p.getUpvotes(), p.getViews(), null,
+                p.getFlagCount(), p.isAiAnswerAttempted(), p.getUpvotes(), p.getDownvotes(), 
+                p.getUpvotedBy(), p.getDownvotedBy(), p.getViews(), null,
                 p.getReplies() != null ? p.getReplies().size() : 0,
                 p.getCreatedAt(), p.getUpdatedAt());
     }
@@ -204,7 +246,8 @@ public class ForumService {
     private PostResponse toResponse(Post p) {
         return new PostResponse(p.getId(), p.getAuthorId(), p.getAuthorName(), p.getTitle(), p.getBody(),
                 p.getTags(), p.getCropType(), p.isResolved(), p.getAcceptedReplyId(), p.isFlagged(),
-                p.getFlagCount(), p.isAiAnswerAttempted(), p.getUpvotes(), p.getViews(), p.getReplies(),
+                p.getFlagCount(), p.isAiAnswerAttempted(), p.getUpvotes(), p.getDownvotes(), 
+                p.getUpvotedBy(), p.getDownvotedBy(), p.getViews(), p.getReplies(),
                 p.getReplies() != null ? p.getReplies().size() : 0,
                 p.getCreatedAt(), p.getUpdatedAt());
     }
