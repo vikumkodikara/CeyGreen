@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { listPosts, createPost, addReply, getPost, actOnPost, askAi, getAiInsights } from '../api/forum';
+import { listPosts, createPost, addReply, getPost, actOnPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -18,57 +18,13 @@ export const ForumPage: React.FC = () => {
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // AI Chat States
-  const [aiMessage, setAiMessage] = useState('');
-  const [aiHistory, setAiHistory] = useState<{role: string, content: string}[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiInsights, setAiInsights] = useState<string[]>(['Climate control automation tips', 'Tomato blight identification', 'New fertilizer trends']);
-  const chatHistoryRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     fetchPosts();
-    fetchInsights();
   }, [sort]);
 
-  const fetchInsights = async () => {
-    try {
-      const insights = await getAiInsights('General greenhouse farming');
-      setAiInsights(insights);
-    } catch {
-      setAiInsights(['Climate control automation', 'Tomato blight identification', 'New fertilizer trends']);
-    }
-  };
 
-  useEffect(() => {
-    if (chatHistoryRef.current) {
-      chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
-    }
-  }, [aiHistory]);
-
-  const handleAiSubmit = async () => {
-    if (!aiMessage.trim() || aiLoading) return;
-    
-    const userMsg = aiMessage.trim();
-    setAiMessage('');
-    setAiHistory(prev => [...prev, { role: 'user', content: userMsg }]);
-    setAiLoading(true);
-    
-    try {
-      const response = await askAi(userMsg, aiHistory);
-      setAiHistory(prev => [...prev, { role: 'assistant', content: response }]);
-    } catch (err) {
-      setAiHistory(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting right now.' }]);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleAiKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleAiSubmit();
-    }
-  };
 
   const fetchPosts = async () => {
     try {
@@ -313,75 +269,7 @@ export const ForumPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="sidebar-column">
-          <div className="ai-sidebar-panel">
-            <h3 className="ai-sidebar-title">AI Green Assistant</h3>
-            <p className="ai-sidebar-desc">Ask me about diagnostics, climate control or market data.</p>
-            
-            <div className="ai-sidebar-logo-wrapper">
-              <svg className="ai-sidebar-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
-                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
-                <path d="M14 20c2 1 4-1 4-3"></path>
-                <path d="M10 20c-2 1-4-1-4-3"></path>
-                <text x="12" y="14" fontSize="5" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">AI</text>
-              </svg>
-            </div>
 
-            {aiHistory.length > 0 && (
-              <div className="ai-chat-history" ref={chatHistoryRef}>
-                {aiHistory.map((msg, idx) => (
-                  <div key={idx} className={`ai-message-bubble ${msg.role === 'user' ? 'ai-message-user' : 'ai-message-bot'}`}>
-                    {msg.content}
-                  </div>
-                ))}
-                {aiLoading && (
-                  <div className="ai-message-bubble ai-message-bot" style={{ opacity: 0.7 }}>
-                    Thinking...
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="ai-input-wrapper">
-              <textarea 
-                className="ai-sidebar-input" 
-                placeholder="Ask a question..." 
-                rows={1}
-                value={aiMessage}
-                onChange={(e) => setAiMessage(e.target.value)}
-                onKeyDown={handleAiKeyDown}
-              ></textarea>
-              <button 
-                className="ai-send-btn" 
-                onClick={handleAiSubmit}
-                disabled={!aiMessage.trim() || aiLoading}
-                aria-label="Send message"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </div>
-
-            <h4 className="ai-insights-title">AI Insights</h4>
-            <div className="ai-insights-list">
-              {aiInsights.map((insight, idx) => (
-                <button 
-                  key={idx} 
-                  className="ai-insight-pill"
-                  onClick={() => {
-                    setAiMessage(insight);
-                    // Focus logic could go here
-                  }}
-                >
-                  {insight}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {isCreateModalOpen && (
