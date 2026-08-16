@@ -89,4 +89,14 @@ public class ReadingService {
 
         return SensorReadingResponse.from(saved);
     }
+
+    public SensorReadingResponse latest(String greenhouseId) {
+        telemetryRepository.findGreenhouse(greenhouseId)
+                .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
+        SensorReading reading = telemetryRepository.findLatestReading(greenhouseId)
+                .orElseThrow(() -> new IllegalArgumentException("No readings yet for " + greenhouseId));
+        SensorReadingResponse response = SensorReadingResponse.from(reading);
+        response.setStatus("LIVE");
+        return response;
+    }
 }
