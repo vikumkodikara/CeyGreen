@@ -8,7 +8,10 @@ import com.ceygreen.treatment_service.exception.ResourceNotFoundException;
 import com.ceygreen.treatment_service.kafka.TreatmentEvent;
 import com.ceygreen.treatment_service.kafka.TreatmentEventProducer;
 import com.ceygreen.treatment_service.repository.DiseaseRepository;
+import com.ceygreen.treatment_service.repository.TreatmentRatingRepository;
 import com.ceygreen.treatment_service.repository.TreatmentRepository;
+import com.ceygreen.treatment_service.entity.TreatmentRating;
+import com.ceygreen.treatment_service.dto.RatingRequest;
 import com.ceygreen.treatment_service.util.DiseaseNameUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ import java.util.List;
 public class TreatmentService {
     private final TreatmentRepository treatmentRepository;
     private final DiseaseRepository diseaseRepository;
+    private final TreatmentRatingRepository ratingRepository;
     private final TreatmentEventProducer eventProducer;
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
@@ -40,7 +44,7 @@ public class TreatmentService {
         return treatments.stream().map(this::toResponse).toList();
     }
 
-    public List<TreatmentResponse> searchTreatments(String crop, String severity) {
+    public List<TreatmentResponse> searchTreatments(String crop, String severity, String type) {
         List<Treatment> results;
         if (crop != null && severity != null) {
             results = treatmentRepository.findByCropTypeIgnoreCaseAndSeverityIgnoreCaseAndActiveTrue(crop, severity);
@@ -48,8 +52,14 @@ public class TreatmentService {
             results = treatmentRepository.findByCropTypeIgnoreCaseAndActiveTrue(crop);
         } else if (severity != null) {
             results = treatmentRepository.findBySeverityIgnoreCaseAndActiveTrue(severity);
+        } else if (type != null) {
+            results = treatmentRepository.findByTypeIgnoreCaseAndActiveTrue(type);
         } else {
             results = treatmentRepository.findByActiveTrue();
+        }
+        
+        if (type != null) {
+            results = results.stream().filter(t -> t.getType().equalsIgnoreCase(type)).toList();
         }
         return results.stream().map(this::toResponse).toList();
     }
@@ -89,11 +99,40 @@ public class TreatmentService {
         return toResponse(treatmentRepository.save(treatment));
     }
 
+    public void rateTreatment(Long id, RatingRequest request) {
+        Treatment treatment = treatmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
+
+        if (ratingRepository.existsByTreatmentIdAndFarmerId(id, request.farmerId())) {
+            throw new IllegalArgumentException("You have already rated this treatment.");
+        }
+
+        TreatmentRating rating = TreatmentRating.builder()
+                .treatment(treatment)
+                .farmerId(request.farmerId())
+                .rating(request.rating())
+                .build();
+        ratingRepository.save(rating);
+    }
+
+    public List<TreatmentResponse> getAlternatives(Long id) {
+        Treatment treatment = treatmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
+        List<Treatment> alternatives = treatmentRepository.findByDiseaseIdAndIdNotAndActiveTrue(
+                treatment.getDisease().getId(), id);
+        return alternatives.stream().map(this::toResponse).toList();
+    }
+
     private TreatmentResponse toResponse(Treatment t) {
+        List<TreatmentRating> ratings = ratingRepository.findByTreatmentId(t.getId());
+        Double avgRating = ratings.isEmpty() ? null : 
+                ratings.stream().mapToInt(TreatmentRating::getRating).average().orElse(0.0);
+
         return new TreatmentResponse(
                 t.getId(), t.getDisease().getName(), t.getProductName(), t.getType(),
                 t.getDosage(), t.getFrequency(), t.getSafetyNotes(), t.getCropType(),
-                t.getSeverity(), t.isActive());
+                t.getSeverity(), t.getPhiDays(), t.getApplicationMethod(), t.getBrandNames(),
+                t.getEffectivenessScore(), avgRating, t.isActive());
     }
 
 }
