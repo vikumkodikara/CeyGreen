@@ -299,23 +299,95 @@
 }
 
 .ai-sidebar-input {
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 0.75rem;
+  background: transparent;
+  border: none;
   width: 100%;
   color: var(--text-main);
   font-family: inherit;
   font-size: 0.85rem;
-  resize: vertical;
-  min-height: 60px;
-  margin-bottom: 1rem;
-  box-shadow: none;
-}
-.ai-sidebar-input:focus {
+  resize: none;
+  min-height: 40px;
+  max-height: 120px;
   outline: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.ai-input-wrapper {
+  display: flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  align-items: flex-end;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.ai-input-wrapper:focus-within {
   border-color: var(--accent-green);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.ai-send-btn {
+  background: var(--accent-green);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+.ai-send-btn:hover {
+  background: var(--accent-emerald);
+  transform: scale(1.05);
+}
+
+.ai-send-btn:disabled {
+  background: var(--text-secondary);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ai-chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.ai-message-bubble {
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-width: 90%;
+}
+
+.ai-message-user {
+  background: rgba(46, 204, 113, 0.1);
+  color: var(--text-main);
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message-bot {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
 }
 
 .ai-insights-title {
