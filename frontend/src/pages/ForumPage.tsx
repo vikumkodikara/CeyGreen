@@ -55,7 +55,7 @@ export const ForumPage: React.FC = () => {
         body: text,
       });
       setReplyText({ ...replyText, [postId]: '' });
-      setPosts(posts.map(p => p.id === postId ? updatedPost : p));
+      setPosts(sortPostsArray(posts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to post reply');
     }
@@ -64,7 +64,7 @@ export const ForumPage: React.FC = () => {
   const handleLoadReplies = async (postId: string) => {
     try {
       const fullPost = await getPost(postId);
-      setPosts(posts.map(p => p.id === postId ? fullPost : p));
+      setPosts(sortPostsArray(posts.map(p => p.id === postId ? fullPost : p)));
     } catch (err) {
       console.error('Failed to load replies', err);
     }
@@ -80,27 +80,64 @@ export const ForumPage: React.FC = () => {
     }
   };
 
+  const sortPostsArray = (postArray: Post[]) => {
+    const copy = [...postArray];
+    copy.sort((a, b) => {
+      if (sort === 'trending') {
+        const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
+        const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+      } else if (sort === 'newest') {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return (b.upvotes || 0) - (a.upvotes || 0);
+    });
+    return copy;
+  };
+
   const handleVote = async (postId: string, action: 'upvote' | 'downvote') => {
+    // 1. Optimistic Update (Immediate UI response)
+    const targetPost = posts.find(p => p.id === postId);
+    if (!targetPost) return;
+
+    const optPost = { ...targetPost };
+    const currentUserId = user?.id || '';
+    
+    if (action === 'upvote') {
+      if (!optPost.upvotedBy) optPost.upvotedBy = [];
+      if (!optPost.downvotedBy) optPost.downvotedBy = [];
+      if (!optPost.upvotedBy.includes(currentUserId)) {
+        optPost.upvotedBy.push(currentUserId);
+        optPost.upvotes = (optPost.upvotes || 0) + 1;
+        if (optPost.downvotedBy.includes(currentUserId)) {
+          optPost.downvotedBy = optPost.downvotedBy.filter(id => id !== currentUserId);
+          optPost.downvotes = Math.max(0, (optPost.downvotes || 0) - 1);
+        }
+      }
+    } else {
+      if (!optPost.downvotedBy) optPost.downvotedBy = [];
+      if (!optPost.upvotedBy) optPost.upvotedBy = [];
+      if (!optPost.downvotedBy.includes(currentUserId)) {
+        optPost.downvotedBy.push(currentUserId);
+        optPost.downvotes = (optPost.downvotes || 0) + 1;
+        if (optPost.upvotedBy.includes(currentUserId)) {
+          optPost.upvotedBy = optPost.upvotedBy.filter(id => id !== currentUserId);
+          optPost.upvotes = Math.max(0, (optPost.upvotes || 0) - 1);
+        }
+      }
+    }
+
+    // Update UI instantly
+    setPosts(sortPostsArray(posts.map(p => p.id === postId ? optPost : p)));
+
+    // 2. Perform Backend Call
     try {
       const updatedPost = await actOnPost(postId, action);
-      const newPosts = posts.map(p => p.id === postId ? updatedPost : p);
-      
-      // Re-sort dynamically so the upvoted post moves up
-      newPosts.sort((a, b) => {
-        if (sort === 'trending') {
-          const scoreA = (a.upvotes || 0) + (a.views || 0) + (a.replyCount || 0);
-          const scoreB = (b.upvotes || 0) + (b.views || 0) + (b.replyCount || 0);
-          if (scoreB !== scoreA) return scoreB - scoreA;
-        } else if (sort === 'newest') {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        // fallback to upvotes
-        return (b.upvotes || 0) - (a.upvotes || 0);
-      });
-      
-      setPosts(newPosts);
+      setPosts(currentPosts => sortPostsArray(currentPosts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
       console.error('Failed to act on post', err);
+      // Revert if API fails
+      setPosts(sortPostsArray(posts)); 
     }
   };
 
@@ -113,33 +150,39 @@ export const ForumPage: React.FC = () => {
     }, 50);
   };
 
+  const renderAuthorName = (name?: string, id?: string) => {
+    const author = name || id || 'Unknown User';
+    // If it looks like a UUID (long string with hyphens), show a fallback format
+    if (author.length > 20 && author.includes('-')) {
+      return `User ${author.substring(0, 6)}`;
+    }
+    return author;
+  };
+
   return (
     <div className="forum-layout-container">
       <div className="forum-grid">
         <div className="post-feed-column">
-          <div style={{ marginBottom: '1rem' }}>
-            <h1 className="forum-header-title">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              Community Forum
-            </h1>
-            <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} Posts</p>
-          </div>
+          <header className="page-hero">
+            <h1 className="forum-header-title">Forum</h1>
+            <p className="forum-header-subtitle">{posts.length} threads</p>
+          </header>
 
           <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
-            Start a New Discussion
+            Start discussion
           </button>
 
-          <h2 className="trending-header">Trending Discussions</h2>
+          <h2 className="trending-header">Threads</h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
           <div key={post.id} className="forum-post-card">
             <div className="post-header">
               <div className="post-avatar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <div className="post-meta-info">
-                <span className="post-author">By {(post.authorName || post.authorId).substring(0, 8)}...</span>
+                <span className="post-author">{renderAuthorName(post.authorName, post.authorId)}</span>
                 <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
               </div>
             </div>
@@ -183,7 +226,7 @@ export const ForumPage: React.FC = () => {
                   <div className="post-reply-section">
                     {post.replies.map((r, i) => (
                       <div key={i} className="reply-item">
-                        <div className="reply-author">By {(r.authorName || r.authorId).substring(0, 8)}...</div>
+                        <div className="reply-author">{renderAuthorName(r.authorName, r.authorId)}</div>
                         <div className="reply-body">{r.body}</div>
                       </div>
                     ))}

@@ -18,7 +18,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # The public half of the keypair user-diagnosis-service signs tokens with. It is
+          # The public half of the keypair user-service signs tokens with. It is
           # configured directly rather than fetched from a JWKS endpoint, so the gateway
           # boots and validates tokens even when that service is down.
           public-key-location: ${JWT_PUBLIC_KEY_LOCATION:classpath:keys/dev-public.pem}
@@ -49,13 +49,16 @@ spring:
           # The routing table: public path -> owning microservice. Every base URL is an env var,
           # so this gateway builds and runs without any teammate's service existing.
           routes:
-            # ---- Student 2 (this repo) ----
+            # ---- Student 2 (this repo): User Management ----
+            # Also the token issuer -- it owns the private half of the keypair above.
             - id: user-management
-              uri: ${USER_DIAGNOSIS_SERVICE_URL:http://localhost:8081}
+              uri: ${USER_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/users/**
+
+            # ---- Student 2 (this repo): Disease Detection ----
             - id: disease-detection
-              uri: ${USER_DIAGNOSIS_SERVICE_URL:http://localhost:8081}
+              uri: ${DIAGNOSIS_SERVICE_URL:http://localhost:8087}
               predicates:
                 - Path=/api/diagnosis/**
 
@@ -92,13 +95,15 @@ spring:
               predicates:
                 - Path=/api/forum/**
 
-            # ---- Student 6: Sales Analytics & Notification ----
+            # ---- Student 6: Sales Analytics ----
             - id: sales-analytics
               uri: ${ANALYTICS_SERVICE_URL:http://analytics-service:8086}
               predicates:
                 - Path=/api/analytics/**
+
+            # ---- Student 6: Notifications ----
             - id: notifications
-              uri: ${ANALYTICS_SERVICE_URL:http://analytics-service:8086}
+              uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8088}
               predicates:
                 - Path=/api/notify/**
 
@@ -122,7 +127,7 @@ ceygreen:
   cors:
     # Comma-separated browser origins permitted to call the gateway.
     # Quoted so YAML does not split the default value on commas.
-    allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}"
+    allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://16.192.168.12:3000,http://16.192.168.12}"
   downstream:
     # Forwarded as X-API-Key so each microservice's own API-key check passes for traffic
     # arriving through the gateway, and fails for traffic that bypasses it.

@@ -11,6 +11,7 @@ import { useCart } from '../../hooks/useCart';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useToast } from '../../context/ToastContext';
 import { Product } from '../../types/product';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { getApiErrorMessage } from '../../utils/apiError';
 import '../../styles/marketplace.css';
 
@@ -68,10 +69,10 @@ export const MarketplaceBrowsePage: React.FC = () => {
 
   return (
     <div className="marketplace-page">
-      <div className="marketplace-header">
-        <h1>Crop Marketplace</h1>
-        <p>Fresh harvests from CeyGreen farmers — browse, filter, and order through the gateway.</p>
-      </div>
+      <PageHeader
+        title="Marketplace"
+        subtitle="Harvests listed by CeyGreen farmers."
+      />
 
       <Card title="Search & Filter">
         <div className="marketplace-filter-grid marketplace-filter-grid-wide">
