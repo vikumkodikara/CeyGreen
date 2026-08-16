@@ -12,7 +12,7 @@ node_modules/
 .tools/
 
 # Runtime data (uploaded diagnosis images, container volumes)
-data/
+/data/
 
 # Local environment overrides -- .env.example is committed, .env is not
 .env

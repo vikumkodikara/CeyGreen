@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop } from '../api/treatments';
+import React, { useState } from 'react';
+import { getTreatmentsForDisease, searchTreatments } from '../api/treatments';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Treatment } from '../types/treatment';
 import { useAuth } from '../hooks/useAuth';
+import { PageHeader } from '../components/layout/PageHeader';
 
   const { user } = useAuth();
   const [diseaseSearch, setDiseaseSearch] = useState('');
@@ -58,21 +61,25 @@ import { useAuth } from '../hooks/useAuth';
   };
 
   return (
-    <div style={{ maxWidth: '900px' }}>
+       <div className="page-wrap" style={{ maxWidth: '900px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.8rem' }}>💊 Treatment & Suggestion Catalog</h1>
+        <PageHeader
+          title="Treatment & Suggestion Catalog"
+          subtitle="Search remedies by disease or crop name."
+        />
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: organicOnly ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '20px', transition: 'all 0.2s' }}>
           <input type="checkbox" checked={organicOnly} onChange={(e) => setOrganicOnly(e.target.checked)} style={{ cursor: 'pointer' }} />
           <span style={{ fontWeight: 600, color: organicOnly ? 'var(--accent-green)' : 'var(--text-muted)' }}>Show Organic Only 🌱</span>
         </label>
       </div>
 
-      <Card title="Lookup Treatment Remedies">
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
+
+      <Card title="Find a remedy">
+        <form onSubmit={handleSearch} className="row">
+          <div className="grow">
             <Input
-              label="Disease Name or Crop Type"
-              placeholder="e.g. Leaf Blight, Powdery Mildew, Tomato"
+              label="Disease or crop"
+              placeholder="e.g. Early blight, Tomato"
               value={diseaseSearch}
               onChange={(e) => setDiseaseSearch(e.target.value)}
               required
@@ -84,24 +91,23 @@ import { useAuth } from '../hooks/useAuth';
         </form>
       </Card>
 
-      <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div className="stack" style={{ marginTop: '1.25rem' }}>
         {treatments.map((t) => (
-          <Card key={t.id} title={t.productName} subtitle={`Disease: ${t.diseaseName}`}>
-            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-              <div><strong>Type:</strong> <span style={{ color: t.type === 'ORGANIC' ? 'var(--success)' : 'var(--info)' }}>{t.type}</span></div>
-              <div><strong>Dosage:</strong> {t.dosage}</div>
-              <div><strong>Frequency:</strong> {t.frequency}</div>
-              {t.phiDays !== undefined && <div><strong>PHI:</strong> <span style={{ color: t.phiDays === 0 ? 'var(--success)' : 'var(--warning)' }}>{t.phiDays} days</span></div>}
-              {t.effectivenessScore && <div><strong>Effectiveness:</strong> {t.effectivenessScore}%</div>}
-              {t.averageRating !== undefined && t.averageRating > 0 && <div><strong>Rating:</strong> {t.averageRating.toFixed(1)} ⭐️</div>}
-            </div>
-
-            {t.brandNames && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Brands:</strong> {t.brandNames}</div>}
-            {t.applicationMethod && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Method:</strong> {t.applicationMethod}</div>}
+                     <Card key={t.id} title={t.productName} subtitle={`For ${t.diseaseName}`}>
+              <div className="treatment-meta" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                <span className="pill" style={{ color: t.type === 'ORGANIC' ? 'var(--success)' : 'inherit' }}>{t.type}</span>
+                <span className="pill">Dosage: {t.dosage}</span>
+                <span className="pill">Frequency: {t.frequency}</span>
+                {t.phiDays !== undefined && <span className="pill" style={{ color: t.phiDays === 0 ? 'var(--success)' : 'var(--warning)' }}>PHI: {t.phiDays} days</span>}
+                {t.effectivenessScore && <span className="pill">Effectiveness: {t.effectivenessScore}%</span>}
+                {t.averageRating !== undefined && t.averageRating > 0 && <span className="pill">Rating: {t.averageRating.toFixed(1)} ⭐️</span>}
+              </div>
+                      {t.brandNames && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Brands:</strong> {t.brandNames}</div>}
+          {t.applicationMethod && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Method:</strong> {t.applicationMethod}</div>}
 
             {t.safetyNotes && (
-              <p style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                🛡️ {t.safetyNotes}
+              <p style={{ marginTop: '0.85rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Safety: {t.safetyNotes}
               </p>
             )}
 

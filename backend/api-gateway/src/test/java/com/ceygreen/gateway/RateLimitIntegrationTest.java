@@ -56,7 +56,7 @@ class RateLimitIntegrationTest {
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", REDIS::getHost);
         registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
-        registry.add("USER_DIAGNOSIS_SERVICE_URL", () -> downstream.url("/").toString().replaceAll("/$", ""));
+        registry.add("USER_SERVICE_URL", () -> downstream.url("/").toString().replaceAll("/$", ""));
         // One request allowed, then 429 until the bucket replenishes.
         registry.add("ceygreen.rate-limit.requests-per-minute", () -> "1");
         registry.add("ceygreen.rate-limit.replenish-rate", () -> "1");

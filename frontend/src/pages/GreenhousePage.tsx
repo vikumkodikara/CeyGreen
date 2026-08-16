@@ -5,6 +5,7 @@ import { Input } from '../components/ui/Input';
 import { registerGreenhouse, ingestReading, getSuggestions } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
 import { Suggestion } from '../types/iot';
+import { PageHeader } from '../components/layout/PageHeader';
 
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
@@ -58,61 +59,59 @@ export const GreenhousePage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '900px' }}>
-      <h1 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>
-        Greenhouse IoT Telemetry & Control
-      </h1>
+    <div className="page-wrap">
+      <PageHeader
+        title="Greenhouse"
+        subtitle="Register a zone, push a reading, and review climate suggestions."
+      />
 
-      <Card title="1. Register Greenhouse Blueprint (1 zone + 1 ESP32)">
-        <form onSubmit={handleRegister} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
-            <Input
-              label="Greenhouse Name"
-              value={ghName}
-              onChange={(e) => setGhName(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit" isLoading={loading} style={{ marginBottom: '1rem' }}>
-            Register Blueprint
-          </Button>
-        </form>
-        {greenhouseId && (
-          <p style={{ color: 'var(--accent-green)', fontWeight: 600, marginTop: '0.5rem' }}>
-            Registered Greenhouse ID: {greenhouseId} (ZONE1)
-          </p>
-        )}
-      </Card>
-
-      {greenhouseId && (
-        <Card title="2. Simulated ESP32 Telemetry Reading" style={{ marginTop: '2rem' }}>
-          <form onSubmit={handleIngest}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-              <Input label="Temperature (°C)" type="number" step="0.1" value={temp} onChange={(e) => setTemp(parseFloat(e.target.value))} />
-              <Input label="Humidity (%)" type="number" step="0.1" value={humidity} onChange={(e) => setHumidity(parseFloat(e.target.value))} />
-              <Input label="Soil Moisture (%)" type="number" step="0.1" value={soilMoisture} onChange={(e) => setSoilMoisture(parseFloat(e.target.value))} />
-              <Input label="Nitrogen (N)" type="number" value={nitrogen} onChange={(e) => setNitrogen(parseInt(e.target.value))} />
-              <Input label="Phosphorus (P)" type="number" value={phosphorus} onChange={(e) => setPhosphorus(parseInt(e.target.value))} />
-              <Input label="Potassium (K)" type="number" value={potassium} onChange={(e) => setPotassium(parseInt(e.target.value))} />
+      <div className="stack">
+        <Card title="Register greenhouse" subtitle="Creates one zone with an ESP32 device">
+          <form onSubmit={handleRegister} className="row">
+            <div className="grow">
+              <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
             </div>
-            <Button type="submit" style={{ marginTop: '1rem' }}>
-              Push ESP32 Reading
+            <Button type="submit" isLoading={loading} style={{ marginBottom: '1rem' }}>
+              Register
             </Button>
           </form>
+          {greenhouseId && (
+            <p className="alert alert-success" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+              Registered ID: {greenhouseId} · ZONE1
+            </p>
+          )}
         </Card>
-      )}
 
-      {suggestions.length > 0 && (
-        <Card title="3. Rule Engine Suggestions" style={{ marginTop: '2rem' }}>
-          <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-            {suggestions.map((s, index) => (
-              <li key={`${s.zoneId}-${index}`} style={{ marginBottom: '0.5rem' }}>
-                <strong>{s.severity}</strong>: {s.message}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
+        {greenhouseId && (
+          <Card title="Simulated ESP32 reading">
+            <form onSubmit={handleIngest}>
+              <div className="sensor-grid">
+                <Input label="Temperature (°C)" type="number" step="0.1" value={temp} onChange={(e) => setTemp(parseFloat(e.target.value))} />
+                <Input label="Humidity (%)" type="number" step="0.1" value={humidity} onChange={(e) => setHumidity(parseFloat(e.target.value))} />
+                <Input label="Soil moisture (%)" type="number" step="0.1" value={soilMoisture} onChange={(e) => setSoilMoisture(parseFloat(e.target.value))} />
+                <Input label="Nitrogen (N)" type="number" value={nitrogen} onChange={(e) => setNitrogen(parseInt(e.target.value))} />
+                <Input label="Phosphorus (P)" type="number" value={phosphorus} onChange={(e) => setPhosphorus(parseInt(e.target.value))} />
+                <Input label="Potassium (K)" type="number" value={potassium} onChange={(e) => setPotassium(parseInt(e.target.value))} />
+              </div>
+              <Button type="submit" style={{ marginTop: '1rem' }}>
+                Push reading
+              </Button>
+            </form>
+          </Card>
+        )}
+
+        {suggestions.length > 0 && (
+          <Card title="Rule engine suggestions">
+            <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+              {suggestions.map((s, index) => (
+                <li key={`${s.zoneId}-${index}`} style={{ marginBottom: '0.55rem' }}>
+                  <span className="pill">{s.severity}</span> {s.message}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

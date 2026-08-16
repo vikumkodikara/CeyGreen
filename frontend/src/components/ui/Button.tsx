@@ -21,6 +21,7 @@ export const Button: React.FC<ButtonProps> = ({
     justifyContent: 'center',
     gap: '0.5rem',
     fontWeight: 600,
+    borderRadius: 12,
     cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
     opacity: disabled || isLoading ? 0.6 : 1,
     transition: 'all 0.2s ease',
@@ -28,12 +29,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      background: 'linear-gradient(135deg, var(--accent-green) 0%, var(--accent-emerald) 100%)',
-      color: '#051d0d',
-      boxShadow: '0 4px 14px rgba(46, 204, 113, 0.3)',
+      background: 'var(--accent-green)',
+      color: 'var(--on-accent)',
     },
     secondary: {
-      background: 'rgba(255, 255, 255, 0.08)',
+      background: '#fff',
       color: 'var(--text-main)',
       border: '1px solid var(--border-color)',
     },
