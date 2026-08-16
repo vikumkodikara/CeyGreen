@@ -14,4 +14,10 @@ public interface TreatmentRepository extends JpaRepository<Treatment, Long> {
     List<Treatment> findBySeverityIgnoreCaseAndActiveTrue(String severity);
 
     List<Treatment> findByActiveTrue();
+
+    List<Treatment> findByTypeIgnoreCaseAndActiveTrue(String type);
+
+    List<Treatment> findByDisease_NormalizedNameAndTypeIgnoreCaseAndActiveTrue(String normalizedName, String type);
+
+    List<Treatment> findByDiseaseIdAndIdNotAndActiveTrue(Long diseaseId, Long treatmentId);
 }
