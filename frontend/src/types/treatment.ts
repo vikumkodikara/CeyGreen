@@ -6,6 +6,11 @@ export interface Treatment {
   dosage: string;
   frequency: string;
   safetyNotes: string;
+  phiDays?: number;
+  applicationMethod?: string;
+  brandNames?: string;
+  effectivenessScore?: number;
+  averageRating?: number;
   active: boolean;
 }
 
