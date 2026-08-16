@@ -135,6 +135,7 @@ ceygreen:
     public-paths:
       - /api/users/register
       - /api/users/login
+      - /api/iot/**
       - /actuator/health
       - /actuator/health/**
       - /actuator/info

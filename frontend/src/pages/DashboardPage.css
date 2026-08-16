@@ -9,6 +9,8 @@
   gap: 1.15rem;
   max-width: 1240px;
   margin: 0 auto;
+  align-items: start;
+  height: 100%;
 }
 .dash-center {
   min-width: 0;

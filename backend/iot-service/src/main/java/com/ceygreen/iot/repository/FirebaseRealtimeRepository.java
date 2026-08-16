@@ -70,6 +70,30 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
     }
 
     @Override
+    public Optional<SensorReading> findLatestReading(String greenhouseId) {
+        DataSnapshot zonesSnap = awaitGet(greenhouseRef(greenhouseId).child("zones"));
+        SensorReading latest = null;
+        if (!zonesSnap.exists()) {
+            return Optional.empty();
+        }
+        for (DataSnapshot zoneSnap : zonesSnap.getChildren()) {
+            for (DataSnapshot readingSnap : zoneSnap.child("readings").getChildren()) {
+                SensorReading candidate = readingSnap.getValue(SensorReading.class);
+                if (candidate == null) {
+                    continue;
+                }
+                if (latest == null
+                        || (candidate.getTimestamp() != null
+                        && latest.getTimestamp() != null
+                        && candidate.getTimestamp().compareTo(latest.getTimestamp()) > 0)) {
+                    latest = candidate;
+                }
+            }
+        }
+        return Optional.ofNullable(latest);
+    }
+
+    @Override
     public List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> suggestions) {
         DatabaseReference suggestionsRef = zoneRef(greenhouseId, zoneId).child("suggestions");
         awaitRemove(suggestionsRef);

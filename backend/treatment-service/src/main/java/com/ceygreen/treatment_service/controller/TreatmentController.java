@@ -1,5 +1,6 @@
 package com.ceygreen.treatment_service.controller;
 
+import com.ceygreen.treatment_service.dto.RatingRequest;
 import com.ceygreen.treatment_service.dto.TreatmentRequest;
 import com.ceygreen.treatment_service.dto.TreatmentResponse;
 import com.ceygreen.treatment_service.service.TreatmentService;
@@ -27,8 +28,25 @@ public class TreatmentController {
     @GetMapping("/search")
     public List<TreatmentResponse> search(
             @RequestParam(required = false) String crop,
-            @RequestParam(required = false) String severity) {
-        return treatmentService.searchTreatments(crop, severity);
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String type) {
+        return treatmentService.searchTreatments(crop, severity, type);
+    }
+
+    @GetMapping("/crop/{cropName}")
+    public List<TreatmentResponse> getByCrop(@PathVariable String cropName) {
+        return treatmentService.searchTreatments(cropName, null, null);
+    }
+
+    @PostMapping("/{id}/rate")
+    @ResponseStatus(HttpStatus.OK)
+    public void rateTreatment(@PathVariable Long id, @Valid @RequestBody RatingRequest request) {
+        treatmentService.rateTreatment(id, request);
+    }
+
+    @GetMapping("/{id}/alternatives")
+    public List<TreatmentResponse> getAlternatives(@PathVariable Long id) {
+        return treatmentService.getAlternatives(id);
     }
 
     @PostMapping
