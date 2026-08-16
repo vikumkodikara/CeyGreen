@@ -103,11 +103,7 @@ spring:
               predicates:
                 - Path=/api/forum/**
 
-            # ---- Student 5: AI Assistant Service ----
-            - id: ai-assistant
-              uri: ${AI_ASSISTANT_SERVICE_URL:http://ai-assistant-service:8089}
-              predicates:
-                - Path=/api/ai/**
+
 
             # ---- Student 6: Sales Analytics ----
             - id: sales-analytics
