@@ -17,10 +17,12 @@ export const ForumPage: React.FC = () => {
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
 
-
-
-  useEffect(() => {
+  const handleReportPost = (postId: string) => {
+    alert('Post reported for review.');
+    setActiveMenuPostId(null);
+  };  useEffect(() => {
     fetchPosts();
   }, [sort]);
 
@@ -182,16 +184,16 @@ export const ForumPage: React.FC = () => {
     <div className="forum-layout-container">
       <div className="forum-grid">
         <div className="post-feed-column">
-          <header className="page-hero">
-            <h1 className="forum-header-title">Forum</h1>
-            <p className="forum-header-subtitle">{posts.length} threads</p>
-          </header>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            <header className="page-hero" style={{ margin: 0, padding: 0 }}>
+              <h1 className="forum-header-title" style={{ marginTop: 0 }}>Forum</h1>
+              <p className="forum-header-subtitle" style={{ margin: 0 }}>{posts.length} threads</p>
+            </header>
 
-          <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
-            Start discussion
-          </button>
-
-          <h2 className="trending-header">Threads</h2>
+            <button className="start-discussion-btn" style={{ width: 'auto', margin: 0, padding: '0.6rem 1.25rem' }} onClick={() => setIsCreateModalOpen(true)}>
+              Start discussion
+            </button>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
@@ -221,20 +223,22 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 {post.downvotes || 0}
               </div>
-              <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                </div>
+                {activeMenuPostId === post.id && (
+                  <div className="post-options-menu">
+                    <div className="post-options-item" onClick={() => handleReportPost(post.id)}>
+                      Report Thread
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="action-spacer"></div>
-              <div className="action-item action-item-muted">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                {post.views || 0}
-              </div>
               <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer' }} title="Toggle replies">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 {post.replyCount || 0}
-              </div>
-              <div className="action-item action-item-muted" onClick={() => handleQuickReply(post.id)} style={{ cursor: 'pointer', marginLeft: '0.25rem' }} title="Quick Reply">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
               </div>
             </div>
 
