@@ -34,3 +34,6 @@ Thumbs.db
 
 # Project specification documents
 *.pdf
+
+# AI Configuration
+CLAUDE.md

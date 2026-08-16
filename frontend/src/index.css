@@ -131,7 +131,8 @@ button {
 .logo-on-light .logo-word i { color: var(--leaf); }
 
 .app-shell {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -281,7 +282,7 @@ button {
 .user-meta strong { color: var(--jade); font-size: 0.8rem; }
 .user-meta span { font-size: 0.68rem; color: var(--ink-3); }
 
-.app-body { display: flex; flex: 1; min-height: 0; }
+.app-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 .app-sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
@@ -291,6 +292,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.12rem;
+  overflow-y: auto;
+  height: 100%;
 }
 .sidebar-label {
   font-size: 0.68rem;
@@ -351,6 +354,8 @@ button {
   min-width: 0;
   padding: 1.4rem 1.5rem 2.4rem;
   background: var(--paper);
+  overflow-y: auto;
+  height: 100%;
 }
 .app-footer {
   padding: 0.7rem 1.4rem;
