@@ -37,7 +37,23 @@ public class Treatment {
 
     private String severity; // MILD, MODERATE, SEVERE
 
+    @Column(name = "phi_days")
+    private Integer phiDays; // Pre-Harvest Interval
+
+    @Column(name = "application_method")
+    private String applicationMethod;
+
+    @Column(name = "brand_names")
+    private String brandNames;
+
+    @Column(name = "effectiveness_score")
+    private Integer effectivenessScore;
+
     @Column(nullable = false)
     private boolean active = true;
+
+    // Optional relation for ratings if needed
+    @OneToMany(mappedBy = "treatment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<TreatmentRating> ratings = new java.util.ArrayList<>();
 
 }

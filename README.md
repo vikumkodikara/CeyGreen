@@ -183,3 +183,13 @@ CeyGreen/
 | **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://16.192.168.12:8085/actuator/health` |
 | **Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://16.192.168.12:8086/actuator/health` |
 | **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://16.192.168.12:8088/actuator/health` |
+
+---
+
+## Treatment & Suggestion Service (Port 8083)
+
+- **Advanced Filtering**: `GET /treatments/search?crop=...&severity=...&type=ORGANIC` for eco-friendly solutions.
+- **Crop Catalog**: `GET /treatments/crop/{cropName}` to browse treatments directly by crop type.
+- **Community Feedback**: `POST /treatments/{id}/rate` allows farmers to submit 5-star ratings for treatments.
+- **Alternative Remedies**: `GET /treatments/{id}/alternatives` fetches alternative options for the same disease.
+- **Rich Data Schema**: Returns deep agricultural insights including Pre-Harvest Intervals (PHI), effectiveness scores, brand names, and application methods.
