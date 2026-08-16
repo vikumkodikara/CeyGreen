@@ -10,5 +10,10 @@ public record TreatmentResponse(
         String safetyNotes,
         String cropType,
         String severity,
+        Integer phiDays,
+        String applicationMethod,
+        String brandNames,
+        Integer effectivenessScore,
+        Double averageRating,
         boolean active) {
 }
