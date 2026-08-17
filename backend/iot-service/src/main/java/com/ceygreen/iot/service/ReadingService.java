@@ -12,6 +12,7 @@ import com.ceygreen.iot.model.ZoneThresholds;
 import com.ceygreen.iot.repository.TelemetryRepository;
 import com.ceygreen.iot.rule.RuleEngine;
 import com.ceygreen.iot.rule.RuleResult;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -27,12 +28,12 @@ public class ReadingService {
 
     private final TelemetryRepository telemetryRepository;
     private final RuleEngine ruleEngine;
-    private final GreenhouseAlertPublisher alertPublisher;
+    private final ObjectProvider<GreenhouseAlertPublisher> alertPublisher;
 
     public ReadingService(
             TelemetryRepository telemetryRepository,
             RuleEngine ruleEngine,
-            GreenhouseAlertPublisher alertPublisher) {
+            ObjectProvider<GreenhouseAlertPublisher> alertPublisher) {
         this.telemetryRepository = telemetryRepository;
         this.ruleEngine = ruleEngine;
         this.alertPublisher = alertPublisher;
@@ -76,7 +77,11 @@ public class ReadingService {
                     result.getSeverity().name()));
 
             if (result.isUrgent()) {
-                alertPublisher.publish(new GreenhouseAlertEvent(
+                GreenhouseAlertPublisher publisher = alertPublisher.getIfAvailable();
+                if (publisher == null) {
+                    continue;
+                }
+                publisher.publish(new GreenhouseAlertEvent(
                         result.getSeverity().name(),
                         result.getMessage(),
                         saved.getGreenhouseId(),

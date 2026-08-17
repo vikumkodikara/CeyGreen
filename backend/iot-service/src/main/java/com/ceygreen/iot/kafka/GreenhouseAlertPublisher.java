@@ -2,6 +2,7 @@ package com.ceygreen.iot.kafka;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
  * Broker failures must not fail the ESP32 / client HTTP response.
  */
 @Component
+@ConditionalOnProperty(name = "ceygreen.kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class GreenhouseAlertPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(GreenhouseAlertPublisher.class);

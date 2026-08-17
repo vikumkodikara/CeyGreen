@@ -27,6 +27,7 @@ ceygreen:
   security:
     api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
   kafka:
+    enabled: ${KAFKA_ENABLED:true}
     alert-topic: ${KAFKA_ALERT_TOPIC:greenhouse-alerts}
     topic-partitions: ${KAFKA_TOPIC_PARTITIONS:1}
     topic-replicas: ${KAFKA_TOPIC_REPLICAS:1}
@@ -40,3 +41,14 @@ ceygreen:
 logging:
   level:
     com.ceygreen.iot: ${LOG_LEVEL:INFO}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: no-kafka
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+ceygreen:
+  kafka:
+    enabled: false
