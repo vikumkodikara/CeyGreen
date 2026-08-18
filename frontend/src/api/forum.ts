@@ -34,3 +34,8 @@ export const deletePost = async (id: string): Promise<void> => {
 };
 
 
+
+export const reportPost = async (id: string, reportType: string): Promise<void> => {
+  await apiClient.post(`/forum/posts/${id}/report`, { reportType });
+};
+

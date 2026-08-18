@@ -5,6 +5,7 @@ import com.ceygreen.forum.dto.PostRequest;
 import com.ceygreen.forum.dto.PostResponse;
 import com.ceygreen.forum.dto.ReplyActionRequest;
 import com.ceygreen.forum.dto.ReplyRequest;
+import com.ceygreen.forum.dto.ReportRequest;
 import com.ceygreen.forum.security.CurrentUser;
 import com.ceygreen.forum.service.ForumService;
 import jakarta.validation.Valid;
@@ -78,5 +79,14 @@ public class ForumController {
                                            @AuthenticationPrincipal CurrentUser currentUser) {
         forumService.deletePost(id, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Report a post or thread. */
+    @PostMapping("/posts/{id}/report")
+    public ResponseEntity<Void> reportPost(@PathVariable String id,
+                                           @Valid @RequestBody ReportRequest request,
+                                           @AuthenticationPrincipal CurrentUser currentUser) {
+        forumService.reportPost(id, request, currentUser);
+        return ResponseEntity.ok().build();
     }
 }
