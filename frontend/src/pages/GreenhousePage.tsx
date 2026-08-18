@@ -10,25 +10,33 @@ import { SensorMeter } from '../components/iot/SensorMeter';
 import { IconDrop, IconSun, IconThermo } from '../components/icons/Icons';
 import './GreenhousePage.css';
 
-type History = Record<string, number[]>;
+const IOT_ONLY = import.meta.env.VITE_IOT_ONLY === 'true';
 
-function pushSample(prev: History, key: string, value: number): number[] {
-  const next = [...(prev[key] || []), value].slice(-12);
-  return next;
+function demoReading(id: string): LiveReading {
+  return {
+    greenhouseId: id,
+    zoneId: 'ZONE1',
+    timestamp: new Date().toISOString(),
+    temperature: 28.4,
+    humidity: 72,
+    soilMoisture: 41,
+    n: 12,
+    p: 10,
+    k: 11,
+    status: 'PREVIEW',
+  };
 }
 
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
   const [ghName, setGhName] = useState('Greenhouse Alpha');
   const [requestedId, setRequestedId] = useState('GH001');
-  const [greenhouseId, setGreenhouseId] = useState('');
+  const [greenhouseId, setGreenhouseId] = useState(IOT_ONLY ? 'GH001' : '');
   const [loading, setLoading] = useState(false);
-  const [live, setLive] = useState<LiveReading | null>(null);
+  const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [liveError, setLiveError] = useState('');
-  const [history, setHistory] = useState<History>({});
   const inFlight = useRef(false);
-  const lastStamp = useRef('');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +47,11 @@ export const GreenhousePage: React.FC = () => {
       const res = await registerGreenhouse(ghName, farmerId, id);
       setGreenhouseId(res.id);
     } catch (err: any) {
+      if (IOT_ONLY) {
+        setGreenhouseId(id);
+        setLive((prev) => prev || demoReading(id));
+        return;
+      }
       const msg = err.response?.data?.message || 'Greenhouse registration failed';
       if (String(msg).toLowerCase().includes('already exists')) {
         setGreenhouseId(id);
@@ -67,17 +80,9 @@ export const GreenhousePage: React.FC = () => {
         if (reading) {
           setLive(reading);
           setLiveError('');
-          if (reading.timestamp !== lastStamp.current) {
-            lastStamp.current = reading.timestamp;
-            setHistory((prev) => ({
-              t: pushSample(prev, 't', reading.temperature),
-              h: pushSample(prev, 'h', reading.humidity),
-              s: pushSample(prev, 's', reading.soilMoisture),
-              n: pushSample(prev, 'n', reading.n),
-              p: pushSample(prev, 'p', reading.p),
-              k: pushSample(prev, 'k', reading.k),
-            }));
-          }
+        } else if (IOT_ONLY) {
+          setLive((prev) => prev || demoReading(greenhouseId));
+          setLiveError('');
         } else {
           setLiveError('Waiting for the ESP32 to send a reading…');
         }
@@ -89,7 +94,12 @@ export const GreenhousePage: React.FC = () => {
         }
       } catch (err: any) {
         if (!cancelled) {
-          setLiveError(err.response?.data?.message || 'Could not load live data');
+          if (IOT_ONLY) {
+            setLive((prev) => prev || demoReading(greenhouseId));
+            setLiveError('');
+          } else {
+            setLiveError(err.response?.data?.message || 'Could not load live data');
+          }
         }
       } finally {
         inFlight.current = false;
@@ -144,7 +154,7 @@ export const GreenhousePage: React.FC = () => {
                   <p className="page-subtitle">
                     Last update {new Date(live.timestamp).toLocaleTimeString()} · {live.zoneId}
                   </p>
-                  <span className="live-dot"><i /> LIVE</span>
+                  <span className="live-dot"><i /> {live.status === 'PREVIEW' ? 'PREVIEW' : 'LIVE'}</span>
                 </div>
                 <div className="sensor-grid">
                   <SensorMeter
@@ -156,7 +166,8 @@ export const GreenhousePage: React.FC = () => {
                     color="#e07a3d"
                     hint="Ideal 24–32 °C"
                     icon={<IconThermo />}
-                    history={history.t || []}
+                    idealMin={24}
+                    idealMax={32}
                   />
                   <SensorMeter
                     label="Humidity"
@@ -167,7 +178,8 @@ export const GreenhousePage: React.FC = () => {
                     color="#1f8a54"
                     hint="Ideal 60–80%"
                     icon={<IconDrop />}
-                    history={history.h || []}
+                    idealMin={60}
+                    idealMax={80}
                   />
                   <SensorMeter
                     label="Soil moisture"
@@ -178,7 +190,8 @@ export const GreenhousePage: React.FC = () => {
                     color="#8b5e34"
                     hint="Ideal 35–60%"
                     icon={<IconDrop />}
-                    history={history.s || []}
+                    idealMin={35}
+                    idealMax={60}
                   />
                   <SensorMeter
                     label="Nitrogen"
@@ -189,7 +202,8 @@ export const GreenhousePage: React.FC = () => {
                     color="#166534"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    history={history.n || []}
+                    idealMin={10}
+                    idealMax={40}
                   />
                   <SensorMeter
                     label="Phosphorus"
@@ -200,7 +214,8 @@ export const GreenhousePage: React.FC = () => {
                     color="#b45309"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    history={history.p || []}
+                    idealMin={8}
+                    idealMax={35}
                   />
                   <SensorMeter
                     label="Potassium"
@@ -211,7 +226,8 @@ export const GreenhousePage: React.FC = () => {
                     color="#2563eb"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    history={history.k || []}
+                    idealMin={8}
+                    idealMax={35}
                   />
                 </div>
               </>
