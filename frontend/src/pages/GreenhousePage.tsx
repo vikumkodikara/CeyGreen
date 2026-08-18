@@ -102,7 +102,7 @@ export const GreenhousePage: React.FC = () => {
     const run = async () => {
       while (!cancelled) {
         await tick();
-        await new Promise((r) => window.setTimeout(r, 50));
+        await new Promise((r) => window.setTimeout(r, 2000));
       }
     };
     run();
@@ -131,12 +131,7 @@ export const GreenhousePage: React.FC = () => {
               />
             </div>
             <button type="submit" className="gh-register-btn" disabled={loading}>
-              <span className="gh-register-ico" aria-hidden>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3l2.2 6.4H21l-5.4 3.9 2.1 6.5L12 16.8 6.3 19.8l2.1-6.5L3 9.4h6.8L12 3z" fill="currentColor" />
-                </svg>
-              </span>
-              {loading ? 'Registering…' : 'Register greenhouse'}
+              {loading ? 'Registering…' : 'Register'}
             </button>
           </form>
           {greenhouseId && (
@@ -168,73 +163,49 @@ export const GreenhousePage: React.FC = () => {
                     label="Temperature"
                     value={live.temperature}
                     unit="°C"
-                    min={10}
-                    max={45}
                     color="#e07a3d"
                     hint="Ideal 24–32 °C"
                     icon={<IconThermo />}
-                    idealMin={24}
-                    idealMax={32}
                   />
                   <SensorMeter
                     label="Humidity"
                     value={live.humidity}
                     unit="%"
-                    min={0}
-                    max={100}
                     color="#1f8a54"
                     hint="Ideal 60–80%"
                     icon={<IconDrop />}
-                    idealMin={60}
-                    idealMax={80}
                   />
                   <SensorMeter
                     label="Soil moisture"
                     value={live.soilMoisture}
                     unit="%"
-                    min={0}
-                    max={100}
                     color="#8b5e34"
                     hint="Ideal 35–60%"
                     icon={<IconDrop />}
-                    idealMin={35}
-                    idealMax={60}
                   />
                   <SensorMeter
                     label="Nitrogen"
                     value={live.n}
                     unit="N"
-                    min={0}
-                    max={80}
                     color="#166534"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    idealMin={10}
-                    idealMax={40}
                   />
                   <SensorMeter
                     label="Phosphorus"
                     value={live.p}
                     unit="P"
-                    min={0}
-                    max={80}
                     color="#b45309"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    idealMin={8}
-                    idealMax={35}
                   />
                   <SensorMeter
                     label="Potassium"
                     value={live.k}
                     unit="K"
-                    min={0}
-                    max={80}
                     color="#2563eb"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    idealMin={8}
-                    idealMax={35}
                   />
                 </div>
               </>
