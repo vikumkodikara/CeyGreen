@@ -268,7 +268,7 @@ export const ForumPage: React.FC = () => {
               </div>
               <div className="post-meta-info">
                 <span className="post-author">{renderAuthorName(post.authorName, post.authorId)}</span>
-                <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
+                <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
               </div>
             </div>
 
