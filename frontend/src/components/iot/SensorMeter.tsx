@@ -4,8 +4,8 @@ type SensorMeterProps = {
   label: string;
   value: number;
   unit: string;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   color: string;
   hint: string;
   icon: React.ReactNode;
