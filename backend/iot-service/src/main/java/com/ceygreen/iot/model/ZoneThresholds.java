@@ -5,10 +5,10 @@ package com.ceygreen.iot.model;
  */
 public class ZoneThresholds {
 
-    private double maxTemperature = 30.0;
+    private double maxTemperature = 32.0;
     private double urgentMaxTemperature = 38.0;
-    private double minSoilMoisture = 20.0;
-    private double maxHumidity = 90.0;
+    private double minSoilMoisture = 35.0;
+    private double maxHumidity = 80.0;
     private double minNitrogen = 10.0;
     private double minPhosphorus = 8.0;
     private double minPotassium = 8.0;
