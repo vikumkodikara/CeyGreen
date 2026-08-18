@@ -81,6 +81,7 @@ public class GatewayProperties {
         private List<String> publicPaths = new ArrayList<>(List.of(
                 "/api/users/register",
                 "/api/users/login",
+                "/api/iot/**",
                 "/actuator/health",
                 "/actuator/health/**",
                 "/actuator/info"));

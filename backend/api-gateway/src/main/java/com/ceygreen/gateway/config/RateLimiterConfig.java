@@ -17,7 +17,23 @@ public class RateLimiterConfig {
      */
     @Bean
     public KeyResolver clientIpKeyResolver() {
-        return exchange -> Mono.just(resolveClientIp(exchange));
+        return exchange -> {
+            String path = exchange.getRequest().getURI().getPath();
+            if (isIotPath(path)) {
+                return Mono.empty();
+            }
+            return Mono.just(resolveClientIp(exchange));
+        };
+    }
+
+    static boolean isIotPath(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
+        String normalized = path.toLowerCase();
+        return normalized.contains("/iot/")
+                || normalized.endsWith("/iot")
+                || normalized.contains("/api/iot");
     }
 
     static String resolveClientIp(ServerWebExchange exchange) {
