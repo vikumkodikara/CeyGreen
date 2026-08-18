@@ -20,10 +20,7 @@
 }
 
 .forum-grid {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 1.5rem;
-  align-items: start;
+  display: block;
 }
 
 @media (max-width: 900px) {
@@ -457,4 +454,29 @@
 }
 .modal-close-btn:hover {
   color: var(--text-main);
+}
+
+.post-options-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  min-width: 140px;
+  padding: 0.5rem 0;
+}
+
+.post-options-item {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.post-options-item:hover {
+  background: var(--bg-hover);
 }

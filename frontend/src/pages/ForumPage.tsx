@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { listPosts, createPost, addReply, getPost, actOnPost, deletePost, reportPost, askAi, getAiInsights } from '../api/forum';
+import { listPosts, createPost, addReply, getPost, actOnPost, deletePost, reportPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -20,12 +20,6 @@ export const ForumPage: React.FC = () => {
 
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
 
-  // AI Chat States
-  const [aiMessage, setAiMessage] = useState('');
-  const [aiHistory, setAiHistory] = useState<{role: string, content: string}[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiInsights, setAiInsights] = useState<string[]>(['Climate control automation tips', 'Tomato blight identification', 'New fertilizer trends']);
-  const chatHistoryRef = useRef<HTMLDivElement>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportPostId, setReportPostId] = useState<string | null>(null);
   const [reportType, setReportType] = useState('SPAM');
@@ -54,7 +48,7 @@ export const ForumPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
     try {
       await deletePost(postId);
-      fetchPosts();
+      setPosts(prev => prev.filter(p => p.id !== postId));
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete post');
     }
@@ -63,48 +57,7 @@ export const ForumPage: React.FC = () => {
 
   useEffect(() => {
     fetchPosts();
-    fetchInsights();
   }, [sort]);
-
-  const fetchInsights = async () => {
-    try {
-      const insights = await getAiInsights('General greenhouse farming');
-      setAiInsights(insights);
-    } catch {
-      setAiInsights(['Climate control automation', 'Tomato blight identification', 'New fertilizer trends']);
-    }
-  };
-
-  useEffect(() => {
-    if (chatHistoryRef.current) {
-      chatHistoryRef.current.scrollTop = chatHistoryRef.current.scrollHeight;
-    }
-  }, [aiHistory]);
-
-  const handleAiSubmit = async () => {
-    if (!aiMessage.trim() || aiLoading) return;
-    
-    const userMsg = aiMessage.trim();
-    setAiMessage('');
-    setAiHistory(prev => [...prev, { role: 'user', content: userMsg }]);
-    setAiLoading(true);
-    
-    try {
-      const response = await askAi(userMsg, aiHistory);
-      setAiHistory(prev => [...prev, { role: 'assistant', content: response }]);
-    } catch (err) {
-      setAiHistory(prev => [...prev, { role: 'assistant', content: 'Sorry, I am having trouble connecting right now.' }]);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleAiKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleAiSubmit();
-    }
-  };
 
   const fetchPosts = async () => {
     try {
@@ -260,18 +213,19 @@ export const ForumPage: React.FC = () => {
 
   return (
     <div className="forum-layout-container">
+      <div className="forum-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <header className="page-hero" style={{ margin: 0 }}>
+          <h1 className="forum-header-title">Forum</h1>
+          <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} threads</p>
+        </header>
+
+        <button className="start-discussion-btn" style={{ width: 'auto', padding: '0.5rem 1.5rem', margin: 0 }} onClick={() => setIsCreateModalOpen(true)}>
+          Start discussion
+        </button>
+      </div>
+
       <div className="forum-grid">
         <div className="post-feed-column">
-          <header className="page-hero">
-            <h1 className="forum-header-title">Forum</h1>
-            <p className="forum-header-subtitle">{posts.length} threads</p>
-          </header>
-
-          <button className="start-discussion-btn" onClick={() => setIsCreateModalOpen(true)}>
-            Start discussion
-          </button>
-
-          <h2 className="trending-header">Threads</h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
@@ -301,6 +255,11 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 {post.downvotes || 0}
               </div>
+              <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer', marginLeft: '0.5rem' }} title="Comments">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                {post.replyCount || 0}
+              </div>
+              <div className="action-spacer"></div>
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -318,18 +277,7 @@ export const ForumPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="action-spacer"></div>
-              <div className="action-item action-item-muted">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                {post.views || 0}
-              </div>
-              <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer' }} title="Toggle replies">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                {post.replyCount || 0}
-              </div>
-              <div className="action-item action-item-muted" onClick={() => handleQuickReply(post.id)} style={{ cursor: 'pointer', marginLeft: '0.25rem' }} title="Quick Reply">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
-              </div>
+
             </div>
 
             {/* Replies & Input - Only visible if expanded */}
@@ -363,75 +311,7 @@ export const ForumPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="sidebar-column">
-          <div className="ai-sidebar-panel">
-            <h3 className="ai-sidebar-title">AI Green Assistant</h3>
-            <p className="ai-sidebar-desc">Ask me about diagnostics, climate control or market data.</p>
-            
-            <div className="ai-sidebar-logo-wrapper">
-              <svg className="ai-sidebar-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
-                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
-                <path d="M14 20c2 1 4-1 4-3"></path>
-                <path d="M10 20c-2 1-4-1-4-3"></path>
-                <text x="12" y="14" fontSize="5" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">AI</text>
-              </svg>
-            </div>
 
-            {aiHistory.length > 0 && (
-              <div className="ai-chat-history" ref={chatHistoryRef}>
-                {aiHistory.map((msg, idx) => (
-                  <div key={idx} className={`ai-message-bubble ${msg.role === 'user' ? 'ai-message-user' : 'ai-message-bot'}`}>
-                    {msg.content}
-                  </div>
-                ))}
-                {aiLoading && (
-                  <div className="ai-message-bubble ai-message-bot" style={{ opacity: 0.7 }}>
-                    Thinking...
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="ai-input-wrapper">
-              <textarea 
-                className="ai-sidebar-input" 
-                placeholder="Ask a question..." 
-                rows={1}
-                value={aiMessage}
-                onChange={(e) => setAiMessage(e.target.value)}
-                onKeyDown={handleAiKeyDown}
-              ></textarea>
-              <button 
-                className="ai-send-btn" 
-                onClick={handleAiSubmit}
-                disabled={!aiMessage.trim() || aiLoading}
-                aria-label="Send message"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-            </div>
-
-            <h4 className="ai-insights-title">AI Insights</h4>
-            <div className="ai-insights-list">
-              {aiInsights.map((insight, idx) => (
-                <button 
-                  key={idx} 
-                  className="ai-insight-pill"
-                  onClick={() => {
-                    setAiMessage(insight);
-                    // Focus logic could go here
-                  }}
-                >
-                  {insight}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {isCreateModalOpen && (
@@ -474,9 +354,9 @@ export const ForumPage: React.FC = () => {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Select Reason</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {['SPAM', 'INAPPROPRIATE', 'HARASSMENT'].map(type => (
-                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                      <input type="radio" name="reportType" value={type} checked={reportType === type} onChange={(e) => setReportType(e.target.value)} />
-                      {type}
+                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0, padding: '0.25rem 0' }}>
+                      <input type="radio" name="reportType" value={type} checked={reportType === type} onChange={(e) => setReportType(e.target.value)} style={{ margin: 0 }} />
+                      <span style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{type}</span>
                     </label>
                   ))}
                 </div>
