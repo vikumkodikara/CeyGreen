@@ -1,9 +1,12 @@
 package com.ceygreen.treatment_service.dto;
 
-public record RatingRequest(
+import java.time.LocalDateTime;
+
+public record RatingResponse(
         String farmerId,
         String farmerName,
         Integer rating,
-        String comment
+        String comment,
+        LocalDateTime createdAt
 ) {
 }
