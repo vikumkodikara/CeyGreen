@@ -33,6 +33,7 @@ export const deletePost = async (id: string): Promise<void> => {
   await apiClient.delete(`/forum/posts/${id}`);
 };
 
+<<<<<<< Updated upstream
 export const askAi = async (message: string, history: any[]): Promise<string> => {
   const res = await apiClient.post<any>('/ai/chat', { message, history });
   return res.data.reply;
@@ -41,4 +42,8 @@ export const askAi = async (message: string, history: any[]): Promise<string> =>
 export const getAiInsights = async (context?: string): Promise<string[]> => {
   const res = await apiClient.get<string[]>('/ai/insights', { params: { context } });
   return res.data;
+=======
+export const reportPost = async (id: string, reportType: string): Promise<void> => {
+  await apiClient.post(`/forum/posts/${id}/report`, { reportType });
+>>>>>>> Stashed changes
 };

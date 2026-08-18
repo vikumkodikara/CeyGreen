@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+<<<<<<< Updated upstream
 import { listPosts, createPost, addReply, getPost, actOnPost, askAi, getAiInsights } from '../api/forum';
+=======
+import { listPosts, createPost, addReply, getPost, actOnPost, deletePost, reportPost } from '../api/forum';
+>>>>>>> Stashed changes
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -18,12 +22,49 @@ export const ForumPage: React.FC = () => {
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+<<<<<<< Updated upstream
   // AI Chat States
   const [aiMessage, setAiMessage] = useState('');
   const [aiHistory, setAiHistory] = useState<{role: string, content: string}[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInsights, setAiInsights] = useState<string[]>(['Climate control automation tips', 'Tomato blight identification', 'New fertilizer trends']);
   const chatHistoryRef = useRef<HTMLDivElement>(null);
+=======
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
+  const [reportType, setReportType] = useState('SPAM');
+
+  const handleOpenReportModal = (postId: string) => {
+    setReportPostId(postId);
+    setIsReportModalOpen(true);
+    setActiveMenuPostId(null);
+  };
+
+  const handleSubmitReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportPostId) return;
+    try {
+      await reportPost(reportPostId, reportType);
+      alert('Post reported for review.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to report post');
+    } finally {
+      setIsReportModalOpen(false);
+      setReportPostId(null);
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await deletePost(postId);
+      fetchPosts();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete post');
+    }
+    setActiveMenuPostId(null);
+  };
+>>>>>>> Stashed changes
 
   useEffect(() => {
     fetchPosts();
@@ -265,8 +306,27 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 {post.downvotes || 0}
               </div>
+<<<<<<< Updated upstream
               <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+=======
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                </div>
+                {activeMenuPostId === post.id && (
+                  <div className="post-options-menu">
+                    <div className="post-options-item" onClick={() => handleOpenReportModal(post.id)}>
+                      Report Thread
+                    </div>
+                    {user?.id === post.authorId && (
+                      <div className="post-options-item" style={{ color: 'var(--danger-color, #ef4444)' }} onClick={() => handleDeletePost(post.id)}>
+                        Delete Post
+                      </div>
+                    )}
+                  </div>
+                )}
+>>>>>>> Stashed changes
               </div>
               <div className="action-spacer"></div>
               <div className="action-item action-item-muted">
@@ -407,6 +467,33 @@ export const ForumPage: React.FC = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button type="submit" className="reply-btn" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>Post to Forum</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {isReportModalOpen && (
+        <div className="create-post-modal-overlay" onClick={() => setIsReportModalOpen(false)}>
+          <div className="create-post-modal-content" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" onClick={e => e.stopPropagation()}>
+            <button type="button" className="modal-close-btn" aria-label="Close" onClick={() => setIsReportModalOpen(false)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 id="report-modal-title" style={{ color: 'var(--text-main)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Report Thread</h2>
+            <form onSubmit={handleSubmitReport}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Select Reason</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {['SPAM', 'INAPPROPRIATE', 'HARASSMENT'].map(type => (
+                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input type="radio" name="reportType" value={type} checked={reportType === type} onChange={(e) => setReportType(e.target.value)} />
+                      {type}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)' }} onClick={() => setIsReportModalOpen(false)}>Cancel</button>
+                <button type="submit" className="reply-btn" style={{ background: 'var(--danger-color, #ef4444)' }}>Submit Report</button>
               </div>
             </form>
           </div>
