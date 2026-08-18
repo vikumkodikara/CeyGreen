@@ -1,9 +1,12 @@
 package com.ceygreen.iot.model;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 /**
  * An ESP32 (or other edge device) attached to one zone.
  * Stored under {@code /greenhouses/{id}/zones/{zoneId}/devices/{deviceId}}.
  */
+@IgnoreExtraProperties
 public class Device {
 
     private String deviceId;

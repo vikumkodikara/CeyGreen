@@ -148,4 +148,23 @@ class GatewayIntegrationTest {
         assertThat(config.checkOrigin("http://localhost:3000")).isEqualTo("http://localhost:3000");
         assertThat(config.checkHttpMethod(HttpMethod.POST)).contains(HttpMethod.POST);
     }
+
+    @Test
+    void rejectsIotRoutesWithAWrongApiKey() {
+        webTestClient.mutate().responseTimeout(Duration.ofSeconds(20)).build()
+                .get()
+                .uri("/api/iot/readings/GH001/latest")
+                .header(IdentityHeaderGatewayFilter.HEADER_API_KEY, "ceygreen-dev-api")
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void rejectsIotRoutesWithoutAnApiKey() {
+        webTestClient.mutate().responseTimeout(Duration.ofSeconds(20)).build()
+                .get()
+                .uri("/api/iot/readings/GH001/latest")
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
 }

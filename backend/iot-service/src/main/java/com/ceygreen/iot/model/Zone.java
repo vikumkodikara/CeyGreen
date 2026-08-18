@@ -3,10 +3,14 @@ package com.ceygreen.iot.model;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 /**
  * One area inside a greenhouse (e.g. Zone A). Each zone has an ESP32 and thresholds.
  * Stored under {@code /greenhouses/{id}/zones/{zoneId}}.
+ * Readings and suggestions are sibling nodes, not fields on this class.
  */
+@IgnoreExtraProperties
 public class Zone {
 
     private String zoneId;

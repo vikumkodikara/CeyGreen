@@ -17,12 +17,12 @@ export interface SalesTrend {
 }
 
 export interface LeaderboardEntry {
+  rank: number;
   farmerId: string;
   totalRevenue: number;
   totalOrders: number;
-  rank: number;
+  lastUpdated: string;
 }
 
-export interface LeaderboardResponse {
-  farmers: LeaderboardEntry[];
-}
+// The backend returns a plain LeaderboardEntry[] array (not a wrapped object)
+export type LeaderboardResponse = LeaderboardEntry[];

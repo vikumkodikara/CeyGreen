@@ -6,6 +6,7 @@ import com.ceygreen.forum.dto.PostRequest;
 import com.ceygreen.forum.dto.PostResponse;
 import com.ceygreen.forum.dto.ReplyActionRequest;
 import com.ceygreen.forum.dto.ReplyRequest;
+import com.ceygreen.forum.dto.ReportRequest;
 import com.ceygreen.forum.kafka.ForumEventPublisher;
 import com.ceygreen.forum.model.Post;
 import com.ceygreen.forum.model.Reply;
@@ -225,6 +226,23 @@ public class ForumService {
         }
         postRepository.deleteById(id);
         log.info("Deleted post id={} by user={}", id, user.userId());
+    }
+
+    public void reportPost(String id, ReportRequest request, CurrentUser user) {
+        Post post = requirePost(id);
+        String userId = user.requireUserId();
+
+        if (post.getReportedBy().contains(userId)) {
+            throw ApiException.badRequest("You have already reported this post");
+        }
+
+        post.getReportedBy().add(userId);
+        post.setFlagCount(post.getFlagCount() + 1);
+        if (post.getFlagCount() >= FLAG_THRESHOLD) {
+            post.setFlagged(true);
+        }
+        postRepository.save(post);
+        log.info("Reported post id={} by user={} with type={}", id, userId, request.reportType());
     }
 
     private Post requirePost(String id) {

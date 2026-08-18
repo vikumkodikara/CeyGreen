@@ -1,0 +1,148 @@
+{
+  "info": {
+    "name": "CeyGreen - Student 6: Sales Analytics & Notification Service",
+    "description": "Postman API Collection for CeyGreen Smart Greenhouse Sales Analytics & Notification Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Farmer Sales Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "ceygreen-secret-api-key-2026",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8086/analytics/sales/FARMER-101",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8086",
+              "path": ["analytics", "sales", "FARMER-101"]
+            }
+          }
+        },
+        {
+          "name": "Get Farmer Sales Trend",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "ceygreen-secret-api-key-2026",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8086/analytics/sales/FARMER-101/trend",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8086",
+              "path": ["analytics", "sales", "FARMER-101", "trend"]
+            }
+          }
+        },
+        {
+          "name": "Get Sales Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "ceygreen-secret-api-key-2026",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8086/analytics/leaderboard",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8086",
+              "path": ["analytics", "leaderboard"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get User Notification History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "ceygreen-secret-api-key-2026",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8086/notify/history/FARMER-101",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8086",
+              "path": ["notify", "history", "FARMER-101"]
+            }
+          }
+        },
+        {
+          "name": "Update User Notification Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "ceygreen-secret-api-key-2026",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"greenhouse-alerts\",\n  \"channel\": \"SMS\",\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8086/notify/preferences/FARMER-101",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8086",
+              "path": ["notify", "preferences", "FARMER-101"]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification History",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-KEY",
+                "value": "ceygreen-secret-api-key-2026",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8086/notify/history/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8086",
+              "path": ["notify", "history", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
