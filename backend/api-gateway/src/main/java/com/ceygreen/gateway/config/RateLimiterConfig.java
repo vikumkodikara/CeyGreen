@@ -19,8 +19,9 @@ public class RateLimiterConfig {
     public KeyResolver clientIpKeyResolver() {
         return exchange -> {
             String path = exchange.getRequest().getURI().getPath();
-            // ESP32 + live dashboard poll the same public IP; do not rate-limit IoT ingest/reads.
-            if (path.startsWith("/api/iot/") || path.equals("/api/iot")) {
+            // StripPrefix=1 runs before RequestRateLimiter, so this may be "/iot/**" here.
+            if (path.startsWith("/iot/") || path.equals("/iot")
+                    || path.startsWith("/api/iot/") || path.equals("/api/iot")) {
                 return Mono.empty();
             }
             return Mono.just(resolveClientIp(exchange));
