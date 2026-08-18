@@ -14,6 +14,7 @@ export const ForumPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -100,9 +101,11 @@ export const ForumPage: React.FC = () => {
       await createPost({
         title,
         body: content,
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       });
       setTitle('');
       setContent('');
+      setTags('');
       fetchPosts();
       showToast('Post created successfully', 'success');
     } catch (err: any) {
@@ -350,20 +353,29 @@ export const ForumPage: React.FC = () => {
             <h2 id="create-post-modal-title" style={{ color: 'var(--text-main)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Start a Discussion</h2>
             <form onSubmit={(e) => { handleCreatePost(e); setIsCreateModalOpen(false); }}>
               <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pest control strategies for tomatoes" required />
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Discussion Content</label>
-                <textarea
-                  className="ai-sidebar-input"
-                  style={{ marginBottom: 0 }}
-                  rows={5}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your question or experience..."
-                  required
-                />
+              <Input label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. pest-control, greenhouse, tomatoes" />
+              <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Discussion Content</label>
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    className="forum-modal-textarea"
+                    rows={5}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your question or experience..."
+                    required
+                  />
+                  {/* Floating Icon inside textarea */}
+                  <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', color: 'var(--accent-green)', pointerEvents: 'none' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button type="submit" className="reply-btn" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>Post to Forum</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1.5rem', borderRadius: '8px' }} onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                <button type="submit" className="post-forum-btn">Post to Forum</button>
               </div>
             </form>
           </div>
