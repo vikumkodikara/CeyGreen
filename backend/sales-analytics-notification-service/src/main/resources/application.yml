@@ -1,0 +1,104 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: sales-analytics-notification-service
+
+  profiles:
+    active: dev
+
+# OpenAPI / Swagger UI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+
+# Security & Application Settings
+ceygreen:
+  security:
+    api-key-header: X-API-KEY
+    api-key-value: ${CEYGREEN_API_KEY:ceygreen-secret-api-key-2026}
+  kafka:
+    topics:
+      order-events: order-events
+      greenhouse-alerts: greenhouse-alerts
+      diagnosis-events: diagnosis-events
+      treatment-events: treatment-events
+      stock-events: stock-events
+      forum-events: forum-events
+
+---
+# Development Profile: In-Memory Zero-Dependency Mode
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:h2:mem:ceygreen_sales_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: sales-analytics-notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      auto-startup: false
+      missing-topics-fatal: false
+
+---
+# Production Profile: Containerized PostgreSQL & Apache Kafka
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:ceygreen_sales_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:ceygreen_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:ceygreen_pass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  h2:
+    console:
+      enabled: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    consumer:
+      group-id: sales-analytics-notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      auto-startup: true
+      missing-topics-fatal: false
