@@ -70,6 +70,24 @@ class RuleEngineTest {
         assertTrue(results.stream().anyMatch(r -> r.getMessage().equals("Start irrigation")));
     }
 
+    @Test
+    void warmGreenhouseWhenTemperatureBelowMin() {
+        SensorReading reading = reading(23, 70, 40, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Warm the greenhouse")));
+    }
+
+    @Test
+    void raiseHumidityWhenHumidityBelowMin() {
+        SensorReading reading = reading(25, 55, 40, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Raise humidity")));
+    }
+
     private static SensorReading reading(
             double temperature,
             double humidity,
