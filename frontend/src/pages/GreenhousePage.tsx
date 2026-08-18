@@ -1,34 +1,46 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { getLatestReading, getSuggestions, registerGreenhouse } from '../api/iot';
+import { getLatestReading, registerGreenhouse } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
-import { LiveReading, Suggestion } from '../types/iot';
+import { LiveReading } from '../types/iot';
+import { evaluateReading } from '../utils/iotRules';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SensorMeter } from '../components/iot/SensorMeter';
 import { IconDrop, IconSun, IconThermo } from '../components/icons/Icons';
 import './GreenhousePage.css';
 
-type History = Record<string, number[]>;
+const IOT_ONLY = import.meta.env.VITE_IOT_ONLY === 'true';
 
-function pushSample(prev: History, key: string, value: number): number[] {
-  const next = [...(prev[key] || []), value].slice(-12);
-  return next;
+function demoReading(id: string): LiveReading {
+  return {
+    greenhouseId: id,
+    zoneId: 'ZONE1',
+    timestamp: new Date().toISOString(),
+    temperature: 28.4,
+    humidity: 72,
+    soilMoisture: 41,
+    n: 12,
+    p: 10,
+    k: 11,
+    status: 'PREVIEW',
+  };
 }
 
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
   const [ghName, setGhName] = useState('Greenhouse Alpha');
   const [requestedId, setRequestedId] = useState('GH001');
-  const [greenhouseId, setGreenhouseId] = useState('');
+  const [greenhouseId, setGreenhouseId] = useState(IOT_ONLY ? 'GH001' : '');
   const [loading, setLoading] = useState(false);
-  const [live, setLive] = useState<LiveReading | null>(null);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
   const [liveError, setLiveError] = useState('');
-  const [history, setHistory] = useState<History>({});
-  const inFlight = useRef(false);
-  const lastStamp = useRef('');
+  const suggestions = useMemo(() => (live ? evaluateReading(live) : []), [live]);
+  const zoneTone = suggestions.some((s) => s.severity === 'HIGH' || s.severity === 'CRITICAL')
+    ? 'alert'
+    : suggestions.length
+      ? 'watch'
+      : 'ok';
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +51,11 @@ export const GreenhousePage: React.FC = () => {
       const res = await registerGreenhouse(ghName, farmerId, id);
       setGreenhouseId(res.id);
     } catch (err: any) {
+      if (IOT_ONLY) {
+        setGreenhouseId(id);
+        setLive((prev) => prev || demoReading(id));
+        return;
+      }
       const msg = err.response?.data?.message || 'Greenhouse registration failed';
       if (String(msg).toLowerCase().includes('already exists')) {
         setGreenhouseId(id);
@@ -53,11 +70,8 @@ export const GreenhousePage: React.FC = () => {
   useEffect(() => {
     if (!greenhouseId) return undefined;
     let cancelled = false;
-    let ticks = 0;
 
     const tick = async () => {
-      if (inFlight.current) return;
-      inFlight.current = true;
       try {
         const reading = await getLatestReading(greenhouseId).catch((err) => {
           if (err.response?.status === 400) return null;
@@ -67,40 +81,33 @@ export const GreenhousePage: React.FC = () => {
         if (reading) {
           setLive(reading);
           setLiveError('');
-          if (reading.timestamp !== lastStamp.current) {
-            lastStamp.current = reading.timestamp;
-            setHistory((prev) => ({
-              t: pushSample(prev, 't', reading.temperature),
-              h: pushSample(prev, 'h', reading.humidity),
-              s: pushSample(prev, 's', reading.soilMoisture),
-              n: pushSample(prev, 'n', reading.n),
-              p: pushSample(prev, 'p', reading.p),
-              k: pushSample(prev, 'k', reading.k),
-            }));
-          }
+        } else if (IOT_ONLY) {
+          setLive((prev) => prev || demoReading(greenhouseId));
+          setLiveError('');
         } else {
           setLiveError('Waiting for the ESP32 to send a reading…');
         }
-
-        ticks += 1;
-        if (ticks === 1 || ticks % 5 === 0) {
-          const list = await getSuggestions(greenhouseId).catch(() => [] as Suggestion[]);
-          if (!cancelled) setSuggestions(list);
-        }
       } catch (err: any) {
         if (!cancelled) {
-          setLiveError(err.response?.data?.message || 'Could not load live data');
+          if (IOT_ONLY) {
+            setLive((prev) => prev || demoReading(greenhouseId));
+            setLiveError('');
+          } else {
+            setLiveError(err.response?.data?.message || 'Could not load live data');
+          }
         }
-      } finally {
-        inFlight.current = false;
       }
     };
 
-    tick();
-    const timer = window.setInterval(tick, 1000);
+    const run = async () => {
+      while (!cancelled) {
+        await tick();
+        await new Promise((r) => window.setTimeout(r, 2000));
+      }
+    };
+    run();
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [greenhouseId]);
 
@@ -113,11 +120,9 @@ export const GreenhousePage: React.FC = () => {
 
       <div className="stack">
         <Card title="Register greenhouse" subtitle="Creates ZONE1. Use the same id as the ESP32 sketch.">
-          <form onSubmit={handleRegister} className="row">
-            <div className="grow">
+          <form onSubmit={handleRegister} className="gh-register">
+            <div className="gh-register-fields">
               <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
-            </div>
-            <div className="grow">
               <Input
                 label="Greenhouse ID"
                 value={requestedId}
@@ -125,13 +130,13 @@ export const GreenhousePage: React.FC = () => {
                 required
               />
             </div>
-            <Button type="submit" isLoading={loading} style={{ marginBottom: '1rem' }}>
-              Register
-            </Button>
+            <button type="submit" className="gh-register-btn" disabled={loading}>
+              {loading ? 'Registering…' : 'Register'}
+            </button>
           </form>
           {greenhouseId && (
             <p className="alert alert-success" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-              Live house {greenhouseId} · ZONE1 · refresh 1s
+              Live house {greenhouseId} · ZONE1 · live poll
             </p>
           )}
         </Card>
@@ -142,76 +147,65 @@ export const GreenhousePage: React.FC = () => {
               <>
                 <div className="live-head">
                   <p className="page-subtitle">
-                    Last update {new Date(live.timestamp).toLocaleTimeString()} · {live.zoneId}
+                    Last update {new Date(live.timestamp).toLocaleTimeString()} · Firebase
+                    {' '}greenhouses/{greenhouseId}/zones/{live.zoneId}/readings
                   </p>
-                  <span className="live-dot"><i /> LIVE</span>
+                  <span className="live-dot"><i /> {live.status === 'PREVIEW' ? 'PREVIEW' : 'LIVE'}</span>
+                </div>
+                <div className={`zone-blueprint ${zoneTone}`} aria-label={`Zone ${live.zoneId} ${zoneTone}`}>
+                  <svg viewBox="0 0 320 72" className="zone-blueprint-svg">
+                    <rect x="8" y="10" width="304" height="52" rx="10" />
+                    <text x="160" y="42" textAnchor="middle">{live.zoneId} · {zoneTone === 'alert' ? 'action needed' : zoneTone === 'watch' ? 'watch' : 'healthy'}</text>
+                  </svg>
                 </div>
                 <div className="sensor-grid">
                   <SensorMeter
                     label="Temperature"
                     value={live.temperature}
                     unit="°C"
-                    min={10}
-                    max={45}
                     color="#e07a3d"
                     hint="Ideal 24–32 °C"
                     icon={<IconThermo />}
-                    history={history.t || []}
                   />
                   <SensorMeter
                     label="Humidity"
                     value={live.humidity}
                     unit="%"
-                    min={0}
-                    max={100}
                     color="#1f8a54"
                     hint="Ideal 60–80%"
                     icon={<IconDrop />}
-                    history={history.h || []}
                   />
                   <SensorMeter
                     label="Soil moisture"
                     value={live.soilMoisture}
                     unit="%"
-                    min={0}
-                    max={100}
                     color="#8b5e34"
                     hint="Ideal 35–60%"
                     icon={<IconDrop />}
-                    history={history.s || []}
                   />
                   <SensorMeter
                     label="Nitrogen"
                     value={live.n}
                     unit="N"
-                    min={0}
-                    max={80}
                     color="#166534"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    history={history.n || []}
                   />
                   <SensorMeter
                     label="Phosphorus"
                     value={live.p}
                     unit="P"
-                    min={0}
-                    max={80}
                     color="#b45309"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    history={history.p || []}
                   />
                   <SensorMeter
                     label="Potassium"
                     value={live.k}
                     unit="K"
-                    min={0}
-                    max={80}
                     color="#2563eb"
                     hint="Soil nutrient"
                     icon={<IconSun />}
-                    history={history.k || []}
                   />
                 </div>
               </>
@@ -224,11 +218,15 @@ export const GreenhousePage: React.FC = () => {
         {greenhouseId && (
           <Card title="Rule engine suggestions">
             {suggestions.length === 0 ? (
-              <p className="page-subtitle">No alerts right now. Values in range, or no reading yet.</p>
+              <p className="suggest-empty">
+                {live
+                  ? 'All sensors in range. No action needed.'
+                  : 'Suggestions appear after the first ESP32 reading.'}
+              </p>
             ) : (
               <ul className="suggest-list">
                 {suggestions.map((s, index) => (
-                  <li key={`${s.zoneId}-${index}`}>
+                  <li key={`${s.zoneId}-${s.message}-${index}`}>
                     <span className={`pill ${s.severity.toLowerCase()}`}>{s.severity}</span>
                     <span>{s.message}</span>
                   </li>

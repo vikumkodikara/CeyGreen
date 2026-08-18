@@ -61,7 +61,7 @@ export const TreatmentsPage: React.FC = () => {
   };
 
   return (
-       <div className="page-wrap" style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="page-wrap" style={{ maxWidth: '900px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <PageHeader
           title="Treatment & Suggestion Catalog"
@@ -72,7 +72,6 @@ export const TreatmentsPage: React.FC = () => {
           <span style={{ fontWeight: 600, color: organicOnly ? 'var(--accent-green)' : 'var(--text-muted)' }}>Show Organic Only 🌱</span>
         </label>
       </div>
-
 
       <Card title="Find a remedy">
         <form onSubmit={handleSearch} className="row">
@@ -93,17 +92,17 @@ export const TreatmentsPage: React.FC = () => {
 
       <div className="stack" style={{ marginTop: '1.25rem' }}>
         {treatments.map((t) => (
-                     <Card key={t.id} title={t.productName} subtitle={`For ${t.diseaseName}`}>
-              <div className="treatment-meta" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                <span className="pill" style={{ color: t.type === 'ORGANIC' ? 'var(--success)' : 'inherit' }}>{t.type}</span>
-                <span className="pill">Dosage: {t.dosage}</span>
-                <span className="pill">Frequency: {t.frequency}</span>
-                {t.phiDays !== undefined && <span className="pill" style={{ color: t.phiDays === 0 ? 'var(--success)' : 'var(--warning)' }}>PHI: {t.phiDays} days</span>}
-                {t.effectivenessScore && <span className="pill">Effectiveness: {t.effectivenessScore}%</span>}
-                {t.averageRating !== undefined && t.averageRating > 0 && <span className="pill">Rating: {t.averageRating.toFixed(1)} ⭐️</span>}
-              </div>
-                      {t.brandNames && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Brands:</strong> {t.brandNames}</div>}
-          {t.applicationMethod && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Method:</strong> {t.applicationMethod}</div>}
+          <Card key={t.id} title={t.productName} subtitle={`For ${t.diseaseName}`}>
+            <div className="treatment-meta" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+              <span className="pill" style={{ color: t.type === 'ORGANIC' ? 'var(--success)' : 'inherit' }}>{t.type}</span>
+              <span className="pill">Dosage: {t.dosage}</span>
+              <span className="pill">Frequency: {t.frequency}</span>
+              {t.phiDays !== undefined && <span className="pill" style={{ color: t.phiDays === 0 ? 'var(--success)' : 'var(--warning)' }}>PHI: {t.phiDays} days</span>}
+              {t.effectivenessScore && <span className="pill">Effectiveness: {t.effectivenessScore}%</span>}
+              {t.averageRating !== undefined && t.averageRating > 0 && <span className="pill">Rating: {t.averageRating.toFixed(1)} ⭐️</span>}
+            </div>
+            {t.brandNames && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Brands:</strong> {t.brandNames}</div>}
+            {t.applicationMethod && <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}><strong>Method:</strong> {t.applicationMethod}</div>}
 
             {t.safetyNotes && (
               <p style={{ marginTop: '0.85rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>

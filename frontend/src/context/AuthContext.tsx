@@ -32,6 +32,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {
         localStorage.removeItem('ceygreen_user');
       }
+      return;
+    }
+
+    if (import.meta.env.VITE_IOT_ONLY === 'true') {
+      const demoUser: User = {
+        id: 'farmer-001',
+        email: 'iot-demo@ceygreen.local',
+        name: 'IoT Demo Farmer',
+        role: 'FARMER',
+        farmerId: 'farmer-001',
+      };
+      setToken('iot-demo');
+      setUser(demoUser);
+      localStorage.setItem('ceygreen_token', 'iot-demo');
+      localStorage.setItem('ceygreen_user', JSON.stringify(demoUser));
     }
   }, []);
 

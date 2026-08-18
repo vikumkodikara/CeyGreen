@@ -1,5 +1,6 @@
 package com.ceygreen.iot.model;
 
+import com.google.firebase.database.IgnoreExtraProperties;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -7,6 +8,7 @@ import java.util.Map;
  * Top-level greenhouse blueprint stored under {@code /greenhouses/{id}} in Firebase.
  * Timestamps are ISO-8601 strings because Firebase cannot deserialize {@code java.time.Instant}.
  */
+@IgnoreExtraProperties
 public class Greenhouse {
 
     private String id;

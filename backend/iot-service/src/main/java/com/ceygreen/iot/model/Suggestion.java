@@ -2,11 +2,14 @@ package com.ceygreen.iot.model;
 
 import java.time.Instant;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 /**
  * A recommended action for the farmer after the rule engine evaluates a reading.
  * Stored under {@code /greenhouses/{id}/zones/{zoneId}/suggestions/{timestamp}}.
  * Timestamps are ISO-8601 strings for Firebase compatibility.
  */
+@IgnoreExtraProperties
 public class Suggestion {
 
     private String id;
