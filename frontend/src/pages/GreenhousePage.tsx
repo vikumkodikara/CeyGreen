@@ -107,7 +107,7 @@ export const GreenhousePage: React.FC = () => {
     };
 
     tick();
-    const timer = window.setInterval(tick, 500);
+    const timer = window.setInterval(tick, 250);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
@@ -141,7 +141,7 @@ export const GreenhousePage: React.FC = () => {
           </form>
           {greenhouseId && (
             <p className="alert alert-success" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-              Live house {greenhouseId} · ZONE1 · refresh 1s
+              Live house {greenhouseId} · ZONE1 · live poll
             </p>
           )}
         </Card>
