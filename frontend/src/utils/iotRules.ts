@@ -1,6 +1,6 @@
 import { LiveReading, Suggestion } from '../types/iot';
 
-/** Same defaults as ZoneThresholds in iot-service. */
+/** Defaults aligned with backend iot-service thresholds (ZoneThresholds + RuleEngine). */
 export const IOT_THRESHOLDS = {
   maxTemperature: 32,
   urgentMaxTemperature: 38,
