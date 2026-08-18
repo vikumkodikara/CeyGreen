@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 
 type SensorMeterProps = {
   label: string;
@@ -16,30 +16,6 @@ type SensorMeterProps = {
 
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
-}
-
-function useSmooth(target: number) {
-  const [shown, setShown] = useState(target);
-  const shownRef = useRef(target);
-
-  useEffect(() => {
-    let frame = 0;
-    const tick = () => {
-      const next = shownRef.current + (target - shownRef.current) * 0.55;
-      if (Math.abs(target - next) < 0.05) {
-        shownRef.current = target;
-        setShown(target);
-        return;
-      }
-      shownRef.current = next;
-      setShown(next);
-      frame = window.requestAnimationFrame(tick);
-    };
-    frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
-  }, [target]);
-
-  return shown;
 }
 
 function polar(cx: number, cy: number, r: number, deg: number) {
@@ -66,7 +42,7 @@ export const SensorMeter: React.FC<SensorMeterProps> = ({
   idealMin,
   idealMax,
 }) => {
-  const shown = useSmooth(Number.isFinite(value) ? value : 0);
+  const shown = Number.isFinite(value) ? value : 0;
   const span = max - min || 1;
   const pct = clamp(((shown - min) / span) * 100, 0, 100);
   const needleDeg = pct * 1.8;
