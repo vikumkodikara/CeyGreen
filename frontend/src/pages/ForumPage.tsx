@@ -60,7 +60,6 @@ export const ForumPage: React.FC = () => {
     }
     setActiveMenuPostId(null);
   };
->>>>>>> Stashed changes
 
   useEffect(() => {
     fetchPosts();
