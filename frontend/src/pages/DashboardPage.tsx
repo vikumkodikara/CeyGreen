@@ -7,28 +7,6 @@ import {
 } from '../components/icons/Icons';
 import './DashboardPage.css';
 
-const TEMP = [24, 24.6, 25.2, 26, 26.8, 27.1, 27.4, 27.2, 26.9, 26.4, 26, 25.6];
-const HUM = [62, 64, 65, 66, 67, 68, 69, 68, 67, 66, 65, 64];
-const SOIL = [38, 39, 40, 41, 42, 42, 41, 42, 43, 42, 41, 42];
-const LIGHT = [120, 220, 340, 420, 510, 560, 580, 570, 490, 360, 210, 90];
-
-function Spark({ values, color }: { values: number[]; color: string }) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const pts = values
-    .map((v, i) => {
-      const x = (i / (values.length - 1)) * 100;
-      const y = 26 - ((v - min) / (max - min || 1)) * 20;
-      return `${x},${y}`;
-    })
-    .join(' ');
-  return (
-    <svg viewBox="0 0 100 32" className="spark" preserveAspectRatio="none" aria-hidden>
-      <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" points={pts} />
-    </svg>
-  );
-}
-
 function greeting() {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';
@@ -42,10 +20,10 @@ export const DashboardPage: React.FC = () => {
   const isBuyer = user?.role === 'BUYER';
 
   const metrics = [
-    { label: 'Temperature', value: '27.4 °C', hint: 'Ideal 24–30 °C', color: '#2f6b3a', series: TEMP, icon: <IconThermo /> },
-    { label: 'Humidity', value: '68%', hint: 'Ideal 60–75%', color: '#2563eb', series: HUM, icon: <IconDrop /> },
-    { label: 'Soil Moisture', value: '42%', hint: 'Ideal 35–50%', color: '#0f766e', series: SOIL, icon: <IconDrop /> },
-    { label: 'Light Intensity', value: '580 lux', hint: 'Ideal 400–800', color: '#d97706', series: LIGHT, icon: <IconSun /> },
+    { label: 'Temperature', value: '27.4 °C', hint: 'Ideal 24–30 °C', icon: <IconThermo /> },
+    { label: 'Humidity', value: '68%', hint: 'Ideal 60–75%', icon: <IconDrop /> },
+    { label: 'Soil Moisture', value: '42%', hint: 'Ideal 35–50%', icon: <IconDrop /> },
+    { label: 'Light Intensity', value: '580 lux', hint: 'Ideal 400–800', icon: <IconSun /> },
   ];
 
   const actions = [
@@ -81,7 +59,6 @@ export const DashboardPage: React.FC = () => {
               <span className="metric-label">{m.label}</span>
               <strong>{m.value}</strong>
               <small>{m.hint}</small>
-              <Spark values={m.series} color={m.color} />
             </article>
           ))}
           <article className="status-card">
@@ -127,7 +104,6 @@ export const DashboardPage: React.FC = () => {
           <article className="story-card">
             <h3>Market trends</h3>
             <p className="price">Tomato <b>Rs. 320</b> /kg</p>
-            <Spark values={[280, 290, 295, 300, 310, 320]} color="#2f6b3a" />
             <span className="up">+12.5%</span>
           </article>
         </div>
