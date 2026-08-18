@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-<<<<<<< Updated upstream
-import { listPosts, createPost, addReply, getPost, actOnPost, askAi, getAiInsights } from '../api/forum';
-=======
-import { listPosts, createPost, addReply, getPost, actOnPost, deletePost, reportPost } from '../api/forum';
->>>>>>> Stashed changes
+import { listPosts, createPost, addReply, getPost, actOnPost, deletePost, reportPost, askAi, getAiInsights } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -22,14 +18,14 @@ export const ForumPage: React.FC = () => {
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-<<<<<<< Updated upstream
+  const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
+
   // AI Chat States
   const [aiMessage, setAiMessage] = useState('');
   const [aiHistory, setAiHistory] = useState<{role: string, content: string}[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInsights, setAiInsights] = useState<string[]>(['Climate control automation tips', 'Tomato blight identification', 'New fertilizer trends']);
   const chatHistoryRef = useRef<HTMLDivElement>(null);
-=======
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportPostId, setReportPostId] = useState<string | null>(null);
   const [reportType, setReportType] = useState('SPAM');
@@ -306,10 +302,6 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 {post.downvotes || 0}
               </div>
-<<<<<<< Updated upstream
-              <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-=======
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -326,7 +318,6 @@ export const ForumPage: React.FC = () => {
                     )}
                   </div>
                 )}
->>>>>>> Stashed changes
               </div>
               <div className="action-spacer"></div>
               <div className="action-item action-item-muted">
