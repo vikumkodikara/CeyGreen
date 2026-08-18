@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop } from '../api/treatments';
 import React, { useState } from 'react';
-import { getTreatmentsForDisease, searchTreatments } from '../api/treatments';
+import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop } from '../api/treatments';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -9,6 +7,7 @@ import { Treatment } from '../types/treatment';
 import { useAuth } from '../hooks/useAuth';
 import { PageHeader } from '../components/layout/PageHeader';
 
+export const TreatmentsPage: React.FC = () => {
   const { user } = useAuth();
   const [diseaseSearch, setDiseaseSearch] = useState('');
   const [treatments, setTreatments] = useState<Treatment[]>([]);
@@ -21,6 +20,7 @@ import { PageHeader } from '../components/layout/PageHeader';
     if (!diseaseSearch) return;
     setLoading(true);
 
+    try {
       let res: Treatment[] = [];
       try {
         res = await getTreatmentsForDisease(diseaseSearch);
