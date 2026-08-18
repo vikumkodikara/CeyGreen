@@ -17,6 +17,11 @@ node_modules/
 # Local environment overrides -- .env.example is committed, .env is not
 .env
 
+# Firebase Admin key — never commit (GitHub secret scanning blocks it)
+**/firebase-service-account.json
+**/serviceAccountKey.json
+iot-service/
+
 # IDE
 .idea/
 *.iml
