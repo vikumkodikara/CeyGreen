@@ -19,13 +19,21 @@ public class RateLimiterConfig {
     public KeyResolver clientIpKeyResolver() {
         return exchange -> {
             String path = exchange.getRequest().getURI().getPath();
-            // StripPrefix=1 runs before RequestRateLimiter, so this may be "/iot/**" here.
-            if (path.startsWith("/iot/") || path.equals("/iot")
-                    || path.startsWith("/api/iot/") || path.equals("/api/iot")) {
+            if (isIotPath(path)) {
                 return Mono.empty();
             }
             return Mono.just(resolveClientIp(exchange));
         };
+    }
+
+    static boolean isIotPath(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
+        String normalized = path.toLowerCase();
+        return normalized.contains("/iot/")
+                || normalized.endsWith("/iot")
+                || normalized.contains("/api/iot");
     }
 
     static String resolveClientIp(ServerWebExchange exchange) {
