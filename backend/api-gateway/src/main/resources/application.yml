@@ -36,16 +36,9 @@ spring:
           # preflights are answered before the JWT filter, from one allowlist:
           # ceygreen.cors.allowed-origins / CORS_ALLOWED_ORIGINS.
 
-          # Applied to every route: strip the /api prefix, then rate-limit per client IP.
+          # Strip /api for every service. Rate-limit is per-route so IoT ingest is never 429.
           default-filters:
             - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                key-resolver: "#{@clientIpKeyResolver}"
-                denyEmptyKey: false
-                redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
-                redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
-                redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
           # The routing table: public path -> owning microservice. Every base URL is an env var,
           # so this gateway builds and runs without any teammate's service existing.
@@ -56,14 +49,28 @@ spring:
               uri: ${USER_SERVICE_URL:http://localhost:8081}
               predicates:
                 - Path=/api/users/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
             # ---- Student 2 (this repo): Disease Detection ----
             - id: disease-detection
               uri: ${DIAGNOSIS_SERVICE_URL:http://localhost:8087}
               predicates:
                 - Path=/api/diagnosis/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
-            # ---- Student 1: IoT Telemetry & Control ----
+            # ---- Student 1: IoT Telemetry & Control (no IP rate limit — ESP32 + live UI) ----
             - id: iot-telemetry
               uri: ${IOT_SERVICE_URL:http://iot-service:8082}
               predicates:
@@ -75,20 +82,48 @@ spring:
               uri: ${TREATMENT_SERVICE_URL:http://treatment-service:8083}
               predicates:
                 - Path=/api/treatments/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
             # ---- Student 4: E-Commerce Marketplace ----
             - id: ecommerce-products
               uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
               predicates:
                 - Path=/api/products/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
             - id: ecommerce-orders
               uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
               predicates:
                 - Path=/api/orders/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
             - id: ecommerce-dashboard
               uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
               predicates:
                 - Path=/api/dashboard/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
             # ---- Block direct access to internal endpoints ----
             - id: block-internal
@@ -103,6 +138,13 @@ spring:
               uri: ${FORUM_SERVICE_URL:http://forum-service:8085}
               predicates:
                 - Path=/api/forum/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
 
 
@@ -111,12 +153,26 @@ spring:
               uri: ${ANALYTICS_SERVICE_URL:http://analytics-service:8086}
               predicates:
                 - Path=/api/analytics/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
             # ---- Student 6: Notifications ----
             - id: notifications
               uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8088}
               predicates:
                 - Path=/api/notify/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@clientIpKeyResolver}"
+                    redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
+                    redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
+                    redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
 
 ceygreen:
   rate-limit:
