@@ -97,6 +97,7 @@ export const GreenhousePage: React.FC = () => {
     const run = async () => {
       while (!cancelled) {
         await tick();
+        await new Promise((r) => window.setTimeout(r, 50));
       }
     };
     run();
