@@ -42,6 +42,7 @@ spring:
             - name: RequestRateLimiter
               args:
                 key-resolver: "#{@clientIpKeyResolver}"
+                denyEmptyKey: false
                 redis-rate-limiter.replenishRate: ${ceygreen.rate-limit.replenish-rate}
                 redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
                 redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
