@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -36,7 +36,6 @@ export const GreenhousePage: React.FC = () => {
   const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [liveError, setLiveError] = useState('');
-  const inFlight = useRef(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +65,8 @@ export const GreenhousePage: React.FC = () => {
   useEffect(() => {
     if (!greenhouseId) return undefined;
     let cancelled = false;
-    let ticks = 0;
 
     const tick = async () => {
-      if (inFlight.current) return;
-      inFlight.current = true;
       try {
         const reading = await getLatestReading(greenhouseId).catch((err) => {
           if (err.response?.status === 400) return null;
@@ -86,12 +82,6 @@ export const GreenhousePage: React.FC = () => {
         } else {
           setLiveError('Waiting for the ESP32 to send a reading…');
         }
-
-        ticks += 1;
-        if (ticks === 1 || ticks % 5 === 0) {
-          const list = await getSuggestions(greenhouseId).catch(() => [] as Suggestion[]);
-          if (!cancelled) setSuggestions(list);
-        }
       } catch (err: any) {
         if (!cancelled) {
           if (IOT_ONLY) {
@@ -101,16 +91,29 @@ export const GreenhousePage: React.FC = () => {
             setLiveError(err.response?.data?.message || 'Could not load live data');
           }
         }
-      } finally {
-        inFlight.current = false;
       }
     };
 
-    tick();
-    const timer = window.setInterval(tick, 250);
+    const run = async () => {
+      while (!cancelled) {
+        await tick();
+      }
+    };
+    run();
+
+    const loadSuggestions = () => {
+      getSuggestions(greenhouseId)
+        .then((list) => {
+          if (!cancelled) setSuggestions(list);
+        })
+        .catch(() => undefined);
+    };
+    loadSuggestions();
+    const suggestionTimer = window.setInterval(loadSuggestions, 8000);
+
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      window.clearInterval(suggestionTimer);
     };
   }, [greenhouseId]);
 
