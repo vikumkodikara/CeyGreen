@@ -24,6 +24,12 @@ public class TreatmentRating {
     @Column(name = "farmer_id", nullable = false)
     private String farmerId;
 
+    @Column(name = "farmer_name")
+    private String farmerName;
+
+    @Column(columnDefinition = "TEXT")
+    private String comment;
+
     @Column(nullable = false)
     private Integer rating; // 1 to 5
 
