@@ -1,8 +1,11 @@
 package com.ceygreen.iot.model;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 /**
  * Per-zone limits used by the rule engine. Farmers can change these via PUT /api/iot/thresholds/{zoneId}.
  */
+@IgnoreExtraProperties
 public class ZoneThresholds {
 
     private double maxTemperature = 32.0;

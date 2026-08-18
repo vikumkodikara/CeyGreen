@@ -1,10 +1,13 @@
 package com.ceygreen.iot.model;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 /**
  * One hourly sensor sample from an ESP32.
  * Stored under {@code /greenhouses/{id}/zones/{zoneId}/readings/{timestamp}}.
  * Timestamps are ISO-8601 strings for Firebase compatibility.
  */
+@IgnoreExtraProperties
 public class SensorReading {
 
     private String greenhouseId;
