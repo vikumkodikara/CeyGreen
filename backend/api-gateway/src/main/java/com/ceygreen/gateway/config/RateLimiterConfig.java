@@ -17,7 +17,14 @@ public class RateLimiterConfig {
      */
     @Bean
     public KeyResolver clientIpKeyResolver() {
-        return exchange -> Mono.just(resolveClientIp(exchange));
+        return exchange -> {
+            String path = exchange.getRequest().getURI().getPath();
+            // ESP32 + live dashboard poll the same public IP; do not rate-limit IoT ingest/reads.
+            if (path.startsWith("/api/iot/") || path.equals("/api/iot")) {
+                return Mono.empty();
+            }
+            return Mono.just(resolveClientIp(exchange));
+        };
     }
 
     static String resolveClientIp(ServerWebExchange exchange) {
