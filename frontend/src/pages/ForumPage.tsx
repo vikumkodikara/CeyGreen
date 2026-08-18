@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { listPosts, createPost, addReply, getPost, actOnPost } from '../api/forum';
+import { listPosts, createPost, addReply, getPost, actOnPost, deletePost, reportPost } from '../api/forum';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -14,19 +14,79 @@ export const ForumPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+  const [expandedText, setExpandedText] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
 
-  const handleReportPost = (postId: string) => {
-    alert('Post reported for review.');
+  const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenuPostId(null);
+      }
+    };
+    if (activeMenuPostId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeMenuPostId]);
+
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
+  const [reportType, setReportType] = useState('SPAM');
+
+  const handleOpenReportModal = (postId: string) => {
+    setReportPostId(postId);
+    setIsReportModalOpen(true);
     setActiveMenuPostId(null);
-  };  useEffect(() => {
+  };
+
+  const handleSubmitReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportPostId) return;
+    try {
+      await reportPost(reportPostId, reportType);
+      showToast('Post reported for review.', 'success');
+      fetchPosts();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to report post', 'error');
+    } finally {
+      setIsReportModalOpen(false);
+      setReportPostId(null);
+    }
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirmPostId) return;
+    try {
+      await deletePost(deleteConfirmPostId);
+      setPosts(prev => prev.filter(p => p.id !== deleteConfirmPostId));
+      showToast('Post deleted successfully', 'success');
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to delete post', 'error');
+    }
+    setDeleteConfirmPostId(null);
+    setActiveMenuPostId(null);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setDeleteConfirmPostId(postId);
+  };
+
+  useEffect(() => {
     fetchPosts();
   }, [sort]);
-
-
 
   const fetchPosts = async () => {
     try {
@@ -43,12 +103,15 @@ export const ForumPage: React.FC = () => {
       await createPost({
         title,
         body: content,
+        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       });
       setTitle('');
       setContent('');
+      setTags('');
       fetchPosts();
+      showToast('Post created successfully', 'success');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create post');
+      showToast(err.response?.data?.message || 'Failed to create post', 'error');
     }
   };
 
@@ -63,7 +126,7 @@ export const ForumPage: React.FC = () => {
       setReplyText({ ...replyText, [postId]: '' });
       setPosts(sortPostsArray(posts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to post reply');
+      showToast(err.response?.data?.message || 'Failed to post reply', 'error');
     }
   };
 
@@ -182,18 +245,19 @@ export const ForumPage: React.FC = () => {
 
   return (
     <div className="forum-layout-container">
+      <div className="forum-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <header className="page-hero" style={{ margin: 0 }}>
+          <h1 className="forum-header-title">Forum</h1>
+          <p className="forum-header-subtitle" style={{ marginBottom: 0 }}>{posts.length} threads</p>
+        </header>
+
+        <button className="start-discussion-btn" style={{ width: 'auto', padding: '0.5rem 1.5rem', margin: 0 }} onClick={() => setIsCreateModalOpen(true)}>
+          Start discussion
+        </button>
+      </div>
+
       <div className="forum-grid">
         <div className="post-feed-column">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            <header className="page-hero" style={{ margin: 0, padding: 0 }}>
-              <h1 className="forum-header-title" style={{ marginTop: 0 }}>Forum</h1>
-              <p className="forum-header-subtitle" style={{ margin: 0 }}>{posts.length} threads</p>
-            </header>
-
-            <button className="start-discussion-btn" style={{ width: 'auto', margin: 0, padding: '0.6rem 1.25rem' }} onClick={() => setIsCreateModalOpen(true)}>
-              Start discussion
-            </button>
-          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {posts.map((post) => (
@@ -204,15 +268,31 @@ export const ForumPage: React.FC = () => {
               </div>
               <div className="post-meta-info">
                 <span className="post-author">{renderAuthorName(post.authorName, post.authorId)}</span>
-                <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
+                <span className="post-time">{new Date(post.createdAt || Date.now()).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</span>
               </div>
             </div>
 
             <div className="post-title">{post.title}</div>
-            <div className="post-body">
+            
+            {post.tags && post.tags.length > 0 && (
+              <div className="post-tags-container">
+                {post.tags.map(tag => (
+                  <span key={tag} className="post-tag-badge">{tag}</span>
+                ))}
+              </div>
+            )}
+
+            <div className={`post-body ${expandedText[post.id] ? 'expanded' : ''}`}>
               {post.body}
-              {post.body && post.body.length > 100 && <span className="post-see-more">see more</span>}
             </div>
+            {post.body && post.body.length > 200 && (
+              <div 
+                className="post-read-more-btn" 
+                onClick={() => setExpandedText(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+              >
+                {expandedText[post.id] ? 'Show Less' : 'Read More'}
+              </div>
+            )}
 
             <div className="post-actions">
               <div className={`action-item ${post.upvotedBy?.includes(user?.id || '') ? 'action-item-active' : 'action-item-muted'}`} onClick={() => handleVote(post.id, 'upvote')} title="Upvote">
@@ -223,23 +303,29 @@ export const ForumPage: React.FC = () => {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                 {post.downvotes || 0}
               </div>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
+              <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer', marginLeft: '0.5rem' }} title="Comments">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                {post.replyCount || 0}
+              </div>
+              <div className="action-spacer"></div>
+              <div ref={activeMenuPostId === post.id ? menuRef : null} style={{ position: 'relative', display: 'inline-block' }}>
                 <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                 </div>
                 {activeMenuPostId === post.id && (
                   <div className="post-options-menu">
-                    <div className="post-options-item" onClick={() => handleReportPost(post.id)}>
+                    <div className="post-options-item" onClick={() => handleOpenReportModal(post.id)}>
                       Report Thread
                     </div>
+                    {user?.id === post.authorId && (
+                      <div className="post-options-item" style={{ color: 'var(--danger-color, #ef4444)' }} onClick={() => handleDeletePost(post.id)}>
+                        Delete Post
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-              <div className="action-spacer"></div>
-              <div className="action-item action-item-muted" onClick={() => handleToggleReplies(post.id)} style={{ cursor: 'pointer' }} title="Toggle replies">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                {post.replyCount || 0}
-              </div>
+
             </div>
 
             {/* Replies & Input - Only visible if expanded */}
@@ -285,23 +371,81 @@ export const ForumPage: React.FC = () => {
             <h2 id="create-post-modal-title" style={{ color: 'var(--text-main)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Start a Discussion</h2>
             <form onSubmit={(e) => { handleCreatePost(e); setIsCreateModalOpen(false); }}>
               <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pest control strategies for tomatoes" required />
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Discussion Content</label>
-                <textarea
-                  className="ai-sidebar-input"
-                  style={{ marginBottom: 0 }}
-                  rows={5}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your question or experience..."
-                  required
-                />
+              <Input label="Tags (comma-separated)" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="e.g. pest-control, greenhouse, tomatoes" />
+              <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 500 }}>Discussion Content</label>
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    className="forum-modal-textarea"
+                    rows={5}
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Write your question or experience..."
+                    required
+                  />
+                  {/* Floating Icon inside textarea */}
+                  <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', color: 'var(--accent-green)', pointerEvents: 'none' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button type="submit" className="reply-btn" style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>Post to Forum</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1.5rem', borderRadius: '8px' }} onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                <button type="submit" className="post-forum-btn">Post to Forum</button>
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {isReportModalOpen && (
+        <div className="create-post-modal-overlay" onClick={() => setIsReportModalOpen(false)}>
+          <div className="create-post-modal-content report-modal-content" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" onClick={e => e.stopPropagation()}>
+            <button type="button" className="modal-close-btn" aria-label="Close" onClick={() => setIsReportModalOpen(false)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 id="report-modal-title" style={{ color: 'var(--text-main)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Report Thread</h2>
+            <form onSubmit={handleSubmitReport}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 500, color: 'var(--text-main)', fontSize: '1.05rem' }}>Select a reason for reporting</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {['SPAM', 'INAPPROPRIATE', 'HARASSMENT'].map(type => (
+                    <label key={type} className="report-radio-option" style={{ borderColor: reportType === type ? 'var(--accent-green)' : 'var(--border-color)', background: reportType === type ? 'rgba(46, 204, 113, 0.05)' : 'var(--bg-input)' }}>
+                      <input type="radio" name="reportType" value={type} checked={reportType === type} onChange={(e) => setReportType(e.target.value)} />
+                      <span>{type.charAt(0) + type.slice(1).toLowerCase()}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="report-modal-actions">
+                <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1.5rem', borderRadius: '8px' }} onClick={() => setIsReportModalOpen(false)}>Cancel</button>
+                <button type="submit" className="reply-btn" style={{ background: 'var(--danger-color, #ef4444)', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', color: '#fff', fontWeight: 600 }}>Submit Report</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {deleteConfirmPostId && (
+        <div className="create-post-modal-overlay" onClick={() => setDeleteConfirmPostId(null)}>
+          <div className="create-post-modal-content report-modal-content" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <button type="button" className="modal-close-btn" aria-label="Close" onClick={() => setDeleteConfirmPostId(null)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 style={{ color: 'var(--text-main)', marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>Delete Post</h2>
+            <p style={{ color: 'var(--text-main)', marginBottom: '2rem' }}>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div className="report-modal-actions">
+              <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1.5rem', borderRadius: '8px' }} onClick={() => setDeleteConfirmPostId(null)}>Cancel</button>
+              <button type="button" className="reply-btn" style={{ background: 'var(--danger-color, #ef4444)', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', color: '#fff', fontWeight: 600 }} onClick={executeDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.message}
         </div>
       )}
     </div>
