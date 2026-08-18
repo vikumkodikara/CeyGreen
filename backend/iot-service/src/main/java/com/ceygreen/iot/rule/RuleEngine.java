@@ -33,6 +33,10 @@ public class RuleEngine {
             results.add(new RuleResult(
                     "Cool the greenhouse",
                     RuleSeverity.NORMAL));
+        } else if (temperature < 24.0) {
+            results.add(new RuleResult(
+                    "Warm the greenhouse",
+                    RuleSeverity.NORMAL));
         }
 
         return results;
@@ -41,7 +45,11 @@ public class RuleEngine {
     List<RuleResult> evaluateSoilMoisture(double soilMoisture, ZoneThresholds thresholds) {
         List<RuleResult> results = new ArrayList<>();
 
-        if (soilMoisture < thresholds.getMinSoilMoisture()) {
+        if (soilMoisture < 20.0) {
+            results.add(new RuleResult(
+                    "Start irrigation — soil critically dry",
+                    RuleSeverity.HIGH));
+        } else if (soilMoisture < thresholds.getMinSoilMoisture()) {
             results.add(new RuleResult(
                     "Start irrigation",
                     RuleSeverity.NORMAL));
@@ -56,6 +64,10 @@ public class RuleEngine {
         if (humidity > thresholds.getMaxHumidity()) {
             results.add(new RuleResult(
                     "Open vent",
+                    RuleSeverity.NORMAL));
+        } else if (humidity < 60.0) {
+            results.add(new RuleResult(
+                    "Raise humidity",
                     RuleSeverity.NORMAL));
         }
 
