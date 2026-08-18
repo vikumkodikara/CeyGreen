@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@org.springframework.context.annotation.Profile({"dev","test"})
 @Component
 public class DataInitializer implements CommandLineRunner {
 
