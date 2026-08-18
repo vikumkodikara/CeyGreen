@@ -1,5 +1,6 @@
 package com.ceygreen.iot.controller;
 
+import com.ceygreen.iot.common.ApiException;
 import com.ceygreen.iot.dto.SensorReadingRequest;
 import com.ceygreen.iot.dto.SensorReadingResponse;
 import com.ceygreen.iot.service.ReadingService;
@@ -35,5 +36,12 @@ public class ReadingController {
     @GetMapping("/{greenhouseId}/latest")
     public SensorReadingResponse latest(@PathVariable String greenhouseId) {
         return readingService.latest(greenhouseId);
+    }
+
+    @PostMapping("/{greenhouseId}/latest")
+    public SensorReadingResponse latestViaPost(@PathVariable String greenhouseId) {
+        throw new ApiException(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "Use GET on this URL. To send a reading, POST JSON to /api/iot/readings (no /latest)");
     }
 }
