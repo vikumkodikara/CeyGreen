@@ -14,7 +14,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -43,8 +45,32 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
 
     @Override
     public Greenhouse saveGreenhouse(Greenhouse greenhouse) {
-        DatabaseReference ref = greenhouseRef(greenhouse.getId());
-        awaitSet(ref, greenhouse);
+        // Merge metadata only. setValue(greenhouse) would wipe readings/suggestions.
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("id", greenhouse.getId());
+        root.put("name", greenhouse.getName());
+        root.put("farmerId", greenhouse.getFarmerId());
+        root.put("createdAt", greenhouse.getCreatedAt());
+        awaitUpdate(greenhouseRef(greenhouse.getId()), root);
+
+        if (greenhouse.getZones() != null) {
+            for (Zone zone : greenhouse.getZones().values()) {
+                DatabaseReference zoneNode = zoneRef(greenhouse.getId(), zone.getZoneId());
+                Map<String, Object> zoneMeta = new LinkedHashMap<>();
+                zoneMeta.put("zoneId", zone.getZoneId());
+                zoneMeta.put("zoneName", zone.getZoneName());
+                zoneMeta.put("cropType", zone.getCropType());
+                awaitUpdate(zoneNode, zoneMeta);
+                if (zone.getThresholds() != null) {
+                    awaitSet(zoneNode.child("thresholds"), zone.getThresholds());
+                }
+                if (zone.getDevices() != null) {
+                    for (var device : zone.getDevices().entrySet()) {
+                        awaitSet(zoneNode.child("devices").child(device.getKey()), device.getValue());
+                    }
+                }
+            }
+        }
         return greenhouse;
     }
 
@@ -153,6 +179,21 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
 
     private DatabaseReference zoneRef(String greenhouseId, String zoneId) {
         return greenhouseRef(greenhouseId).child("zones").child(zoneId);
+    }
+
+    private static void awaitUpdate(DatabaseReference ref, Map<String, Object> values) {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<DatabaseError> error = new AtomicReference<>();
+        ref.updateChildren(values, (databaseError, databaseReference) -> {
+            if (databaseError != null) {
+                error.set(databaseError);
+            }
+            latch.countDown();
+        });
+        awaitLatch(latch);
+        if (error.get() != null) {
+            throw new IllegalStateException("Firebase update failed: " + error.get().getMessage());
+        }
     }
 
     private static void awaitSet(DatabaseReference ref, Object value) {

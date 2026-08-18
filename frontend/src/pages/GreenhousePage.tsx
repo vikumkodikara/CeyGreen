@@ -36,6 +36,11 @@ export const GreenhousePage: React.FC = () => {
   const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
   const [liveError, setLiveError] = useState('');
   const suggestions = useMemo(() => (live ? evaluateReading(live) : []), [live]);
+  const zoneTone = suggestions.some((s) => s.severity === 'HIGH' || s.severity === 'CRITICAL')
+    ? 'alert'
+    : suggestions.length
+      ? 'watch'
+      : 'ok';
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,9 +152,16 @@ export const GreenhousePage: React.FC = () => {
               <>
                 <div className="live-head">
                   <p className="page-subtitle">
-                    Last update {new Date(live.timestamp).toLocaleTimeString()} · {live.zoneId}
+                    Last update {new Date(live.timestamp).toLocaleTimeString()} · Firebase
+                    {' '}greenhouses/{greenhouseId}/zones/{live.zoneId}/readings
                   </p>
                   <span className="live-dot"><i /> {live.status === 'PREVIEW' ? 'PREVIEW' : 'LIVE'}</span>
+                </div>
+                <div className={`zone-blueprint ${zoneTone}`} aria-label={`Zone ${live.zoneId} ${zoneTone}`}>
+                  <svg viewBox="0 0 320 72" className="zone-blueprint-svg">
+                    <rect x="8" y="10" width="304" height="52" rx="10" />
+                    <text x="160" y="42" textAnchor="middle">{live.zoneId} · {zoneTone === 'alert' ? 'action needed' : zoneTone === 'watch' ? 'watch' : 'healthy'}</text>
+                  </svg>
                 </div>
                 <div className="sensor-grid">
                   <SensorMeter
