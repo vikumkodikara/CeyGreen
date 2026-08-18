@@ -519,3 +519,35 @@
   max-width: 450px;
   padding: 1.75rem;
 }
+
+.toast-notification {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast-success {
+  background: var(--accent-green, #2ecc71);
+}
+
+.toast-error {
+  background: var(--danger-color, #ef4444);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

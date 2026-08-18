@@ -305,31 +305,7 @@ services:
       retries: 15
       start_period: 90s
 
-  # ═══════════════════════════════════════════════════════════════════════
-  #  STUDENT 5 — AI Assistant Service (port 8089)
-  #  Separated from Forum Service to enforce strict microservice boundaries
-  # ═══════════════════════════════════════════════════════════════════════
 
-  ai-assistant-service:
-    build: ./backend/ai-assistant-service
-    image: ghcr.io/vikumkodikara/ceygreen-ai-assistant-service:latest
-    ports:
-      - "8089:8089"
-    environment:
-      SERVER_PORT: 8089
-      FORUM_SERVICE_URL: http://forum-service:8085
-      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-    depends_on:
-      forum-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
-      interval: 10s
-      timeout: 10s
-      retries: 15
-      start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
   #  STUDENT 6 — Sales Analytics (port 8086)

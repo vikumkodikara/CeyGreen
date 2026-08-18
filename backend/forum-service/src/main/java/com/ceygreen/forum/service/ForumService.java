@@ -228,15 +228,21 @@ public class ForumService {
         log.info("Deleted post id={} by user={}", id, user.userId());
     }
 
-    /** Report a post. */
     public void reportPost(String id, ReportRequest request, CurrentUser user) {
         Post post = requirePost(id);
+        String userId = user.requireUserId();
+
+        if (post.getReportedBy().contains(userId)) {
+            throw ApiException.badRequest("You have already reported this post");
+        }
+
+        post.getReportedBy().add(userId);
         post.setFlagCount(post.getFlagCount() + 1);
         if (post.getFlagCount() >= FLAG_THRESHOLD) {
             post.setFlagged(true);
         }
         postRepository.save(post);
-        log.info("Reported post id={} by user={} with type={}", id, user.userId(), request.reportType());
+        log.info("Reported post id={} by user={} with type={}", id, userId, request.reportType());
     }
 
     private Post requirePost(String id) {
