@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ceygreen-postgres
+    environment:
+      POSTGRES_DB: ceygreen_sales_db
+      POSTGRES_USER: ceygreen_user
+      POSTGRES_PASSWORD: ceygreen_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ceygreen_user -d ceygreen_sales_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ceygreen-network
+
+  # 2. Apache Kafka (KRaft mode)
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: ceygreen-kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    networks:
+      - ceygreen-network
+
+  # 3. Student 6: Sales Analytics & Notification Service
+  sales-analytics-notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ceygreen-sales-analytics-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ceygreen_sales_db
+      SPRING_DATASOURCE_USERNAME: ceygreen_user
+      SPRING_DATASOURCE_PASSWORD: ceygreen_pass
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      CEYGREEN_API_KEY: ceygreen-secret-api-key-2026
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - ceygreen-network
+
+networks:
+  ceygreen-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
