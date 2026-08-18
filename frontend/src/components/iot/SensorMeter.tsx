@@ -66,7 +66,6 @@ export const SensorMeter: React.FC<SensorMeterProps> = ({
       <div className="sensor-gauge" role="img" aria-label={`${label} ${display} ${unit}`}>
         <svg viewBox="0 0 200 118" className="sensor-gauge-svg">
           <path d={arcPath(cx, cy, r, 0, 180)} className="sensor-gauge-track" />
-          <path d={arcPath(cx, cy, r, 0, needleDeg)} className="sensor-gauge-value" />
 
           <g
             className="sensor-gauge-needle"
