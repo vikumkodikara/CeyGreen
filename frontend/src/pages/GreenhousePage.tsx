@@ -10,13 +10,30 @@ import { SensorMeter } from '../components/iot/SensorMeter';
 import { IconDrop, IconSun, IconThermo } from '../components/icons/Icons';
 import './GreenhousePage.css';
 
+const IOT_ONLY = import.meta.env.VITE_IOT_ONLY === 'true';
+
+function demoReading(id: string): LiveReading {
+  return {
+    greenhouseId: id,
+    zoneId: 'ZONE1',
+    timestamp: new Date().toISOString(),
+    temperature: 28.4,
+    humidity: 72,
+    soilMoisture: 41,
+    n: 12,
+    p: 10,
+    k: 11,
+    status: 'PREVIEW',
+  };
+}
+
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
   const [ghName, setGhName] = useState('Greenhouse Alpha');
   const [requestedId, setRequestedId] = useState('GH001');
-  const [greenhouseId, setGreenhouseId] = useState('');
+  const [greenhouseId, setGreenhouseId] = useState(IOT_ONLY ? 'GH001' : '');
   const [loading, setLoading] = useState(false);
-  const [live, setLive] = useState<LiveReading | null>(null);
+  const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [liveError, setLiveError] = useState('');
   const inFlight = useRef(false);
@@ -30,6 +47,11 @@ export const GreenhousePage: React.FC = () => {
       const res = await registerGreenhouse(ghName, farmerId, id);
       setGreenhouseId(res.id);
     } catch (err: any) {
+      if (IOT_ONLY) {
+        setGreenhouseId(id);
+        setLive((prev) => prev || demoReading(id));
+        return;
+      }
       const msg = err.response?.data?.message || 'Greenhouse registration failed';
       if (String(msg).toLowerCase().includes('already exists')) {
         setGreenhouseId(id);
@@ -58,6 +80,9 @@ export const GreenhousePage: React.FC = () => {
         if (reading) {
           setLive(reading);
           setLiveError('');
+        } else if (IOT_ONLY) {
+          setLive((prev) => prev || demoReading(greenhouseId));
+          setLiveError('');
         } else {
           setLiveError('Waiting for the ESP32 to send a reading…');
         }
@@ -69,7 +94,12 @@ export const GreenhousePage: React.FC = () => {
         }
       } catch (err: any) {
         if (!cancelled) {
-          setLiveError(err.response?.data?.message || 'Could not load live data');
+          if (IOT_ONLY) {
+            setLive((prev) => prev || demoReading(greenhouseId));
+            setLiveError('');
+          } else {
+            setLiveError(err.response?.data?.message || 'Could not load live data');
+          }
         }
       } finally {
         inFlight.current = false;
@@ -124,7 +154,7 @@ export const GreenhousePage: React.FC = () => {
                   <p className="page-subtitle">
                     Last update {new Date(live.timestamp).toLocaleTimeString()} · {live.zoneId}
                   </p>
-                  <span className="live-dot"><i /> LIVE</span>
+                  <span className="live-dot"><i /> {live.status === 'PREVIEW' ? 'PREVIEW' : 'LIVE'}</span>
                 </div>
                 <div className="sensor-grid">
                   <SensorMeter
