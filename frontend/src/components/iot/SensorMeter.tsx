@@ -25,7 +25,7 @@ function useSmooth(target: number) {
   useEffect(() => {
     let frame = 0;
     const tick = () => {
-      const next = shownRef.current + (target - shownRef.current) * 0.18;
+      const next = shownRef.current + (target - shownRef.current) * 0.55;
       if (Math.abs(target - next) < 0.05) {
         shownRef.current = target;
         setShown(target);
