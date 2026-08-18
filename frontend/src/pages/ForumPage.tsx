@@ -19,6 +19,19 @@ export const ForumPage: React.FC = () => {
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenuPostId(null);
+      }
+    };
+    if (activeMenuPostId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeMenuPostId]);
 
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportPostId, setReportPostId] = useState<string | null>(null);
@@ -260,7 +273,7 @@ export const ForumPage: React.FC = () => {
                 {post.replyCount || 0}
               </div>
               <div className="action-spacer"></div>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
+              <div ref={activeMenuPostId === post.id ? menuRef : null} style={{ position: 'relative', display: 'inline-block' }}>
                 <div className="action-item action-item-muted" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                 </div>
