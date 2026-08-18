@@ -57,6 +57,7 @@ export const ForumPage: React.FC = () => {
     try {
       await reportPost(reportPostId, reportType);
       showToast('Post reported for review.', 'success');
+      fetchPosts();
     } catch (err: any) {
       showToast(err.response?.data?.message || 'Failed to report post', 'error');
     } finally {
