@@ -357,26 +357,26 @@ export const ForumPage: React.FC = () => {
       )}
       {isReportModalOpen && (
         <div className="create-post-modal-overlay" onClick={() => setIsReportModalOpen(false)}>
-          <div className="create-post-modal-content" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" onClick={e => e.stopPropagation()}>
+          <div className="create-post-modal-content report-modal-content" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" onClick={e => e.stopPropagation()}>
             <button type="button" className="modal-close-btn" aria-label="Close" onClick={() => setIsReportModalOpen(false)}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
             <h2 id="report-modal-title" style={{ color: 'var(--text-main)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Report Thread</h2>
             <form onSubmit={handleSubmitReport}>
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Select Reason</label>
+                <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 500, color: 'var(--text-main)', fontSize: '1.05rem' }}>Select a reason for reporting</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {['SPAM', 'INAPPROPRIATE', 'HARASSMENT'].map(type => (
-                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0, padding: '0.25rem 0' }}>
-                      <input type="radio" name="reportType" value={type} checked={reportType === type} onChange={(e) => setReportType(e.target.value)} style={{ margin: 0 }} />
-                      <span style={{ fontSize: '0.95rem', color: 'var(--text-main)' }}>{type}</span>
+                    <label key={type} className="report-radio-option" style={{ borderColor: reportType === type ? 'var(--accent-green)' : 'var(--border-color)', background: reportType === type ? 'rgba(46, 204, 113, 0.05)' : 'var(--bg-input)' }}>
+                      <input type="radio" name="reportType" value={type} checked={reportType === type} onChange={(e) => setReportType(e.target.value)} />
+                      <span>{type.charAt(0) + type.slice(1).toLowerCase()}</span>
                     </label>
                   ))}
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)' }} onClick={() => setIsReportModalOpen(false)}>Cancel</button>
-                <button type="submit" className="reply-btn" style={{ background: 'var(--danger-color, #ef4444)' }}>Submit Report</button>
+              <div className="report-modal-actions">
+                <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1.5rem', borderRadius: '8px' }} onClick={() => setIsReportModalOpen(false)}>Cancel</button>
+                <button type="submit" className="reply-btn" style={{ background: 'var(--danger-color, #ef4444)', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', color: '#fff', fontWeight: 600 }}>Submit Report</button>
               </div>
             </form>
           </div>

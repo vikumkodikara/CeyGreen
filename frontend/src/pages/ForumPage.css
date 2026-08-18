@@ -482,3 +482,40 @@
 .post-options-item:hover {
   background: var(--bg-hover);
 }
+
+.report-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg-input);
+}
+.report-radio-option:hover {
+  border-color: var(--accent-green);
+  background: rgba(46, 204, 113, 0.05);
+}
+.report-radio-option input {
+  margin: 0;
+  cursor: pointer;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.report-radio-option span {
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+.report-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.report-modal-content {
+  max-width: 450px;
+  padding: 1.75rem;
+}
