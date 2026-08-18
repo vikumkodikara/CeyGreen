@@ -107,7 +107,7 @@ export const GreenhousePage: React.FC = () => {
     };
 
     tick();
-    const timer = window.setInterval(tick, 1000);
+    const timer = window.setInterval(tick, 500);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
