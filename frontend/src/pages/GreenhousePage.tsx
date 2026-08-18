@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { getLatestReading, getSuggestions, registerGreenhouse } from '../api/iot';
+import { getLatestReading, registerGreenhouse } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
-import { LiveReading, Suggestion } from '../types/iot';
+import { LiveReading } from '../types/iot';
+import { evaluateReading } from '../utils/iotRules';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SensorMeter } from '../components/iot/SensorMeter';
 import { IconDrop, IconSun, IconThermo } from '../components/icons/Icons';
@@ -34,9 +34,8 @@ export const GreenhousePage: React.FC = () => {
   const [greenhouseId, setGreenhouseId] = useState(IOT_ONLY ? 'GH001' : '');
   const [loading, setLoading] = useState(false);
   const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [liveError, setLiveError] = useState('');
-  const inFlight = useRef(false);
+  const suggestions = useMemo(() => (live ? evaluateReading(live) : []), [live]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +65,8 @@ export const GreenhousePage: React.FC = () => {
   useEffect(() => {
     if (!greenhouseId) return undefined;
     let cancelled = false;
-    let ticks = 0;
 
     const tick = async () => {
-      if (inFlight.current) return;
-      inFlight.current = true;
       try {
         const reading = await getLatestReading(greenhouseId).catch((err) => {
           if (err.response?.status === 400) return null;
@@ -86,12 +82,6 @@ export const GreenhousePage: React.FC = () => {
         } else {
           setLiveError('Waiting for the ESP32 to send a reading…');
         }
-
-        ticks += 1;
-        if (ticks === 1 || ticks % 5 === 0) {
-          const list = await getSuggestions(greenhouseId).catch(() => [] as Suggestion[]);
-          if (!cancelled) setSuggestions(list);
-        }
       } catch (err: any) {
         if (!cancelled) {
           if (IOT_ONLY) {
@@ -101,16 +91,18 @@ export const GreenhousePage: React.FC = () => {
             setLiveError(err.response?.data?.message || 'Could not load live data');
           }
         }
-      } finally {
-        inFlight.current = false;
       }
     };
 
-    tick();
-    const timer = window.setInterval(tick, 250);
+    const run = async () => {
+      while (!cancelled) {
+        await tick();
+        await new Promise((r) => window.setTimeout(r, 50));
+      }
+    };
+    run();
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [greenhouseId]);
 
@@ -123,11 +115,9 @@ export const GreenhousePage: React.FC = () => {
 
       <div className="stack">
         <Card title="Register greenhouse" subtitle="Creates ZONE1. Use the same id as the ESP32 sketch.">
-          <form onSubmit={handleRegister} className="row">
-            <div className="grow">
+          <form onSubmit={handleRegister} className="gh-register">
+            <div className="gh-register-fields">
               <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
-            </div>
-            <div className="grow">
               <Input
                 label="Greenhouse ID"
                 value={requestedId}
@@ -135,9 +125,14 @@ export const GreenhousePage: React.FC = () => {
                 required
               />
             </div>
-            <Button type="submit" isLoading={loading} style={{ marginBottom: '1rem' }}>
-              Register
-            </Button>
+            <button type="submit" className="gh-register-btn" disabled={loading}>
+              <span className="gh-register-ico" aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3l2.2 6.4H21l-5.4 3.9 2.1 6.5L12 16.8 6.3 19.8l2.1-6.5L3 9.4h6.8L12 3z" fill="currentColor" />
+                </svg>
+              </span>
+              {loading ? 'Registering…' : 'Register greenhouse'}
+            </button>
           </form>
           {greenhouseId && (
             <p className="alert alert-success" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
@@ -240,11 +235,15 @@ export const GreenhousePage: React.FC = () => {
         {greenhouseId && (
           <Card title="Rule engine suggestions">
             {suggestions.length === 0 ? (
-              <p className="page-subtitle">No alerts right now. Values in range, or no reading yet.</p>
+              <p className="suggest-empty">
+                {live
+                  ? 'All sensors in range. No action needed.'
+                  : 'Suggestions appear after the first ESP32 reading.'}
+              </p>
             ) : (
               <ul className="suggest-list">
                 {suggestions.map((s, index) => (
-                  <li key={`${s.zoneId}-${index}`}>
+                  <li key={`${s.zoneId}-${s.message}-${index}`}>
                     <span className={`pill ${s.severity.toLowerCase()}`}>{s.severity}</span>
                     <span>{s.message}</span>
                   </li>
