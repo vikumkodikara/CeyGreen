@@ -79,26 +79,11 @@
   stroke-width: 12;
   stroke-linecap: round;
 }
-.sensor-gauge-low,
-.sensor-gauge-ok,
-.sensor-gauge-high {
+.sensor-gauge-value {
   fill: none;
+  stroke: var(--meter);
   stroke-width: 12;
-  stroke-linecap: butt;
-}
-.sensor-gauge-low { stroke: #d4a017; }
-.sensor-gauge-ok { stroke: #1f8a54; }
-.sensor-gauge-high { stroke: #c2410c; }
-.sensor-gauge-tick {
-  stroke: #8aa396;
-  stroke-width: 1.6;
-}
-.sensor-gauge-tick-label {
-  fill: #5a7568;
-  font-size: 9px;
-  font-weight: 600;
-  text-anchor: middle;
-  dominant-baseline: middle;
+  stroke-linecap: round;
 }
 .sensor-gauge-needle line {
   stroke: #12362a;

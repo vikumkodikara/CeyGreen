@@ -75,11 +75,6 @@ export const SensorMeter: React.FC<SensorMeterProps> = ({
   const cx = 100;
   const cy = 92;
   const r = 68;
-  const ticks = 6;
-
-  const lowEnd = idealMin != null ? clamp(((idealMin - min) / span) * 180, 0, 180) : 54;
-  const highEnd = idealMax != null ? clamp(((idealMax - min) / span) * 180, 0, 180) : 126;
-
   const display = idle ? '—' : shown.toFixed(shown >= 10 ? 0 : 1);
 
   return (
@@ -95,27 +90,7 @@ export const SensorMeter: React.FC<SensorMeterProps> = ({
       <div className="sensor-gauge" role="img" aria-label={`${label} ${display} ${unit}`}>
         <svg viewBox="0 0 200 118" className="sensor-gauge-svg">
           <path d={arcPath(cx, cy, r, 0, 180)} className="sensor-gauge-track" />
-          <path d={arcPath(cx, cy, r, 0, lowEnd)} className="sensor-gauge-low" />
-          <path d={arcPath(cx, cy, r, lowEnd, highEnd)} className="sensor-gauge-ok" />
-          <path d={arcPath(cx, cy, r, highEnd, 180)} className="sensor-gauge-high" />
-
-          {Array.from({ length: ticks + 1 }, (_, i) => {
-            const deg = (i / ticks) * 180;
-            const outer = polar(cx, cy, r - 2, deg);
-            const inner = polar(cx, cy, r - 10, deg);
-            const labelPt = polar(cx, cy, r - 20, deg);
-            const tickVal = min + (span * i) / ticks;
-            return (
-              <g key={i}>
-                <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} className="sensor-gauge-tick" />
-                {(i === 0 || i === ticks || i === ticks / 2) && (
-                  <text x={labelPt.x} y={labelPt.y} className="sensor-gauge-tick-label">
-                    {Math.round(tickVal)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
+          <path d={arcPath(cx, cy, r, 0, needleDeg)} className="sensor-gauge-value" />
 
           <g
             className="sensor-gauge-needle"
