@@ -14,11 +14,26 @@ export const LoginPage: React.FC = () => {
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
+  const enterIotDemo = () => {
+    loginUser('iot-demo', {
+      id: 'farmer-001',
+      email: 'iot-demo@ceygreen.local',
+      name: 'IoT Demo Farmer',
+      role: 'FARMER',
+      farmerId: 'farmer-001',
+    });
+    navigate('/greenhouse');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
+      if (import.meta.env.VITE_IOT_ONLY === 'true') {
+        enterIotDemo();
+        return;
+      }
       const { token, user } = await login({ email, password });
       loginUser(token.access_token, user);
       navigate('/');
@@ -48,6 +63,11 @@ export const LoginPage: React.FC = () => {
               Enter
             </Button>
           </form>
+          {import.meta.env.VITE_IOT_ONLY === 'true' && (
+            <p className="auth-foot">
+              IoT demo is on — Enter opens the greenhouse without the user service.
+            </p>
+          )}
           <p className="auth-foot">
             New here? <Link to="/register">Create an account</Link>
           </p>
