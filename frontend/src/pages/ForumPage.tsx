@@ -17,6 +17,7 @@ export const ForumPage: React.FC = () => {
   const [tags, setTags] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+  const [expandedText, setExpandedText] = useState<Record<string, boolean>>({});
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
@@ -272,10 +273,26 @@ export const ForumPage: React.FC = () => {
             </div>
 
             <div className="post-title">{post.title}</div>
-            <div className="post-body">
+            
+            {post.tags && post.tags.length > 0 && (
+              <div className="post-tags-container">
+                {post.tags.map(tag => (
+                  <span key={tag} className="post-tag-badge">{tag}</span>
+                ))}
+              </div>
+            )}
+
+            <div className={`post-body ${expandedText[post.id] ? 'expanded' : ''}`}>
               {post.body}
-              {post.body && post.body.length > 100 && <span className="post-see-more">see more</span>}
             </div>
+            {post.body && post.body.length > 200 && (
+              <div 
+                className="post-read-more-btn" 
+                onClick={() => setExpandedText(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+              >
+                {expandedText[post.id] ? 'Show Less' : 'Read More'}
+              </div>
+            )}
 
             <div className="post-actions">
               <div className={`action-item ${post.upvotedBy?.includes(user?.id || '') ? 'action-item-active' : 'action-item-muted'}`} onClick={() => handleVote(post.id, 'upvote')} title="Upvote">
