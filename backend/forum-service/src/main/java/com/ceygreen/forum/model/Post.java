@@ -35,6 +35,7 @@ public class Post {
     private String acceptedReplyId;
     private boolean flagged;
     private int flagCount;
+    private List<String> reportedBy = new ArrayList<>();
     private boolean aiAnswerAttempted;
     private int upvotes;
     private int downvotes;
@@ -69,6 +70,8 @@ public class Post {
     public void setFlagged(boolean flagged) { this.flagged = flagged; }
     public int getFlagCount() { return flagCount; }
     public void setFlagCount(int flagCount) { this.flagCount = flagCount; }
+    public List<String> getReportedBy() { return reportedBy; }
+    public void setReportedBy(List<String> reportedBy) { this.reportedBy = reportedBy; }
     public boolean isAiAnswerAttempted() { return aiAnswerAttempted; }
     public void setAiAnswerAttempted(boolean aiAnswerAttempted) { this.aiAnswerAttempted = aiAnswerAttempted; }
     public int getUpvotes() { return upvotes; }

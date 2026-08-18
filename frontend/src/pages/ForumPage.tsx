@@ -19,6 +19,13 @@ export const ForumPage: React.FC = () => {
   const replyInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const [activeMenuPostId, setActiveMenuPostId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,24 +55,30 @@ export const ForumPage: React.FC = () => {
     if (!reportPostId) return;
     try {
       await reportPost(reportPostId, reportType);
-      alert('Post reported for review.');
+      showToast('Post reported for review.', 'success');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to report post');
+      showToast(err.response?.data?.message || 'Failed to report post', 'error');
     } finally {
       setIsReportModalOpen(false);
       setReportPostId(null);
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+  const executeDelete = async () => {
+    if (!deleteConfirmPostId) return;
     try {
-      await deletePost(postId);
-      setPosts(prev => prev.filter(p => p.id !== postId));
+      await deletePost(deleteConfirmPostId);
+      setPosts(prev => prev.filter(p => p.id !== deleteConfirmPostId));
+      showToast('Post deleted successfully', 'success');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete post');
+      showToast(err.response?.data?.message || 'Failed to delete post', 'error');
     }
+    setDeleteConfirmPostId(null);
     setActiveMenuPostId(null);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setDeleteConfirmPostId(postId);
   };
 
   useEffect(() => {
@@ -91,8 +104,9 @@ export const ForumPage: React.FC = () => {
       setTitle('');
       setContent('');
       fetchPosts();
+      showToast('Post created successfully', 'success');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create post');
+      showToast(err.response?.data?.message || 'Failed to create post', 'error');
     }
   };
 
@@ -107,7 +121,7 @@ export const ForumPage: React.FC = () => {
       setReplyText({ ...replyText, [postId]: '' });
       setPosts(sortPostsArray(posts.map(p => p.id === postId ? updatedPost : p)));
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to post reply');
+      showToast(err.response?.data?.message || 'Failed to post reply', 'error');
     }
   };
 
@@ -380,6 +394,28 @@ export const ForumPage: React.FC = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      
+      {deleteConfirmPostId && (
+        <div className="create-post-modal-overlay" onClick={() => setDeleteConfirmPostId(null)}>
+          <div className="create-post-modal-content report-modal-content" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <button type="button" className="modal-close-btn" aria-label="Close" onClick={() => setDeleteConfirmPostId(null)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 style={{ color: 'var(--text-main)', marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>Delete Post</h2>
+            <p style={{ color: 'var(--text-main)', marginBottom: '2rem' }}>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div className="report-modal-actions">
+              <button type="button" className="reply-btn" style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)', padding: '0.6rem 1.5rem', borderRadius: '8px' }} onClick={() => setDeleteConfirmPostId(null)}>Cancel</button>
+              <button type="button" className="reply-btn" style={{ background: 'var(--danger-color, #ef4444)', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', color: '#fff', fontWeight: 600 }} onClick={executeDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`toast-notification toast-${toast.type}`}>
+          {toast.message}
         </div>
       )}
     </div>
