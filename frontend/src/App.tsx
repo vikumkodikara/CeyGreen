@@ -10,8 +10,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { Footer } from './components/layout/Footer';
 
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
+import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DiagnosisPage } from './pages/DiagnosisPage';
 import { TreatmentsPage } from './pages/TreatmentsPage';
@@ -38,8 +37,8 @@ export const useShell = () => useContext(ShellContext);
 
 const AppRoutes: React.FC = () => (
   <Routes>
-    <Route path="/login" element={<LoginPage />} />
-    <Route path="/register" element={<RegisterPage />} />
+    <Route path="/login" element={<AuthPage />} />
+    <Route path="/register" element={<AuthPage />} />
 
     <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
     <Route path="/diagnosis" element={<ProtectedRoute><DiagnosisPage /></ProtectedRoute>} />
