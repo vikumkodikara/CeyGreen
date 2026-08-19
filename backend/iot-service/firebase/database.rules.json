@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "greenhouses": {
+      "$greenhouseId": {
+        ".read": "auth != null && data.child('farmerId').val() === auth.token.farmerId",
+        ".write": false,
+        "zones": {
+          "$zoneId": {
+            "readings": {
+              "$ts": {
+                ".validate": "newData.hasChildren(['temperature', 'humidity', 'soilMoisture', 'n', 'p', 'k'])"
+              }
+            },
+            "suggestions": {
+              "$ts": {
+                ".validate": "newData.hasChildren(['message', 'severity'])"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
