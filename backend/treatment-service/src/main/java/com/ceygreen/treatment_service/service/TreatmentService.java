@@ -12,6 +12,7 @@ import com.ceygreen.treatment_service.repository.TreatmentRatingRepository;
 import com.ceygreen.treatment_service.repository.TreatmentRepository;
 import com.ceygreen.treatment_service.entity.TreatmentRating;
 import com.ceygreen.treatment_service.dto.RatingRequest;
+import com.ceygreen.treatment_service.dto.RatingResponse;
 import com.ceygreen.treatment_service.util.DiseaseNameUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -103,15 +104,16 @@ public class TreatmentService {
         Treatment treatment = treatmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
 
-        if (ratingRepository.existsByTreatmentIdAndFarmerId(id, request.farmerId())) {
-            throw new IllegalArgumentException("You have already rated this treatment.");
-        }
+        TreatmentRating rating = ratingRepository.findByTreatmentIdAndFarmerId(id, request.farmerId())
+                .orElse(TreatmentRating.builder()
+                        .treatment(treatment)
+                        .farmerId(request.farmerId())
+                        .build());
 
-        TreatmentRating rating = TreatmentRating.builder()
-                .treatment(treatment)
-                .farmerId(request.farmerId())
-                .rating(request.rating())
-                .build();
+        rating.setRating(request.rating());
+        rating.setFarmerName(request.farmerName());
+        rating.setComment(request.comment());
+        
         ratingRepository.save(rating);
     }
 
@@ -120,6 +122,14 @@ public class TreatmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
         List<Treatment> alternatives = treatmentRepository.findByDiseaseIdAndIdNotAndActiveTrue(
                 treatment.getDisease().getId(), id);
+
+        if (alternatives.isEmpty() && treatment.getCropType() != null) {
+            alternatives = treatmentRepository.findByCropTypeIgnoreCaseAndActiveTrue(treatment.getCropType())
+                    .stream()
+                    .filter(t -> !t.getId().equals(id))
+                    .toList();
+        }
+
         return alternatives.stream().map(this::toResponse).toList();
     }
 
@@ -128,11 +138,15 @@ public class TreatmentService {
         Double avgRating = ratings.isEmpty() ? null : 
                 ratings.stream().mapToInt(TreatmentRating::getRating).average().orElse(0.0);
 
+        List<RatingResponse> reviewResponses = ratings.stream()
+                .map(r -> new RatingResponse(r.getFarmerId(), r.getFarmerName(), r.getRating(), r.getComment(), r.getCreatedAt()))
+                .toList();
+
         return new TreatmentResponse(
                 t.getId(), t.getDisease().getName(), t.getProductName(), t.getType(),
                 t.getDosage(), t.getFrequency(), t.getSafetyNotes(), t.getCropType(),
                 t.getSeverity(), t.getPhiDays(), t.getApplicationMethod(), t.getBrandNames(),
-                t.getEffectivenessScore(), avgRating, t.isActive());
+                t.getEffectivenessScore(), avgRating, reviewResponses, t.isActive());
     }
 
 }
