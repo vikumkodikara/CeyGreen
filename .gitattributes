@@ -4,3 +4,8 @@
 *.bat text eol=crlf
 mvnw text eol=lf
 *.sh text eol=lf
+client/** linguist-generated=true
+backend/user-diagnosis-service/** linguist-generated=true
+backend/analytics-notification-service/** linguist-generated=true
+package-lock.json linguist-generated=true
+frontend/package-lock.json linguist-generated=true
