@@ -86,7 +86,7 @@ public class InMemoryTelemetryRepository implements TelemetryRepository {
         if (greenhouse == null) {
             throw new IllegalArgumentException("Greenhouse not found: " + greenhouseId);
         }
-        Zone zone = greenhouse.getZones().get(zoneId);
+        Zone zone = greenhouse.getZones() != null ? greenhouse.getZones().get(zoneId) : null;
         if (zone == null) {
             throw new IllegalArgumentException("Zone not found: " + zoneId);
         }

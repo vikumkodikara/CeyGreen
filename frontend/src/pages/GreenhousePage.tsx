@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { getLatestReading, registerGreenhouse } from '../api/iot';
+import { getLatestReading, getSuggestions, registerGreenhouse, updateThresholds } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
-import { LiveReading } from '../types/iot';
-import { evaluateReading } from '../utils/iotRules';
+import { LiveReading, Suggestion } from '../types/iot';
+import { evaluateReading, IOT_THRESHOLDS } from '../utils/iotRules';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SensorMeter } from '../components/iot/SensorMeter';
 import { IconDrop, IconSun, IconThermo } from '../components/icons/Icons';
@@ -35,7 +35,12 @@ export const GreenhousePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
   const [liveError, setLiveError] = useState('');
-  const suggestions = useMemo(() => (live ? evaluateReading(live) : []), [live]);
+  const [apiSuggestions, setApiSuggestions] = useState<Suggestion[]>([]);
+  const [suggestionsFromApi, setSuggestionsFromApi] = useState(false);
+  const localSuggestions = useMemo(() => (live ? evaluateReading(live) : []), [live]);
+  const suggestions = suggestionsFromApi ? apiSuggestions : localSuggestions;
+  const [savingLimits, setSavingLimits] = useState(false);
+  const [limits, setLimits] = useState({ ...IOT_THRESHOLDS });
   const zoneTone = suggestions.some((s) => s.severity === 'HIGH' || s.severity === 'CRITICAL')
     ? 'alert'
     : suggestions.length
@@ -67,6 +72,19 @@ export const GreenhousePage: React.FC = () => {
     }
   };
 
+  const handleSaveThresholds = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!greenhouseId) return;
+    setSavingLimits(true);
+    try {
+      await updateThresholds('ZONE1', greenhouseId, limits);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Could not save thresholds');
+    } finally {
+      setSavingLimits(false);
+    }
+  };
+
   useEffect(() => {
     if (!greenhouseId) return undefined;
     let cancelled = false;
@@ -86,6 +104,12 @@ export const GreenhousePage: React.FC = () => {
           setLiveError('');
         } else {
           setLiveError('Waiting for the ESP32 to send a reading…');
+        }
+
+        const list = await getSuggestions(greenhouseId).catch(() => null);
+        if (!cancelled && list) {
+          setApiSuggestions(list);
+          setSuggestionsFromApi(true);
         }
       } catch (err: any) {
         if (!cancelled) {
@@ -212,6 +236,75 @@ export const GreenhousePage: React.FC = () => {
             ) : (
               <p className="page-subtitle">{liveError || 'Waiting for the ESP32…'}</p>
             )}
+          </Card>
+        )}
+
+        {greenhouseId && (
+          <Card title="Rule-engine thresholds">
+            <form className="gh-register" onSubmit={handleSaveThresholds}>
+              <p className="page-subtitle" style={{ margin: 0 }}>
+                PUT /iot/thresholds/ZONE1 — hot, cold, dry, wet, and low NPK limits for this zone.
+              </p>
+              <div className="gh-register-fields">
+                <Input
+                  label="Max temperature (°C)"
+                  type="number"
+                  value={limits.maxTemperature}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, maxTemperature: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Min temperature (°C)"
+                  type="number"
+                  value={limits.minTemperature}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, minTemperature: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Dry soil (%)"
+                  type="number"
+                  value={limits.minSoilMoisture}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, minSoilMoisture: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Wet soil (%)"
+                  type="number"
+                  value={limits.maxSoilMoisture}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, maxSoilMoisture: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Max humidity (%)"
+                  type="number"
+                  value={limits.maxHumidity}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, maxHumidity: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Min humidity (%)"
+                  type="number"
+                  value={limits.minHumidity}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, minHumidity: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Min N"
+                  type="number"
+                  value={limits.minNitrogen}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, minNitrogen: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Min P"
+                  type="number"
+                  value={limits.minPhosphorus}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, minPhosphorus: Number(e.target.value) }))}
+                />
+                <Input
+                  label="Min K"
+                  type="number"
+                  value={limits.minPotassium}
+                  onChange={(e) => setLimits((prev) => ({ ...prev, minPotassium: Number(e.target.value) }))}
+                />
+              </div>
+              <button type="submit" className="gh-register-btn" disabled={savingLimits}>
+                {savingLimits ? 'Saving…' : 'Save thresholds'}
+              </button>
+            </form>
           </Card>
         )}
 

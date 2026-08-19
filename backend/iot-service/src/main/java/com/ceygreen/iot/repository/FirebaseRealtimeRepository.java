@@ -76,11 +76,19 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
 
     @Override
     public Optional<Greenhouse> findGreenhouse(String greenhouseId) {
-        DataSnapshot snapshot = awaitGet(greenhouseRef(greenhouseId));
-        if (!snapshot.exists()) {
-            return Optional.empty();
+        try {
+            DataSnapshot snapshot = awaitGet(greenhouseRef(greenhouseId));
+            if (!snapshot.exists()) {
+                return Optional.empty();
+            }
+            Greenhouse greenhouse = snapshot.getValue(Greenhouse.class);
+            if (greenhouse != null && greenhouse.getId() == null) {
+                greenhouse.setId(greenhouseId);
+            }
+            return Optional.ofNullable(greenhouse);
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException("Firebase read failed: " + ex.getMessage(), ex);
         }
-        return Optional.ofNullable(snapshot.getValue(Greenhouse.class));
     }
 
     @Override
@@ -123,10 +131,12 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
     public List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> suggestions) {
         DatabaseReference suggestionsRef = zoneRef(greenhouseId, zoneId).child("suggestions");
         awaitRemove(suggestionsRef);
+        int index = 0;
         for (Suggestion suggestion : suggestions) {
-            String key = suggestion.getId() != null
-                    ? suggestion.getId().replace(".", "_").replace(":", "-")
+            String raw = suggestion.getId() != null
+                    ? suggestion.getId()
                     : String.valueOf(System.currentTimeMillis());
+            String key = raw.replace(".", "_").replace(":", "-") + "-" + index++;
             awaitSet(suggestionsRef.child(key), suggestion);
         }
         return List.copyOf(suggestions);
@@ -155,7 +165,7 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
     public ZoneThresholds updateThresholds(String greenhouseId, String zoneId, ZoneThresholds thresholds) {
         Greenhouse greenhouse = findGreenhouse(greenhouseId)
                 .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
-        Zone zone = greenhouse.getZones().get(zoneId);
+        Zone zone = greenhouse.getZones() != null ? greenhouse.getZones().get(zoneId) : null;
         if (zone == null) {
             throw new IllegalArgumentException("Zone not found: " + zoneId);
         }

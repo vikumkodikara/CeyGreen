@@ -9,6 +9,7 @@ export const IOT_THRESHOLDS = {
   urgentMinSoilMoisture: 20,
   maxHumidity: 80,
   minHumidity: 60,
+  maxSoilMoisture: 60,
   minNitrogen: 10,
   minPhosphorus: 8,
   minPotassium: 8,
@@ -35,6 +36,8 @@ export function evaluateReading(reading: LiveReading): Suggestion[] {
     add('Start irrigation — soil critically dry', 'HIGH');
   } else if (reading.soilMoisture < t.minSoilMoisture) {
     add('Start irrigation', 'NORMAL');
+  } else if (reading.soilMoisture > t.maxSoilMoisture) {
+    add('Reduce irrigation — soil too wet', 'NORMAL');
   }
 
   if (reading.humidity > t.maxHumidity) {

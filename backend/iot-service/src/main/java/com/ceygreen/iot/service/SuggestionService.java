@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Returns current suggestions for a greenhouse.
- * The rule engine will populate suggestions when readings are ingested (later step).
+ * Returns current suggestions for a greenhouse (one list per latest ingest).
  */
 @Service
 public class SuggestionService {
