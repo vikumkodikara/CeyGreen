@@ -71,6 +71,15 @@ class RuleEngineTest {
     }
 
     @Test
+    void reduceIrrigationWhenSoilTooWet() {
+        SensorReading reading = reading(25, 70, 72, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("too wet")));
+    }
+
+    @Test
     void warmGreenhouseWhenTemperatureBelowMin() {
         SensorReading reading = reading(23, 70, 40, 15, 15, 15);
 

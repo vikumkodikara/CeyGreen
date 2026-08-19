@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST API for ESP32 sensor ingest.
+ * ESP32 ingest and dashboard latest reading.
+ * Report CRUD pair: {@code POST /iot/readings}.
+ * {@code GET /iot/readings/{id}/latest} is the extra dashboard read (still within the 3–5 rule).
  */
 @RestController
 @RequestMapping("/iot/readings")
@@ -25,6 +27,13 @@ public class ReadingController {
 
     public ReadingController(ReadingService readingService) {
         this.readingService = readingService;
+    }
+
+    @GetMapping
+    public SensorReadingResponse listNotSupported() {
+        throw new ApiException(
+                HttpStatus.METHOD_NOT_ALLOWED,
+                "There is no list URL. Use GET /api/iot/readings/GH001/latest");
     }
 
     @PostMapping

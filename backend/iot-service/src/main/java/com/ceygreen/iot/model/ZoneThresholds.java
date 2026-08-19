@@ -10,8 +10,12 @@ public class ZoneThresholds {
 
     private double maxTemperature = 32.0;
     private double urgentMaxTemperature = 38.0;
+    private double minTemperature = 24.0;
     private double minSoilMoisture = 35.0;
+    private double urgentMinSoilMoisture = 20.0;
+    private double maxSoilMoisture = 60.0;
     private double maxHumidity = 80.0;
+    private double minHumidity = 60.0;
     private double minNitrogen = 10.0;
     private double minPhosphorus = 8.0;
     private double minPotassium = 8.0;
@@ -36,6 +40,14 @@ public class ZoneThresholds {
         this.urgentMaxTemperature = urgentMaxTemperature;
     }
 
+    public double getMinTemperature() {
+        return minTemperature;
+    }
+
+    public void setMinTemperature(double minTemperature) {
+        this.minTemperature = minTemperature;
+    }
+
     public double getMinSoilMoisture() {
         return minSoilMoisture;
     }
@@ -44,12 +56,36 @@ public class ZoneThresholds {
         this.minSoilMoisture = minSoilMoisture;
     }
 
+    public double getUrgentMinSoilMoisture() {
+        return urgentMinSoilMoisture;
+    }
+
+    public void setUrgentMinSoilMoisture(double urgentMinSoilMoisture) {
+        this.urgentMinSoilMoisture = urgentMinSoilMoisture;
+    }
+
+    public double getMaxSoilMoisture() {
+        return maxSoilMoisture;
+    }
+
+    public void setMaxSoilMoisture(double maxSoilMoisture) {
+        this.maxSoilMoisture = maxSoilMoisture;
+    }
+
     public double getMaxHumidity() {
         return maxHumidity;
     }
 
     public void setMaxHumidity(double maxHumidity) {
         this.maxHumidity = maxHumidity;
+    }
+
+    public double getMinHumidity() {
+        return minHumidity;
+    }
+
+    public void setMinHumidity(double minHumidity) {
+        this.minHumidity = minHumidity;
     }
 
     public double getMinNitrogen() {

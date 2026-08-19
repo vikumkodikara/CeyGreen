@@ -5,7 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -25,6 +27,16 @@ public class GlobalExceptionHandler {
                         ex.getStatus().getReasonPhrase(),
                         ex.getMessage(),
                         request.getRequestURI()));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiError> handleUnreadable(
+            HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(ApiError.of(
+                400,
+                "Bad Request",
+                "JSON body is required. Open the Body tab, choose raw JSON, and send name, farmerId, and zones.",
+                request.getRequestURI()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -52,6 +64,14 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex, HttpServletRequest request) {
         return ResponseEntity.badRequest()
                 .body(ApiError.of(400, "Bad Request", ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> handleIllegalState(
+            IllegalStateException ex, HttpServletRequest request) {
+        log.warn("IoT storage error for {} {}: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiError.of(503, "Service Unavailable", ex.getMessage(), request.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)

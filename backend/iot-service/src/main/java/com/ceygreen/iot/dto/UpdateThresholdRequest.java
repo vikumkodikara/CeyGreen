@@ -23,11 +23,27 @@ public class UpdateThresholdRequest {
 
     @NotNull
     @Positive
+    private Double minTemperature;
+
+    @NotNull
+    @Positive
     private Double minSoilMoisture;
 
     @NotNull
     @Positive
+    private Double urgentMinSoilMoisture;
+
+    @NotNull
+    @Positive
+    private Double maxSoilMoisture;
+
+    @NotNull
+    @Positive
     private Double maxHumidity;
+
+    @NotNull
+    @Positive
+    private Double minHumidity;
 
     @NotNull
     @Positive
@@ -65,6 +81,14 @@ public class UpdateThresholdRequest {
         this.urgentMaxTemperature = urgentMaxTemperature;
     }
 
+    public Double getMinTemperature() {
+        return minTemperature;
+    }
+
+    public void setMinTemperature(Double minTemperature) {
+        this.minTemperature = minTemperature;
+    }
+
     public Double getMinSoilMoisture() {
         return minSoilMoisture;
     }
@@ -73,12 +97,36 @@ public class UpdateThresholdRequest {
         this.minSoilMoisture = minSoilMoisture;
     }
 
+    public Double getUrgentMinSoilMoisture() {
+        return urgentMinSoilMoisture;
+    }
+
+    public void setUrgentMinSoilMoisture(Double urgentMinSoilMoisture) {
+        this.urgentMinSoilMoisture = urgentMinSoilMoisture;
+    }
+
+    public Double getMaxSoilMoisture() {
+        return maxSoilMoisture;
+    }
+
+    public void setMaxSoilMoisture(Double maxSoilMoisture) {
+        this.maxSoilMoisture = maxSoilMoisture;
+    }
+
     public Double getMaxHumidity() {
         return maxHumidity;
     }
 
     public void setMaxHumidity(Double maxHumidity) {
         this.maxHumidity = maxHumidity;
+    }
+
+    public Double getMinHumidity() {
+        return minHumidity;
+    }
+
+    public void setMinHumidity(Double minHumidity) {
+        this.minHumidity = minHumidity;
     }
 
     public Double getMinNitrogen() {

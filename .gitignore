@@ -20,7 +20,7 @@ node_modules/
 # Firebase Admin key — never commit (GitHub secret scanning blocks it)
 **/firebase-service-account.json
 **/serviceAccountKey.json
-iot-service/
+/iot-service/
 
 # IDE
 .idea/

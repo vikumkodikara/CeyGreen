@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -33,8 +34,9 @@ public class GreenhouseService {
             greenhouseId = "GH-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         }
 
-        if (telemetryRepository.findGreenhouse(greenhouseId).isPresent()) {
-            throw new IllegalArgumentException("Greenhouse already exists: " + greenhouseId);
+        Optional<Greenhouse> existing = telemetryRepository.findGreenhouse(greenhouseId);
+        if (existing.isPresent()) {
+            return GreenhouseResponse.from(existing.get());
         }
 
         Greenhouse greenhouse = new Greenhouse(
