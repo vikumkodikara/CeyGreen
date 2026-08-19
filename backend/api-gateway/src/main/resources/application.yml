@@ -215,3 +215,4 @@ management:
 logging:
   level:
     com.ceygreen.gateway: ${LOG_LEVEL:INFO}
+

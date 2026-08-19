@@ -1,4 +1,5 @@
 package com.ceygreen.treatment_service.dto;
+import java.util.List;
 
 public record TreatmentResponse(
         Long id,
@@ -15,5 +16,6 @@ public record TreatmentResponse(
         String brandNames,
         Integer effectivenessScore,
         Double averageRating,
+        List<RatingResponse> reviews,
         boolean active) {
 }

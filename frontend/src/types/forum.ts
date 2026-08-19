@@ -13,6 +13,7 @@ export interface Post {
   authorId: string;
   authorName: string;
   category: string;
+  tags?: string[];
   replies: Reply[];
   replyCount: number;
   upvotes: number;
