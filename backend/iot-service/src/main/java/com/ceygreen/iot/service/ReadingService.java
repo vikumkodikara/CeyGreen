@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Ingests ESP32 sensor readings, evaluates zone rules, stores suggestions,
@@ -43,7 +44,11 @@ public class ReadingService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Greenhouse not found: " + request.getGreenhouseId()));
 
-        Zone zone = greenhouse.getZones().get(request.getZoneId());
+        Map<String, Zone> zones = greenhouse.getZones();
+        if (zones == null) {
+            throw new IllegalArgumentException("Zone not found: " + request.getZoneId());
+        }
+        Zone zone = zones.get(request.getZoneId());
         if (zone == null) {
             throw new IllegalArgumentException("Zone not found: " + request.getZoneId());
         }
@@ -61,9 +66,9 @@ public class ReadingService {
 
         SensorReading saved = telemetryRepository.saveReading(reading);
 
-        ZoneThresholds thresholds = zone.getThresholds() != null
-                ? zone.getThresholds()
-                : ZoneThresholds.defaults();
+        ZoneThresholds thresholds = telemetryRepository
+                .findThresholds(saved.getGreenhouseId(), zone.getZoneId())
+                .orElse(zone.getThresholds() != null ? zone.getThresholds() : ZoneThresholds.defaults());
 
         List<RuleResult> ruleResults = ruleEngine.evaluate(saved, thresholds);
         List<Suggestion> suggestions = new ArrayList<>();
