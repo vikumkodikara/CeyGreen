@@ -80,6 +80,8 @@ public class TreatmentService {
                 .cropType(request.cropType())
                 .severity(request.severity())
                 .active(request.active())
+                .addedByFarmerId(request.addedByFarmerId())
+                .addedByFarmerName(request.addedByFarmerName())
                 .build();
 
         return toResponse(treatmentRepository.save(treatment));
@@ -146,7 +148,8 @@ public class TreatmentService {
                 t.getId(), t.getDisease().getName(), t.getProductName(), t.getType(),
                 t.getDosage(), t.getFrequency(), t.getSafetyNotes(), t.getCropType(),
                 t.getSeverity(), t.getPhiDays(), t.getApplicationMethod(), t.getBrandNames(),
-                t.getEffectivenessScore(), avgRating, reviewResponses, t.isActive());
+                t.getEffectivenessScore(), avgRating, reviewResponses, t.isActive(),
+                t.getAddedByFarmerId(), t.getAddedByFarmerName());
     }
 
 }
