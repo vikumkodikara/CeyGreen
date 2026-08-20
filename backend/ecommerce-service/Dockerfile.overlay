@@ -1,0 +1,7 @@
+# Fast local rebuild: overlay a Maven-built JAR onto the existing runtime image.
+# Use after: .\mvnw.cmd package -DskipTests
+FROM ceygreen-ecommerce-service:latest
+USER root
+COPY target/ecommerce-service-*.jar /app/app.jar
+RUN chown ceygreen:ceygreen /app/app.jar
+USER ceygreen

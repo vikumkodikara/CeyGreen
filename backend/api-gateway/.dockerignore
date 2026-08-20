@@ -1,4 +1,5 @@
-target/
+target/*
+!target/api-gateway-*.jar
 .tools/
 *.log
 .idea/

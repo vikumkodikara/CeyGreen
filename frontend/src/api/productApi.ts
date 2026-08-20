@@ -7,6 +7,20 @@ import {
   ProductUpdateRequest,
 } from '../types/product';
 
+/** Older service builds returned a bare array instead of a Spring Page object. */
+const asPage = <T>(data: PageResponse<T> | T[]): PageResponse<T> => {
+  if (Array.isArray(data)) {
+    return {
+      content: data,
+      totalElements: data.length,
+      totalPages: data.length > 0 ? 1 : 0,
+      number: 0,
+      size: data.length,
+    };
+  }
+  return data;
+};
+
 const buildParams = (params: ProductListParams = {}) => {
   const query: Record<string, string | number | boolean> = {};
   if (params.q) query.q = params.q;
@@ -24,8 +38,8 @@ const buildParams = (params: ProductListParams = {}) => {
 };
 
 export const listProducts = async (params: ProductListParams = {}): Promise<PageResponse<Product>> => {
-  const res = await apiClient.get<PageResponse<Product>>('/products', { params: buildParams(params) });
-  return res.data;
+  const res = await apiClient.get<PageResponse<Product> | Product[]>('/products', { params: buildParams(params) });
+  return asPage(res.data);
 };
 
 export const listFeaturedProducts = async (limit = 8): Promise<Product[]> => {
@@ -34,8 +48,13 @@ export const listFeaturedProducts = async (limit = 8): Promise<Product[]> => {
 };
 
 export const listCategories = async (): Promise<string[]> => {
-  const res = await apiClient.get<string[]>('/products/categories');
-  return res.data;
+  try {
+    const res = await apiClient.get<string[]>('/products/categories');
+    return res.data;
+  } catch {
+    // Backward compatible when an older service build lacks /categories.
+    return [];
+  }
 };
 
 export const listLowStockProducts = async (): Promise<Product[]> => {
@@ -47,10 +66,10 @@ export const listFarmerProducts = async (
   farmerId: string,
   params: ProductListParams = {}
 ): Promise<PageResponse<Product>> => {
-  const res = await apiClient.get<PageResponse<Product>>(`/products/farmer/${farmerId}`, {
+  const res = await apiClient.get<PageResponse<Product> | Product[]>(`/products/farmer/${farmerId}`, {
     params: buildParams(params),
   });
-  return res.data;
+  return asPage(res.data);
 };
 
 export const getProduct = async (id: number): Promise<Product> => {

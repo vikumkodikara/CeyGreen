@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "CeyGreen — E-Commerce Marketplace (Student 4)",
+    "description": "Marketplace API via API Gateway (port 8080).\n\n**Before testing marketplace endpoints:**\n1. Start stack: `docker compose up -d postgres kafka redis user-diagnosis-service api-gateway ecommerce-service`\n2. Run **Auth → Login Farmer** or **Login Buyer** to save JWT tokens.\n3. Collection variable `apiKey` = `ceygreen-dev-api-key` (required on every request).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "apiKey", "value": "ceygreen-dev-api-key" },
+    { "key": "farmerToken", "value": "" },
+    { "key": "buyerToken", "value": "" },
+    { "key": "farmerId", "value": "" },
+    { "key": "buyerId", "value": "" },
+    { "key": "productId", "value": "1" },
+    { "key": "orderId", "value": "1" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "X-API-Key", "type": "string" },
+      { "key": "value", "value": "{{apiKey}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'X-API-Key', value: pm.collectionVariables.get('apiKey') || 'ceygreen-dev-api-key' });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "0 — Auth (get JWT first)",
+      "item": [
+        {
+          "name": "Register Farmer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Viva Farmer\",\n  \"email\": \"viva.farmer@ceygreen.test\",\n  \"password\": \"Test1234!\",\n  \"role\": \"FARMER\",\n  \"farmLocation\": \"Kandy\",\n  \"contactInfo\": \"0771111111\"\n}"
+            },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Register Buyer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Viva Buyer\",\n  \"email\": \"viva.buyer@ceygreen.test\",\n  \"password\": \"Test1234!\",\n  \"role\": \"BUYER\",\n  \"contactInfo\": \"0772222222\"\n}"
+            },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Login Farmer (saves token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  pm.collectionVariables.set('farmerToken', j.access_token);",
+                  "  pm.collectionVariables.set('farmerId', j.user_id);",
+                  "  console.log('Farmer token saved! farmerId=' + j.user_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"viva.farmer@ceygreen.test\",\n  \"password\": \"Test1234!\"\n}"
+            },
+            "url": "{{baseUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Login Buyer (saves token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const j = pm.response.json();",
+                  "  pm.collectionVariables.set('buyerToken', j.access_token);",
+                  "  pm.collectionVariables.set('buyerId', j.user_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"viva.buyer@ceygreen.test\",\n  \"password\": \"Test1234!\"\n}"
+            },
+            "url": "{{baseUrl}}/users/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 — Products",
+      "item": [
+        {
+          "name": "List products (paginated)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?q=tomato&inStock=true&sort=newest&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "q", "value": "tomato" },
+                { "key": "inStock", "value": "true" },
+                { "key": "sort", "value": "newest" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get product by ID",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        },
+        {
+          "name": "List categories",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/products/categories"
+          }
+        },
+        {
+          "name": "Featured products",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/products/featured?limit=8"
+          }
+        },
+        {
+          "name": "Low stock (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/products/low-stock"
+          }
+        },
+        {
+          "name": "Farmer product list",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/products/farmer/{{farmerId}}?page=0&size=20"
+          }
+        },
+        {
+          "name": "Create product (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropName\": \"Tomato\",\n  \"quantity\": 25,\n  \"unitPrice\": 150.00,\n  \"harvestDate\": \"2026-08-18\",\n  \"location\": \"Kandy\",\n  \"description\": \"Greenhouse Roma tomatoes for viva demo\"\n}"
+            },
+            "url": "{{baseUrl}}/products"
+          }
+        },
+        {
+          "name": "Update product (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 30,\n  \"unitPrice\": 165.00\n}" },
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        },
+        {
+          "name": "Patch stock (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 15\n}" },
+            "url": "{{baseUrl}}/products/{{productId}}/stock"
+          }
+        },
+        {
+          "name": "Patch status active/inactive (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"active\": true\n}" },
+            "url": "{{baseUrl}}/products/{{productId}}/status"
+          }
+        },
+        {
+          "name": "Delete product (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 — Orders",
+      "item": [
+        {
+          "name": "Checkout batch (buyer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"productId\": 1, \"quantity\": 2 }\n  ],\n  \"buyerName\": \"Viva Buyer\",\n  \"phone\": \"0772222222\",\n  \"address\": \"123 Green Lane\",\n  \"city\": \"Kandy\",\n  \"postalCode\": \"20000\"\n}"
+            },
+            "url": "{{baseUrl}}/orders/checkout"
+          }
+        },
+        {
+          "name": "My orders (buyer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/my-orders?page=0&size=20"
+          }
+        },
+        {
+          "name": "Farmer orders",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/farmer?page=0&size=20"
+          }
+        },
+        {
+          "name": "Get order by ID",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{buyerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Update order status (farmer)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"CONFIRMED\"\n}" },
+            "url": "{{baseUrl}}/orders/{{orderId}}/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 — Dashboard",
+      "item": [
+        {
+          "name": "Farmer dashboard summary",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{farmerToken}}", "type": "string" }] },
+            "method": "GET",
+            "url": "{{baseUrl}}/dashboard/summary"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 — Health (no JWT)",
+      "item": [
+        {
+          "name": "Gateway health",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "http://localhost:8080/actuator/health" }
+        },
+        {
+          "name": "E-Commerce direct health",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8084/actuator/health"
+          }
+        }
+      ]
+    }
+  ]
+}

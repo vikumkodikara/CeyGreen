@@ -13,7 +13,6 @@ import { useToast } from '../../context/ToastContext';
 import { Product } from '../../types/product';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 export const MarketplaceBrowsePage: React.FC = () => {
   const navigate = useNavigate();
@@ -103,7 +102,7 @@ export const MarketplaceBrowsePage: React.FC = () => {
         </div>
       </Card>
 
-      {error && <div className="marketplace-alert error">{error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
       {loading ? (
         <div className="marketplace-skeleton-grid">

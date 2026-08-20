@@ -10,7 +10,6 @@ import { useCart } from '../../hooks/useCart';
 import { useToast } from '../../context/ToastContext';
 import { Product } from '../../types/product';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,7 +45,7 @@ export const ProductDetailPage: React.FC = () => {
   if (error || !product) {
     return (
       <div className="marketplace-page">
-        <div className="marketplace-alert error">{error || 'Not found'}</div>
+        <div className="alert alert-error">{error || 'Not found'}</div>
         <Link to="/marketplace"><Button variant="secondary">Back to marketplace</Button></Link>
       </div>
     );
@@ -76,7 +75,6 @@ export const ProductDetailPage: React.FC = () => {
             {inStock ? `${product.quantity} kg available` : 'Out of stock'} · Status: {product.status}
           </p>
           {product.description && <p className="product-description">{product.description}</p>}
-          <p className="marketplace-meta">Farmer ID: {product.farmerId}</p>
 
           {isBuyer && inStock && (
             <div className="product-detail-actions">
