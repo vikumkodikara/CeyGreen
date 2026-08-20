@@ -65,4 +65,11 @@ public class TreatmentController {
         return treatmentService.updateTreatment(id, request);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
+    public void deleteTreatment(@PathVariable Long id, @RequestParam String farmerId) {
+        treatmentService.deleteTreatment(id, farmerId);
+    }
+
 }
