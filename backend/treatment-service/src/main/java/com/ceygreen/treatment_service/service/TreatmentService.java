@@ -17,6 +17,8 @@ import com.ceygreen.treatment_service.util.DiseaseNameUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -29,7 +31,7 @@ public class TreatmentService {
     private final TreatmentRatingRepository ratingRepository;
     private final TreatmentEventProducer eventProducer;
 
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<TreatmentResponse> getTreatmentsByDisease(String diseaseName) {
         String normalized = DiseaseNameUtil.normalize(diseaseName);
         List<Treatment> treatments = treatmentRepository.findByDisease_NormalizedNameAndActiveTrue(normalized);
@@ -45,6 +47,7 @@ public class TreatmentService {
         return treatments.stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<TreatmentResponse> searchTreatments(String crop, String severity, String type) {
         List<Treatment> results;
         if (crop != null && severity != null) {
@@ -65,6 +68,7 @@ public class TreatmentService {
         return results.stream().map(this::toResponse).toList();
     }
 
+    @Transactional
     public TreatmentResponse createTreatment(TreatmentRequest request) {
         String normalized = DiseaseNameUtil.normalize(request.diseaseName());
         Disease disease = diseaseRepository.findByNormalizedName(normalized)
@@ -87,6 +91,7 @@ public class TreatmentService {
         return toResponse(treatmentRepository.save(treatment));
     }
 
+    @Transactional
     public TreatmentResponse updateTreatment(Long id, TreatmentRequest request) {
         Treatment treatment = treatmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
@@ -102,6 +107,7 @@ public class TreatmentService {
         return toResponse(treatmentRepository.save(treatment));
     }
 
+    @Transactional
     public void rateTreatment(Long id, RatingRequest request) {
         Treatment treatment = treatmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
@@ -119,6 +125,7 @@ public class TreatmentService {
         ratingRepository.save(rating);
     }
 
+    @Transactional(readOnly = true)
     public List<TreatmentResponse> getAlternatives(Long id) {
         Treatment treatment = treatmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
@@ -133,6 +140,22 @@ public class TreatmentService {
         }
 
         return alternatives.stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public void deleteTreatment(Long id, String farmerId) {
+        Treatment treatment = treatmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Treatment not found: " + id));
+
+        if (treatment.getAddedByFarmerId() == null || !treatment.getAddedByFarmerId().equals(farmerId)) {
+            throw new RuntimeException("Unauthorized: You can only delete treatments you added.");
+        }
+
+        // Before deleting treatment, we must delete associated ratings to avoid foreign key constraints
+        List<TreatmentRating> ratings = ratingRepository.findByTreatmentId(id);
+        ratingRepository.deleteAll(ratings);
+
+        treatmentRepository.delete(treatment);
     }
 
     private TreatmentResponse toResponse(Treatment t) {

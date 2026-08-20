@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop, createTreatment } from '../api/treatments';
+import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop, createTreatment, deleteTreatment } from '../api/treatments';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -201,6 +201,26 @@ export const TreatmentsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteRemedy = async (id: number) => {
+    if (!user) return;
+    if (!window.confirm("Are you sure you want to delete this remedy?")) return;
+    setLoading(true);
+    try {
+      const farmerId = user.farmerId || user.id;
+      await deleteTreatment(id, farmerId);
+      alert('Remedy deleted successfully!');
+      if (diseaseSearch) {
+        handleSearch(new Event('submit') as any);
+      } else {
+        setTreatments(prev => prev.filter(t => t.id !== id));
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete remedy');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page-wrap" style={{ maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -393,8 +413,18 @@ export const TreatmentsPage: React.FC = () => {
               {displayedTreatments.map((t) => (
                 <Card key={t.id} title={t.productName} subtitle={`For ${t.diseaseName}`}>
                   {t.addedByFarmerName && (
-                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                      🧑‍🌾 Added by Community Farmer: <strong>{t.addedByFarmerName}</strong>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                        🧑‍🌾 Added by Community Farmer: <strong>{t.addedByFarmerName}</strong>
+                      </div>
+                      {user && (user.farmerId === t.addedByFarmerId || user.id === t.addedByFarmerId) && (
+                        <button 
+                          onClick={() => handleDeleteRemedy(t.id)}
+                          style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', border: '1px solid #EF4444', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      )}
                     </div>
                   )}
                   <div className="treatment-meta" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>

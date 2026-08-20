@@ -34,3 +34,7 @@ export const getTreatmentAlternatives = async (id: number): Promise<Treatment[]>
   const res = await apiClient.get<Treatment[]>(`/treatments/${id}/alternatives`);
   return res.data;
 };
+
+export const deleteTreatment = async (id: number, farmerId: string): Promise<void> => {
+  await apiClient.delete(`/treatments/${id}`, { params: { farmerId } });
+};
