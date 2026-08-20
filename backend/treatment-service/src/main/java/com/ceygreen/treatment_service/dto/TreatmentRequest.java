@@ -12,5 +12,7 @@ public record TreatmentRequest(
         String safetyNotes,
         String cropType,
         String severity,
-        @NotNull(message = "Active status is required") Boolean active) {
+        @NotNull(message = "Active status is required") Boolean active,
+        String addedByFarmerId,
+        String addedByFarmerName) {
 }
