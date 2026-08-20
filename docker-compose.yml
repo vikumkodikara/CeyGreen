@@ -210,7 +210,9 @@ services:
       FIREBASE_ENABLED: ${FIREBASE_ENABLED:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
       FIREBASE_DATABASE_URL: ${FIREBASE_DATABASE_URL:-}
-      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/app/config/firebase-service-account.json}
+    volumes:
+      - ./iot-service/config:/app/config:ro
     depends_on:
       kafka:
         condition: service_healthy
