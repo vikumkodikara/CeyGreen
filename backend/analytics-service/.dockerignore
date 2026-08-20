@@ -1,5 +1,5 @@
 target/*
-!target/ecommerce-service-*.jar
+!target/analytics-service-*.jar
 data/
 .tools/
 *.log
