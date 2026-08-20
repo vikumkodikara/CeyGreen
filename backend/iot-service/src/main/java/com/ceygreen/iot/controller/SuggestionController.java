@@ -2,6 +2,9 @@ package com.ceygreen.iot.controller;
 
 import com.ceygreen.iot.dto.SuggestionResponse;
 import com.ceygreen.iot.service.SuggestionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,11 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * REST API for greenhouse suggestions shown on the web dashboard.
- */
 @RestController
 @RequestMapping("/iot/suggestions")
+@Tag(name = "Suggestions", description = "Current rule-engine actions per zone.")
+@SecurityRequirement(name = "apiKey")
 public class SuggestionController {
 
     private final SuggestionService suggestionService;
@@ -23,6 +25,7 @@ public class SuggestionController {
     }
 
     @GetMapping("/{greenhouseId}")
+    @Operation(summary = "List suggestions", description = "Recommended actions from the latest ingest.")
     public List<SuggestionResponse> list(@PathVariable String greenhouseId) {
         return suggestionService.listByGreenhouse(greenhouseId);
     }

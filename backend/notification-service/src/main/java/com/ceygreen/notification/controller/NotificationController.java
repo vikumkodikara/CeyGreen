@@ -5,10 +5,14 @@ import com.ceygreen.notification.model.NotificationLog;
 import com.ceygreen.notification.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
 @RequestMapping("/notify")
+@Tag(name = "Notifications")
+@SecurityRequirement(name = "apiKey")
 public class NotificationController {
     private final NotificationService notificationService;
 

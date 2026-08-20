@@ -82,6 +82,7 @@ public class GatewayProperties {
                 "/api/users/register",
                 "/api/users/login",
                 "/api/iot/**",
+                "/docs",
                 "/actuator/health",
                 "/actuator/health/**",
                 "/actuator/info"));
