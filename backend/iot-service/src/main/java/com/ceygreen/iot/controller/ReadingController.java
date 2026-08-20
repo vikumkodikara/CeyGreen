@@ -4,6 +4,10 @@ import com.ceygreen.iot.common.ApiException;
 import com.ceygreen.iot.dto.SensorReadingRequest;
 import com.ceygreen.iot.dto.SensorReadingResponse;
 import com.ceygreen.iot.service.ReadingService;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,13 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * ESP32 ingest and dashboard latest reading.
- * Report CRUD pair: {@code POST /iot/readings}.
- * {@code GET /iot/readings/{id}/latest} is the extra dashboard read (still within the 3–5 rule).
- */
 @RestController
 @RequestMapping("/iot/readings")
+@Tag(name = "Readings", description = "ESP32 ingest and latest live reading.")
+@SecurityRequirement(name = "apiKey")
 public class ReadingController {
 
     private final ReadingService readingService;
@@ -29,6 +30,7 @@ public class ReadingController {
         this.readingService = readingService;
     }
 
+    @Hidden
     @GetMapping
     public SensorReadingResponse listNotSupported() {
         throw new ApiException(
@@ -38,15 +40,18 @@ public class ReadingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Ingest reading", description = "Writes through to Firebase and runs the rule engine.")
     public SensorReadingResponse ingest(@Valid @RequestBody SensorReadingRequest request) {
         return readingService.ingest(request);
     }
 
     @GetMapping("/{greenhouseId}/latest")
+    @Operation(summary = "Latest reading", description = "Dashboard meters for one greenhouse.")
     public SensorReadingResponse latest(@PathVariable String greenhouseId) {
         return readingService.latest(greenhouseId);
     }
 
+    @Hidden
     @PostMapping("/{greenhouseId}/latest")
     public SensorReadingResponse latestViaPost(@PathVariable String greenhouseId) {
         throw new ApiException(
