@@ -24,34 +24,68 @@
    ========================================================================== */
 
 .auth-shell {
-  /* Local design tokens -- keeps the rhythm consistent in one place. */
-  --auth-card-w: 940px;
-  --auth-card-min-h: 680px; /* Reduced to fit laptop viewports without triggering outer scroll */
-  --auth-pad: clamp(1.5rem, 2.5vw, 2.25rem);
-  --auth-field-gap: 0.85rem; /* Reduced to compact the form */
-  --auth-col-gap: 1rem;
-  --auth-radius: 20px;
-  --auth-ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --auth-card-w: 960px;
+  --auth-card-min-h: min(680px, calc(100dvh - 7rem));
+  --auth-pad: clamp(1.35rem, 2.4vw, 2.1rem);
+  --auth-field-gap: 0.9rem;
+  --auth-col-gap: 0.9rem;
+  --auth-radius: 24px;
+  --auth-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --auth-mint: #e7f4ec;
 
+  position: relative;
+  isolation: isolate;
   height: 100vh;
-  height: 100dvh; /* survives mobile browser chrome */
+  height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: clamp(1rem, 3.5vh, 2.25rem) clamp(0.85rem, 3vw, 1.5rem);
   background:
-    radial-gradient(circle at 20% 20%, #157a4e 0%, transparent 42%),
-    radial-gradient(circle at 90% 80%, #0a2f24 0%, transparent 45%),
+    radial-gradient(circle at 18% 12%, #1a8a58 0%, transparent 38%),
+    radial-gradient(circle at 88% 86%, #07241c 0%, transparent 42%),
     var(--jade);
 }
 
-/* Grows beyond 100% when the form is tall -> centred content never clips. */
+.auth-glow {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  animation: auth-float 14s ease-in-out infinite;
+}
+
+.auth-glow--a {
+  width: min(42vw, 320px);
+  height: min(42vw, 320px);
+  top: -8%;
+  left: -6%;
+  background: rgba(46, 184, 112, 0.35);
+}
+
+.auth-glow--b {
+  width: min(48vw, 380px);
+  height: min(48vw, 380px);
+  right: -8%;
+  bottom: -10%;
+  background: rgba(8, 40, 30, 0.55);
+  animation-delay: -6s;
+}
+
+@keyframes auth-float {
+  0%,
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(18px, -22px, 0) scale(1.08); }
+}
+
 .auth-viewport {
   min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   gap: clamp(1.1rem, 2.5vh, 1.75rem);
 }
 
@@ -65,14 +99,27 @@
 
 .auth-container {
   position: relative;
-  overflow: hidden; /* required to clip the sliding panels */
+  overflow: hidden;
   width: 100%;
   max-width: var(--auth-card-w);
   min-height: var(--auth-card-min-h);
+  height: var(--auth-card-min-h);
   flex: 0 0 auto;
   background-color: var(--white);
   border-radius: var(--auth-radius);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 28px 70px rgba(4, 28, 20, 0.38);
+  animation: auth-card-in 0.7s var(--auth-ease) both;
+}
+
+@keyframes auth-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* --------------------------------------------------------------- panels --- */
@@ -85,33 +132,25 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* Custom padding: smaller top to move content up, large horizontal for sides */
-  padding: 1.25rem var(--auth-pad) 0 var(--auth-pad);
-  overflow-y: hidden; /* Remove internal scrollbar, rely on outer auth-shell scroll if needed */
+  padding: 1.35rem var(--auth-pad) 1.5rem;
   overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
   background-color: var(--white);
-  /* Animate only compositable properties (was `all`, which thrashed layout). */
   transition:
-    transform 0.6s var(--auth-ease),
-    opacity 0.45s ease-in-out;
+    transform 0.7s var(--auth-ease),
+    opacity 0.45s ease;
 }
 
-/* Flex spacers: centre short forms, collapse to 0 for tall ones. */
-.form-container::before {
-  content: '';
-  flex: 1 1 0%;
-  min-height: 0;
+.form-container::-webkit-scrollbar {
+  width: 8px;
 }
 
-/* Lock the tall sign-up form to the top so it doesn't shift when container height increases */
-.sign-up-container::before {
-  flex: 0 0 0%;
-}
-
-.form-container::after {
-  content: '';
-  flex: 1 1 0%;
-  min-height: 2.5rem; /* Larger gap below the button */
+.form-container::-webkit-scrollbar-thumb {
+  background: #b7dcc6;
+  border-radius: 999px;
 }
 
 .form-container form {
@@ -119,9 +158,24 @@
   flex-direction: column;
   width: 100%;
   gap: var(--auth-field-gap);
-  /* flex-shrink:0 is essential -- otherwise the form is squashed (and its
-     content clipped) instead of scrolling when it overflows the panel. */
   flex: 0 0 auto;
+  margin-block: auto;
+  animation: auth-form-in 0.55s var(--auth-ease) both;
+}
+
+.sign-up-container form {
+  margin-block: 0 auto;
+}
+
+@keyframes auth-form-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .sign-in-container {
@@ -146,7 +200,7 @@
   transform: translateX(100%);
   opacity: 1;
   z-index: 5;
-  animation: auth-panel-show 0.6s;
+  animation: auth-panel-show 0.7s var(--auth-ease);
 }
 
 /* Keeps the inactive panel unreachable by keyboard/pointer mid-transition. */
@@ -227,7 +281,24 @@
 }
 
 .auth-container .input-group input {
-  min-height: 46px;
+  min-height: 48px;
+  background: var(--auth-mint);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-container .input-group input:hover {
+  border-color: #b7dcc6;
+}
+
+.auth-container .input-group input:focus {
+  background: #fff;
+  border-color: var(--leaf);
+  box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
 /* Label + control cluster with its own tight internal rhythm. */
@@ -277,14 +348,16 @@
   text-align: left;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
 }
 
 .auth-container .role-option:hover {
   border-color: var(--green-line);
   background: var(--foam);
+  transform: translateY(-1px);
 }
 
 .auth-container .role-option:focus-visible {
@@ -352,20 +425,20 @@
 
 .solid-btn {
   width: 100%;
-  min-height: 48px;
-  padding: 0.85rem 1.5rem;
+  min-height: 52px;
+  padding: 0.9rem 1.5rem;
   border: none;
-  border-radius: 999px;
-  background-color: var(--leaf);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #24965c 0%, var(--leaf) 100%);
   color: var(--white);
-  font-size: 0.78rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  box-shadow: 0 10px 22px rgba(31, 138, 84, 0.28);
   transition:
     background-color 0.2s ease,
-    transform 80ms ease-in,
+    transform 0.18s var(--auth-ease),
     box-shadow 0.2s ease;
 }
 
@@ -410,8 +483,8 @@
   pointer-events: none;
   border-radius: 100px 0 0 100px;
   transition:
-    transform 0.6s var(--auth-ease),
-    border-radius 0.6s var(--auth-ease);
+    transform 0.7s var(--auth-ease),
+    border-radius 0.7s var(--auth-ease);
 }
 
 .auth-container.right-panel-active .overlay-container {
@@ -427,7 +500,7 @@
   background: linear-gradient(135deg, var(--jade-2), var(--leaf));
   color: var(--white);
   transform: translateX(0);
-  transition: transform 0.6s var(--auth-ease);
+  transition: transform 0.7s var(--auth-ease);
   pointer-events: auto;
 }
 
@@ -448,7 +521,7 @@
   padding: 2.5rem clamp(1.75rem, 3vw, 2.75rem);
   text-align: center;
   transform: translateX(0);
-  transition: transform 0.6s var(--auth-ease);
+  transition: transform 0.7s var(--auth-ease);
 }
 
 .overlay-panel h1 {
@@ -488,24 +561,26 @@
 }
 
 .ghost-btn {
-  min-height: 46px;
-  padding: 0.8rem 2.75rem;
+  min-height: 48px;
+  padding: 0.8rem 2.4rem;
   border: 1.5px solid rgba(255, 255, 255, 0.9);
   border-radius: 999px;
   background-color: transparent;
   color: var(--white);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   cursor: pointer;
   transition:
     background-color 0.2s ease,
-    transform 80ms ease-in;
+    transform 0.18s var(--auth-ease),
+    box-shadow 0.2s ease;
 }
 
 .ghost-btn:hover {
-  background-color: rgba(255, 255, 255, 0.14);
+  background-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }
 
 .ghost-btn:active {
@@ -567,7 +642,8 @@
 
   .auth-container {
     min-height: 0;
-    border-radius: 16px;
+    height: auto;
+    border-radius: 22px 22px 0 0;
   }
 
   .overlay-container {
@@ -578,11 +654,13 @@
     position: relative;
     width: 100%;
     height: auto;
+    max-height: none;
     overflow: visible;
     opacity: 1;
     transform: none;
     transition: none;
     animation: none;
+    padding-bottom: 1.75rem;
   }
 
   /* Spacers would add dead space in a height:auto panel. */
@@ -629,7 +707,7 @@
 /* Short viewports (landscape phones): let the card breathe vertically. */
 @media (max-height: 700px) and (min-width: 769px) {
   .auth-shell {
-    --auth-card-min-h: 560px;
+    --auth-card-min-h: min(560px, calc(100dvh - 5.5rem));
   }
 }
 
@@ -640,9 +718,11 @@
   .overlay-panel,
   .solid-btn,
   .ghost-btn,
-  .auth-container .role-option {
+  .auth-container .role-option,
+  .auth-container,
+  .auth-glow {
     transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
+    animation: none !important;
   }
 
   .solid-btn:active,
