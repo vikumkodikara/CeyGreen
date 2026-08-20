@@ -26,9 +26,9 @@
 .auth-shell {
   /* Local design tokens -- keeps the rhythm consistent in one place. */
   --auth-card-w: 940px;
-  --auth-card-min-h: 640px;
-  --auth-pad: clamp(1.75rem, 2.6vw, 2.5rem);
-  --auth-field-gap: 1.05rem;
+  --auth-card-min-h: 680px; /* Reduced to fit laptop viewports without triggering outer scroll */
+  --auth-pad: clamp(1.5rem, 2.5vw, 2.25rem);
+  --auth-field-gap: 0.85rem; /* Reduced to compact the form */
   --auth-col-gap: 1rem;
   --auth-radius: 20px;
   --auth-ease: cubic-bezier(0.65, 0, 0.35, 1);
@@ -85,9 +85,9 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* Uniform padding on all four sides -- no element can touch an edge. */
-  padding: var(--auth-pad);
-  overflow-y: auto;
+  /* Custom padding: smaller top to move content up, large horizontal for sides */
+  padding: 1.25rem var(--auth-pad) 0 var(--auth-pad);
+  overflow-y: hidden; /* Remove internal scrollbar, rely on outer auth-shell scroll if needed */
   overflow-x: hidden;
   background-color: var(--white);
   /* Animate only compositable properties (was `all`, which thrashed layout). */
@@ -97,11 +97,21 @@
 }
 
 /* Flex spacers: centre short forms, collapse to 0 for tall ones. */
-.form-container::before,
-.form-container::after {
+.form-container::before {
   content: '';
   flex: 1 1 0%;
   min-height: 0;
+}
+
+/* Lock the tall sign-up form to the top so it doesn't shift when container height increases */
+.sign-up-container::before {
+  flex: 0 0 0%;
+}
+
+.form-container::after {
+  content: '';
+  flex: 1 1 0%;
+  min-height: 2.5rem; /* Larger gap below the button */
 }
 
 .form-container form {
@@ -200,7 +210,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: var(--auth-col-gap);
   row-gap: var(--auth-field-gap);
-  align-items: start;
+  align-items: end;
 }
 
 .input-group--single {
