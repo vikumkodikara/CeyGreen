@@ -4,10 +4,10 @@ import { getOrder } from '../../api/orderApi';
 import { OrderStatusTimeline } from '../../components/marketplace';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { Spinner } from '../../components/ui/Spinner';
 import { Order } from '../../types/order';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 export const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +27,7 @@ export const OrderDetailPage: React.FC = () => {
   if (error || !order) {
     return (
       <div className="marketplace-page">
-        <div className="marketplace-alert error">{error}</div>
+        <div className="alert alert-error">{error}</div>
         <Link to="/marketplace/orders"><Button variant="secondary">Back to orders</Button></Link>
       </div>
     );
@@ -36,7 +36,7 @@ export const OrderDetailPage: React.FC = () => {
   return (
     <div className="marketplace-page">
       <Link to="/marketplace/orders" className="marketplace-back">← My orders</Link>
-      <h1>Order #{order.id}</h1>
+      <PageHeader title={`Order #${order.id}`} subtitle={`Placed ${new Date(order.orderedAt).toLocaleString()}`} />
 
       <Card>
         <OrderStatusTimeline status={order.status} />

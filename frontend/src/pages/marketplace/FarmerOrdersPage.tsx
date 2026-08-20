@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { getFarmerOrders, updateOrderStatus } from '../../api/orderApi';
 import { ConfirmDialog } from '../../components/marketplace';
 import { Button } from '../../components/ui/Button';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { Spinner } from '../../components/ui/Spinner';
 import { Order, OrderStatus } from '../../types/order';
 import { useToast } from '../../context/ToastContext';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
   PENDING: 'CONFIRMED',
@@ -52,59 +52,64 @@ export const FarmerOrdersPage: React.FC = () => {
 
   return (
     <div className="marketplace-page">
-      <h1>Farmer Orders</h1>
-      <div className="orders-table-wrap">
-        <table className="marketplace-table">
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Product</th>
-              <th>Qty</th>
-              <th>Total</th>
-              <th>Buyer</th>
-              <th>Status</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => {
-              const next = NEXT_STATUS[o.status];
-              return (
-                <tr key={o.id}>
-                  <td>#{o.id}</td>
-                  <td>{o.cropName}</td>
-                  <td>{o.quantity}</td>
-                  <td>Rs. {o.totalPrice.toFixed(2)}</td>
-                  <td>{o.buyerName || o.buyerId.slice(0, 8)}</td>
-                  <td><span className={`status-badge status-${o.status.toLowerCase()}`}>{o.status}</span></td>
-                  <td>{new Date(o.orderedAt).toLocaleDateString()}</td>
-                  <td>
-                    {next && (
-                      <Button
-                        size="sm"
-                        onClick={() => setPendingUpdate({ order: o, status: next })}
-                        disabled={actionId === o.id}
-                      >
-                        Mark {next.toLowerCase()}
-                      </Button>
-                    )}
-                    {o.status === 'PENDING' && (
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => setPendingUpdate({ order: o, status: 'CANCELLED' })}
-                      >
-                        Cancel
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <PageHeader title="Farmer Orders" subtitle="Confirm, ship, and fulfil buyer orders." />
+
+      {orders.length === 0 ? (
+        <div className="marketplace-empty glass-panel">No orders yet.</div>
+      ) : (
+        <div className="orders-table-wrap">
+          <table className="marketplace-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Buyer</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => {
+                const next = NEXT_STATUS[o.status];
+                return (
+                  <tr key={o.id}>
+                    <td>#{o.id}</td>
+                    <td>{o.cropName}</td>
+                    <td>{o.quantity}</td>
+                    <td>Rs. {o.totalPrice.toFixed(2)}</td>
+                    <td>{o.buyerName || o.buyerId.slice(0, 8)}</td>
+                    <td><span className={`status-badge status-${o.status.toLowerCase()}`}>{o.status}</span></td>
+                    <td>{new Date(o.orderedAt).toLocaleDateString()}</td>
+                    <td>
+                      {next && (
+                        <Button
+                          size="sm"
+                          onClick={() => setPendingUpdate({ order: o, status: next })}
+                          disabled={actionId === o.id}
+                        >
+                          Mark {next.toLowerCase()}
+                        </Button>
+                      )}
+                      {o.status === 'PENDING' && (
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => setPendingUpdate({ order: o, status: 'CANCELLED' })}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <ConfirmDialog
         open={pendingUpdate != null}

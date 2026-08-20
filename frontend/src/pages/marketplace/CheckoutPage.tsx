@@ -4,11 +4,11 @@ import { checkout } from '../../api/orderApi';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
 import { useToast } from '../../context/ToastContext';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,14 +25,21 @@ export const CheckoutPage: React.FC = () => {
   const [postalCode, setPostalCode] = useState('');
 
   if (user?.role !== 'BUYER') {
-    return <div className="marketplace-alert error">Only buyers can checkout.</div>;
+    return (
+      <div className="marketplace-page">
+        <div className="alert alert-error">Only buyers can checkout.</div>
+      </div>
+    );
   }
 
   if (items.length === 0) {
     return (
       <div className="marketplace-page">
-        <p>Your cart is empty.</p>
-        <Link to="/marketplace"><Button>Browse products</Button></Link>
+        <PageHeader title="Checkout" />
+        <div className="marketplace-empty glass-panel">
+          <p>Your cart is empty.</p>
+          <Link to="/marketplace"><Button>Browse products</Button></Link>
+        </div>
       </div>
     );
   }
@@ -71,8 +78,8 @@ export const CheckoutPage: React.FC = () => {
 
   return (
     <div className="marketplace-page">
-      <h1>Checkout</h1>
-      {error && <div className="marketplace-alert error">{error}</div>}
+      <PageHeader title="Checkout" subtitle="Enter shipping details to complete your order." />
+      {error && <div className="alert alert-error">{error}</div>}
 
       <div className="checkout-layout">
         <Card title="Shipping information">

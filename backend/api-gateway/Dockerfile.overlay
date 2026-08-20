@@ -1,0 +1,6 @@
+# Fast local rebuild: overlay a Maven-built JAR onto the existing runtime image.
+FROM ceygreen-api-gateway:latest
+USER root
+COPY target/api-gateway-*.jar /app/app.jar
+RUN chown ceygreen:ceygreen /app/app.jar
+USER ceygreen

@@ -93,7 +93,7 @@ public class ProductController {
                 farmerId, parseStatus(status), sort, pageable));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProduct(id));
     }
@@ -107,7 +107,7 @@ public class ProductController {
                 .body(productService.createProduct(RequestIdentity.requireFarmerId(request), body));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<ProductResponse> updateProduct(
             HttpServletRequest request,
             @PathVariable Long id,
@@ -117,7 +117,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProduct(id, farmerId, role, body));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<Void> deleteProduct(HttpServletRequest request, @PathVariable Long id) {
         UserRole role = RequestIdentity.requireRole(request, UserRole.FARMER, UserRole.ADMIN);
         UUID farmerId = role == UserRole.ADMIN ? null : RequestIdentity.requireFarmerId(request);
@@ -125,7 +125,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/stock")
+    @PatchMapping("/{id:\\d+}/stock")
     public ResponseEntity<ProductResponse> updateStock(
             HttpServletRequest request,
             @PathVariable Long id,
@@ -135,7 +135,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateStock(id, farmerId, role, body));
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{id:\\d+}/status")
     public ResponseEntity<ProductResponse> updateStatus(
             HttpServletRequest request,
             @PathVariable Long id,
