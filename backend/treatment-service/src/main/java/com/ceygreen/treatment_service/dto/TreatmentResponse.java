@@ -17,5 +17,7 @@ public record TreatmentResponse(
         Integer effectivenessScore,
         Double averageRating,
         List<RatingResponse> reviews,
-        boolean active) {
+        boolean active,
+        String addedByFarmerId,
+        String addedByFarmerName) {
 }
