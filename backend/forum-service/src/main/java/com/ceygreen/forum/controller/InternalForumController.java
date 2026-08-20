@@ -7,12 +7,14 @@ import com.ceygreen.forum.service.SimilarityService;
 import com.ceygreen.forum.kafka.ForumEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Hidden;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+@Hidden
 @RestController
 @RequestMapping("/internal/posts")
 public class InternalForumController {

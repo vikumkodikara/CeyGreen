@@ -26,11 +26,15 @@ export const getTreatmentsByCrop = async (cropName: string): Promise<Treatment[]
   return res.data;
 };
 
-export const rateTreatment = async (id: number, farmerId: string, rating: number): Promise<void> => {
-  await apiClient.post(`/treatments/${id}/rate`, { farmerId, rating });
+export const rateTreatment = async (id: number, farmerId: string, farmerName: string, rating: number, comment: string): Promise<void> => {
+  await apiClient.post(`/treatments/${id}/rate`, { farmerId, farmerName, rating, comment });
 };
 
 export const getTreatmentAlternatives = async (id: number): Promise<Treatment[]> => {
   const res = await apiClient.get<Treatment[]>(`/treatments/${id}/alternatives`);
   return res.data;
+};
+
+export const deleteTreatment = async (id: number, farmerId: string): Promise<void> => {
+  await apiClient.delete(`/treatments/${id}`, { params: { farmerId } });
 };

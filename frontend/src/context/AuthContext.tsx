@@ -18,22 +18,43 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem('ceygreen_token');
+  const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem('ceygreen_user');
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
+    if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        return JSON.parse(storedUser);
       } catch {
         localStorage.removeItem('ceygreen_user');
       }
     }
-  }, []);
+    
+    // IoT Demo mode fallback if no user exists
+    if (import.meta.env.VITE_IOT_ONLY === 'true') {
+      const demoUser: User = {
+        id: 'farmer-001',
+        email: 'iot-demo@ceygreen.local',
+        name: 'IoT Demo Farmer',
+        role: 'FARMER',
+        farmerId: 'farmer-001',
+      };
+      localStorage.setItem('ceygreen_user', JSON.stringify(demoUser));
+      return demoUser;
+    }
+    
+    return null;
+  });
+
+  const [token, setToken] = useState<string | null>(() => {
+    const storedToken = localStorage.getItem('ceygreen_token');
+    if (storedToken) return storedToken;
+
+    if (import.meta.env.VITE_IOT_ONLY === 'true') {
+      localStorage.setItem('ceygreen_token', 'iot-demo');
+      return 'iot-demo';
+    }
+
+    return null;
+  });
 
   const loginUser = (token: string, user: User) => {
     setToken(token);
@@ -54,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
-        isAuthenticated: !!token,
+        isAuthenticated: !!token && !!user,
         loginUser,
         logoutUser,
       }}

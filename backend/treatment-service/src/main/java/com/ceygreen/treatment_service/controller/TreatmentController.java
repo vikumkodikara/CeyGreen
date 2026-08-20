@@ -9,13 +9,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/treatments")
 @RequiredArgsConstructor
-
+@Tag(name = "Treatments")
+@SecurityRequirement(name = "apiKey")
 public class TreatmentController {
 
     private final TreatmentService treatmentService;
@@ -51,15 +54,22 @@ public class TreatmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
     public TreatmentResponse create(@Valid @RequestBody TreatmentRequest request) {
         return treatmentService.createTreatment(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
     public TreatmentResponse update(@PathVariable Long id, @Valid @RequestBody TreatmentRequest request) {
         return treatmentService.updateTreatment(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
+    public void deleteTreatment(@PathVariable Long id, @RequestParam String farmerId) {
+        treatmentService.deleteTreatment(id, farmerId);
     }
 
 }

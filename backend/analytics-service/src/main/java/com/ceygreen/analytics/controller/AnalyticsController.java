@@ -6,9 +6,13 @@ import com.ceygreen.analytics.dto.SalesTrendResponse;
 import com.ceygreen.analytics.service.AnalyticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/analytics")
+@Tag(name = "Analytics")
+@SecurityRequirement(name = "apiKey")
 public class AnalyticsController {
     private final AnalyticsService analyticsService;
 

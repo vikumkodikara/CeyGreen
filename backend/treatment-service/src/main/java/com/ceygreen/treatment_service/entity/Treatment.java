@@ -52,6 +52,12 @@ public class Treatment {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(name = "added_by_farmer_id")
+    private String addedByFarmerId;
+
+    @Column(name = "added_by_farmer_name")
+    private String addedByFarmerName;
+
     // Optional relation for ratings if needed
     @OneToMany(mappedBy = "treatment", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<TreatmentRating> ratings = new java.util.ArrayList<>();

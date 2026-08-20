@@ -25,17 +25,22 @@ public class GreenhouseResponse {
         response.farmerId = greenhouse.getFarmerId();
         response.createdAt = greenhouse.getCreatedAt();
 
-        for (Zone zone : greenhouse.getZones().values()) {
-            ZoneSummary summary = new ZoneSummary();
-            summary.zoneId = zone.getZoneId();
-            summary.zoneName = zone.getZoneName();
-            summary.cropType = zone.getCropType();
-            summary.deviceCount = zone.getDevices() != null ? zone.getDevices().size() : 0;
-            if (zone.getDevices() != null && !zone.getDevices().isEmpty()) {
-                Device first = zone.getDevices().values().iterator().next();
-                summary.deviceCode = first.getDeviceCode();
+        if (greenhouse.getZones() != null) {
+            for (Zone zone : greenhouse.getZones().values()) {
+                if (zone == null) {
+                    continue;
+                }
+                ZoneSummary summary = new ZoneSummary();
+                summary.zoneId = zone.getZoneId();
+                summary.zoneName = zone.getZoneName();
+                summary.cropType = zone.getCropType();
+                summary.deviceCount = zone.getDevices() != null ? zone.getDevices().size() : 0;
+                if (zone.getDevices() != null && !zone.getDevices().isEmpty()) {
+                    Device first = zone.getDevices().values().iterator().next();
+                    summary.deviceCode = first.getDeviceCode();
+                }
+                response.zones.add(summary);
             }
-            response.zones.add(summary);
         }
         return response;
     }

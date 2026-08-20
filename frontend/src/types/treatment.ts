@@ -1,3 +1,11 @@
+export interface RatingResponse {
+  farmerId: string;
+  farmerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 export interface Treatment {
   id: number;
   diseaseName: string;
@@ -11,7 +19,10 @@ export interface Treatment {
   brandNames?: string;
   effectivenessScore?: number;
   averageRating?: number;
+  reviews?: RatingResponse[];
   active: boolean;
+  addedByFarmerId?: string;
+  addedByFarmerName?: string;
 }
 
 export interface TreatmentRequest {
@@ -21,4 +32,9 @@ export interface TreatmentRequest {
   dosage?: string;
   frequency?: string;
   safetyNotes?: string;
+  cropType?: string;
+  severity?: string;
+  active: boolean;
+  addedByFarmerId?: string;
+  addedByFarmerName?: string;
 }
