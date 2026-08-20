@@ -1,0 +1,652 @@
+/* ==========================================================================
+   AuthPage — Sign In / Create Account
+   --------------------------------------------------------------------------
+   Layout contract (why it is built this way):
+
+   `index.css` locks the document with `html, body, #root { height: 100vh;
+   overflow: hidden }`. So this page must own its own scroll container,
+   otherwise any card taller than the viewport is silently clipped at the top
+   and bottom with no way to scroll to it.
+
+   The pattern used here:
+     .auth-shell     -> fixed height + overflow-y:auto  (THE scroll container)
+     .auth-viewport  -> min-height:100%  + centred flex (grows past 100%)
+
+   Because the viewport uses `min-height` (not `height`), it expands to fit
+   tall content. Once it has expanded, free space is 0, so `justify-content:
+   center` behaves like `flex-start` -- nothing is ever pushed off the top.
+
+   Inside each panel the same problem is solved with flex spacers
+   (`.form-container::before / ::after`), which grow only into *positive* free
+   space. Short forms (Sign In) end up vertically centred; tall forms (Create
+   Account) start at the top and scroll cleanly. Never use `margin:auto` or
+   `justify-content:center` alone on a scroll container -- both clip the top.
+   ========================================================================== */
+
+.auth-shell {
+  /* Local design tokens -- keeps the rhythm consistent in one place. */
+  --auth-card-w: 940px;
+  --auth-card-min-h: 680px; /* Reduced to fit laptop viewports without triggering outer scroll */
+  --auth-pad: clamp(1.5rem, 2.5vw, 2.25rem);
+  --auth-field-gap: 0.85rem; /* Reduced to compact the form */
+  --auth-col-gap: 1rem;
+  --auth-radius: 20px;
+  --auth-ease: cubic-bezier(0.65, 0, 0.35, 1);
+
+  height: 100vh;
+  height: 100dvh; /* survives mobile browser chrome */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(1rem, 3.5vh, 2.25rem) clamp(0.85rem, 3vw, 1.5rem);
+  background:
+    radial-gradient(circle at 20% 20%, #157a4e 0%, transparent 42%),
+    radial-gradient(circle at 90% 80%, #0a2f24 0%, transparent 45%),
+    var(--jade);
+}
+
+/* Grows beyond 100% when the form is tall -> centred content never clips. */
+.auth-viewport {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.1rem, 2.5vh, 1.75rem);
+}
+
+.auth-brand {
+  display: flex;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------- card ---- */
+
+.auth-container {
+  position: relative;
+  overflow: hidden; /* required to clip the sliding panels */
+  width: 100%;
+  max-width: var(--auth-card-w);
+  min-height: var(--auth-card-min-h);
+  flex: 0 0 auto;
+  background-color: var(--white);
+  border-radius: var(--auth-radius);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.28);
+}
+
+/* --------------------------------------------------------------- panels --- */
+
+.form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  /* Custom padding: smaller top to move content up, large horizontal for sides */
+  padding: 1.25rem var(--auth-pad) 0 var(--auth-pad);
+  overflow-y: hidden; /* Remove internal scrollbar, rely on outer auth-shell scroll if needed */
+  overflow-x: hidden;
+  background-color: var(--white);
+  /* Animate only compositable properties (was `all`, which thrashed layout). */
+  transition:
+    transform 0.6s var(--auth-ease),
+    opacity 0.45s ease-in-out;
+}
+
+/* Flex spacers: centre short forms, collapse to 0 for tall ones. */
+.form-container::before {
+  content: '';
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
+/* Lock the tall sign-up form to the top so it doesn't shift when container height increases */
+.sign-up-container::before {
+  flex: 0 0 0%;
+}
+
+.form-container::after {
+  content: '';
+  flex: 1 1 0%;
+  min-height: 2.5rem; /* Larger gap below the button */
+}
+
+.form-container form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--auth-field-gap);
+  /* flex-shrink:0 is essential -- otherwise the form is squashed (and its
+     content clipped) instead of scrolling when it overflows the panel. */
+  flex: 0 0 auto;
+}
+
+.sign-in-container {
+  left: 0;
+  z-index: 2;
+  opacity: 1;
+}
+
+.sign-up-container {
+  left: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+.auth-container.right-panel-active .sign-in-container {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-container.right-panel-active .sign-up-container {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+  animation: auth-panel-show 0.6s;
+}
+
+/* Keeps the inactive panel unreachable by keyboard/pointer mid-transition. */
+.auth-container:not(.right-panel-active) .sign-up-container {
+  pointer-events: none;
+}
+
+@keyframes auth-panel-show {
+  0%,
+  49.99% {
+    opacity: 0;
+    z-index: 1;
+  }
+  50%,
+  100% {
+    opacity: 1;
+    z-index: 5;
+  }
+}
+
+/* ----------------------------------------------------------- typography --- */
+
+.auth-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.form-container h1 {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.6vw, 1.95rem);
+  font-weight: 700;
+  line-height: 1.2; /* room for descenders -- prevents visual top clipping */
+  letter-spacing: -0.03em;
+  color: var(--jade);
+  overflow-wrap: break-word;
+}
+
+.form-container .subtitle {
+  display: block;
+  margin: 0;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.auth-container .alert {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+/* --------------------------------------------------------- form fields --- */
+
+/* Two-up field row. `minmax(0, 1fr)` stops long labels/values from blowing
+   out the track width, which is what previously broke the grid. */
+.input-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--auth-col-gap);
+  row-gap: var(--auth-field-gap);
+  align-items: end;
+}
+
+.input-group--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The shared <Input> component hardcodes an inline `margin-bottom: 1rem`, and
+   inline styles outrank class selectors -- `!important` is the only way to
+   neutralise it. Scoped to .auth-container so the other 11 consumers of
+   <Input> across the app keep their existing spacing. */
+.auth-container .input-group > div {
+  margin-bottom: 0 !important;
+  min-width: 0;
+}
+
+.auth-container .input-group input {
+  min-height: 46px;
+}
+
+/* Label + control cluster with its own tight internal rhythm. */
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.account-type-label {
+  display: block;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+/* --------------------------------------------------- account type cards --- */
+/* Scoped under .auth-container so these win over the generic .role-option
+   rules in index.css instead of racing them on import order. */
+
+.auth-container .role-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--auth-col-gap);
+  margin: 0;
+}
+
+.auth-container .role-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.1rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 62px;
+  padding: 0.7rem 0.85rem;
+  /* Border width is constant across states so activating a card cannot
+     nudge the grid by a pixel. */
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-container .role-option:hover {
+  border-color: var(--green-line);
+  background: var(--foam);
+}
+
+.auth-container .role-option:focus-visible {
+  outline: none;
+  border-color: var(--leaf);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.auth-container .role-option.active {
+  border-color: var(--leaf);
+  background: var(--foam);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.auth-container .role-option strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--jade);
+}
+
+.auth-container .role-option small {
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--ink-3);
+  text-align: left;
+}
+
+/* -------------------------------------------------------------- actions --- */
+
+.forgot-link {
+  align-self: center;
+  padding: 0.15rem 0.25rem;
+  border: none;
+  background: none;
+  min-height: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+  color: var(--leaf);
+}
+
+.forgot-link:focus-visible {
+  outline: 2px solid var(--leaf);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Extra breathing room above the primary action, plus a guaranteed gap below
+   it so it can never sit flush against the panel's bottom edge. */
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.35rem;
+}
+
+.solid-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--leaf);
+  color: var(--white);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 80ms ease-in,
+    box-shadow 0.2s ease;
+}
+
+.solid-btn:hover:not(:disabled) {
+  background-color: var(--green-hover);
+  box-shadow: 0 8px 20px rgba(31, 138, 84, 0.28);
+}
+
+.solid-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.solid-btn:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: -4px;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.solid-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.auth-container .auth-foot {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------- overlay --- */
+
+.overlay-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 100;
+  pointer-events: none;
+  border-radius: 100px 0 0 100px;
+  transition:
+    transform 0.6s var(--auth-ease),
+    border-radius 0.6s var(--auth-ease);
+}
+
+.auth-container.right-panel-active .overlay-container {
+  transform: translateX(-100%);
+  border-radius: 0 100px 100px 0;
+}
+
+.overlay {
+  position: relative;
+  left: -100%;
+  height: 100%;
+  width: 200%;
+  background: linear-gradient(135deg, var(--jade-2), var(--leaf));
+  color: var(--white);
+  transform: translateX(0);
+  transition: transform 0.6s var(--auth-ease);
+  pointer-events: auto;
+}
+
+.auth-container.right-panel-active .overlay {
+  transform: translateX(50%);
+}
+
+.overlay-panel {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2.5rem clamp(1.75rem, 3vw, 2.75rem);
+  text-align: center;
+  transform: translateX(0);
+  transition: transform 0.6s var(--auth-ease);
+}
+
+.overlay-panel h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--white);
+  overflow-wrap: break-word;
+}
+
+.overlay-panel p {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.overlay-left {
+  transform: translateX(-20%);
+}
+
+.auth-container.right-panel-active .overlay-left {
+  transform: translateX(0);
+}
+
+.overlay-right {
+  right: 0;
+  transform: translateX(0);
+}
+
+.auth-container.right-panel-active .overlay-right {
+  transform: translateX(20%);
+}
+
+.ghost-btn {
+  min-height: 46px;
+  padding: 0.8rem 2.75rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--white);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 80ms ease-in;
+}
+
+.ghost-btn:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.ghost-btn:active {
+  transform: scale(0.96);
+}
+
+.ghost-btn:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------- mobile mode switch --- */
+
+.mobile-toggle {
+  display: none;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.mobile-toggle button {
+  padding: 0.15rem 0.25rem;
+  border: none;
+  background: none;
+  min-height: 0;
+  font-size: inherit;
+  font-weight: 700;
+  color: var(--leaf);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.mobile-toggle button:hover {
+  color: var(--green-hover);
+}
+
+.mobile-toggle button:focus-visible {
+  outline: 2px solid var(--leaf);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ----------------------------------------------------------- responsive --- */
+
+/* Narrower cards lose the comfortable two-up width first. */
+@media (max-width: 900px) {
+  .auth-shell {
+    --auth-card-min-h: 600px;
+  }
+}
+
+/* Tablet / mobile: drop the sliding overlay, stack a single static panel. */
+@media (max-width: 768px) {
+  .auth-shell {
+    --auth-pad: clamp(1.4rem, 5vw, 1.85rem);
+  }
+
+  .auth-container {
+    min-height: 0;
+    border-radius: 16px;
+  }
+
+  .overlay-container {
+    display: none;
+  }
+
+  .form-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  /* Spacers would add dead space in a height:auto panel. */
+  .form-container::before,
+  .form-container::after {
+    content: none;
+  }
+
+  .auth-container.right-panel-active .sign-in-container,
+  .auth-container:not(.right-panel-active) .sign-up-container {
+    display: none;
+  }
+
+  .auth-container.right-panel-active .sign-up-container,
+  .auth-container:not(.right-panel-active) .sign-in-container {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-toggle {
+    display: block;
+  }
+}
+
+/* Single column fields once two-up would be too cramped to read. */
+@media (max-width: 600px) {
+  .input-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Account-type cards hold two-up longer -- they are short. */
+@media (max-width: 380px) {
+  .auth-container .role-toggle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .auth-container .role-option {
+    min-height: 0;
+  }
+}
+
+/* Short viewports (landscape phones): let the card breathe vertically. */
+@media (max-height: 700px) and (min-width: 769px) {
+  .auth-shell {
+    --auth-card-min-h: 560px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-container,
+  .overlay,
+  .overlay-container,
+  .overlay-panel,
+  .solid-btn,
+  .ghost-btn,
+  .auth-container .role-option {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+
+  .solid-btn:active,
+  .ghost-btn:active {
+    transform: none;
+  }
+}
