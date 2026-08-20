@@ -51,13 +51,13 @@ public class TreatmentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
     public TreatmentResponse create(@Valid @RequestBody TreatmentRequest request) {
         return treatmentService.createTreatment(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('FARMER')")
     public TreatmentResponse update(@PathVariable Long id, @Valid @RequestBody TreatmentRequest request) {
         return treatmentService.updateTreatment(id, request);
     }

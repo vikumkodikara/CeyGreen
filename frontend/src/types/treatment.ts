@@ -21,6 +21,8 @@ export interface Treatment {
   averageRating?: number;
   reviews?: RatingResponse[];
   active: boolean;
+  addedByFarmerId?: string;
+  addedByFarmerName?: string;
 }
 
 export interface TreatmentRequest {
@@ -30,4 +32,9 @@ export interface TreatmentRequest {
   dosage?: string;
   frequency?: string;
   safetyNotes?: string;
+  cropType?: string;
+  severity?: string;
+  active: boolean;
+  addedByFarmerId?: string;
+  addedByFarmerName?: string;
 }

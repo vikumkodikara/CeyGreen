@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop } from '../api/treatments';
+import { getTreatmentsForDisease, searchTreatments, rateTreatment, getTreatmentAlternatives, getTreatmentsByCrop, createTreatment } from '../api/treatments';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -103,6 +103,8 @@ export const TreatmentsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [organicOnly, setOrganicOnly] = useState(false);
   const [alternatives, setAlternatives] = useState<Record<number, Treatment[]>>({});
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newRemedy, setNewRemedy] = useState({ diseaseName: '', productName: '', type: 'ORGANIC', dosage: '', frequency: '', safetyNotes: '' });
 
   const performSearch = async (term: string) => {
     if (!term) return;
@@ -174,6 +176,30 @@ export const TreatmentsPage: React.FC = () => {
   const displayedTreatments = organicOnly
     ? treatments.filter(t => t.type?.toUpperCase().trim() === 'ORGANIC')
     : treatments;
+
+  const handleAddRemedy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return alert('Please login to add a remedy');
+    setLoading(true);
+    try {
+      await createTreatment({
+        ...newRemedy,
+        active: true,
+        addedByFarmerId: user.farmerId || user.id,
+        addedByFarmerName: user.name || user.email?.split('@')[0] || 'Anonymous'
+      });
+      alert('Remedy added successfully!');
+      setShowAddModal(false);
+      setNewRemedy({ diseaseName: '', productName: '', type: 'ORGANIC', dosage: '', frequency: '', safetyNotes: '' });
+      if (diseaseSearch === newRemedy.diseaseName) {
+        handleSearch(new Event('submit') as any);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to add remedy');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="page-wrap" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -249,6 +275,11 @@ export const TreatmentsPage: React.FC = () => {
             Organic Remedies Only
           </span>
         </button>
+        {user && (
+          <Button onClick={() => setShowAddModal(true)} style={{ marginLeft: '1rem', background: 'var(--accent-green)', color: '#fff' }}>
+            + Add Remedy
+          </Button>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -361,6 +392,11 @@ export const TreatmentsPage: React.FC = () => {
               </h4>
               {displayedTreatments.map((t) => (
                 <Card key={t.id} title={t.productName} subtitle={`For ${t.diseaseName}`}>
+                  {t.addedByFarmerName && (
+                    <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)', padding: '0.4rem 0.8rem', borderRadius: '4px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                      🧑‍🌾 Added by Community Farmer: <strong>{t.addedByFarmerName}</strong>
+                    </div>
+                  )}
                   <div className="treatment-meta" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                     <span className="pill" style={{
                       background: t.type?.toUpperCase() === 'ORGANIC' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)',
@@ -541,6 +577,36 @@ export const TreatmentsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {showAddModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-card)', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-main)' }}>Add a New Remedy</h3>
+            <form onSubmit={handleAddRemedy} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <Input label="Disease Name" value={newRemedy.diseaseName} onChange={e => setNewRemedy({...newRemedy, diseaseName: e.target.value})} required list="disease-suggestions" />
+              <Input label="Product/Remedy Name" value={newRemedy.productName} onChange={e => setNewRemedy({...newRemedy, productName: e.target.value})} required />
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Type</label>
+                <select value={newRemedy.type} onChange={e => setNewRemedy({...newRemedy, type: e.target.value})} style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                  <option value="ORGANIC">Organic</option>
+                  <option value="CHEMICAL">Chemical</option>
+                </select>
+              </div>
+
+              <Input label="Dosage (Optional)" value={newRemedy.dosage} onChange={e => setNewRemedy({...newRemedy, dosage: e.target.value})} placeholder="e.g. 20ml per 10L" />
+              <Input label="Frequency (Optional)" value={newRemedy.frequency} onChange={e => setNewRemedy({...newRemedy, frequency: e.target.value})} placeholder="e.g. Every 7 days" />
+              <Input label="Safety Notes (Optional)" value={newRemedy.safetyNotes} onChange={e => setNewRemedy({...newRemedy, safetyNotes: e.target.value})} />
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <Button type="button" onClick={() => setShowAddModal(false)} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>Cancel</Button>
+                <Button type="submit" isLoading={loading} style={{ flex: 1, background: 'var(--accent-green)' }}>Submit Remedy</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
