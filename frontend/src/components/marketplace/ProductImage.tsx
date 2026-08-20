@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Product } from '../../types/product';
 
 const cropEmoji: Record<string, string> = {
@@ -27,13 +27,23 @@ function resolveLocalImage(cropName: string): string | undefined {
   return Object.entries(localImageByCrop).find(([k]) => key.includes(k))?.[1];
 }
 
+function emojiForCrop(cropName: string): string {
+  const key = cropName.toLowerCase();
+  return Object.entries(cropEmoji).find(([k]) => key.includes(k))?.[1] ?? cropEmoji.default;
+}
+
 export const ProductImage: React.FC<{ product: Product; className?: string }> = ({
   product,
   className = '',
 }) => {
+  const [failed, setFailed] = useState(false);
   const src = product.imageUrl || resolveLocalImage(product.cropName);
 
-  if (src) {
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  if (src && !failed) {
     return (
       <img
         src={src}
@@ -41,16 +51,14 @@ export const ProductImage: React.FC<{ product: Product; className?: string }> = 
         className={`product-image ${className}`}
         loading="lazy"
         decoding="async"
+        onError={() => setFailed(true)}
       />
     );
   }
 
-  const key = product.cropName.toLowerCase();
-  const emoji = Object.entries(cropEmoji).find(([k]) => key.includes(k))?.[1] ?? cropEmoji.default;
-
   return (
     <div className={`product-image product-image-placeholder ${className}`} aria-hidden>
-      {emoji}
+      {emojiForCrop(product.cropName)}
     </div>
   );
 };
