@@ -1,22 +1,25 @@
 import axios from 'axios';
 
 /**
- * Dedicated Axios client for the CeyGreen Sales Analytics & Notification Service
- * running on port 8086.
- *
- * All requests include the X-API-KEY header required by the Spring Security filter.
+ * Axios client for Sales Analytics and Notification services routed via API Gateway.
  */
-const ANALYTICS_BASE_URL =
-  import.meta.env.VITE_ANALYTICS_API_URL || 'http://localhost:8086';
-
-const ANALYTICS_API_KEY =
-  import.meta.env.VITE_ANALYTICS_API_KEY || 'ceygreen-secret-api-key-2026';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const analyticsClient = axios.create({
-  baseURL: ANALYTICS_BASE_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'X-API-KEY': ANALYTICS_API_KEY,
   },
   timeout: 10000,
 });
+
+analyticsClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('ceygreen_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  config.headers['X-API-Key'] =
+    import.meta.env.VITE_API_KEY || 'ceygreen-dev-api-key';
+  return config;
+});
+
