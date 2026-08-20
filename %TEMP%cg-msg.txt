@@ -1,0 +1,1 @@
+Show needle meters for temperature, humidity, soil, and NPK. Allow a local IoT-only preview without the user service.

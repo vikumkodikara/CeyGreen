@@ -113,6 +113,8 @@ export const AuthPage: React.FC = () => {
 
   return (
     <div className="auth-shell">
+      <div className="auth-glow auth-glow--a" aria-hidden="true" />
+      <div className="auth-glow auth-glow--b" aria-hidden="true" />
       <div className="auth-viewport">
         <div className="auth-brand">
           <Logo to="/" />
@@ -124,8 +126,8 @@ export const AuthPage: React.FC = () => {
           <div className="form-container sign-up-container">
             <form onSubmit={handleRegisterSubmit}>
               <header className="auth-head">
-                <h1>Create Account</h1>
-                <span className="subtitle">Join CeyGreen to buy and sell farm produce</span>
+                <h1>Create account</h1>
+                <span className="subtitle">Farmer or buyer — pick a side and go.</span>
               </header>
 
               {regError && (
@@ -238,8 +240,8 @@ export const AuthPage: React.FC = () => {
           <div className="form-container sign-in-container">
             <form onSubmit={handleLoginSubmit}>
               <header className="auth-head">
-                <h1>Welcome Back!</h1>
-                <span className="subtitle">Sign in with your email and password</span>
+                <h1>Sign in</h1>
+                <span className="subtitle">Enter your greenhouse account.</span>
               </header>
 
               {loginError && (
@@ -298,17 +300,17 @@ export const AuthPage: React.FC = () => {
           <div className="overlay-container">
             <div className="overlay">
               <div className="overlay-panel overlay-left">
-                <h1>Already have an account?</h1>
-                <p>Sign in to access your dashboard and manage your account.</p>
+                <h1>Welcome back</h1>
+                <p>Sign in to your greenhouse, marketplace, and farm tools.</p>
                 <button type="button" className="ghost-btn" onClick={() => switchMode('login')}>
-                  Sign In
+                  Sign in
                 </button>
               </div>
               <div className="overlay-panel overlay-right">
-                <h1>Join CeyGreen Today!</h1>
-                <p>Create an account to start buying and selling farm products.</p>
+                <h1>New to CeyGreen?</h1>
+                <p>Create an account to measure, sell, and grow with the rest of the farm.</p>
                 <button type="button" className="ghost-btn" onClick={() => switchMode('register')}>
-                  Sign Up
+                  Sign up
                 </button>
               </div>
             </div>
