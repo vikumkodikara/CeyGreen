@@ -35,9 +35,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .anonymous(anonymous -> anonymous.disable())
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(PUBLIC_PATHS).permitAll()
-                        .anyRequest().permitAll())
+                        .anyRequest().hasRole("API"))
                 .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())

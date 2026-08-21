@@ -5,26 +5,26 @@ import com.ceygreen.iot.model.SensorReading;
 import com.ceygreen.iot.model.Suggestion;
 import com.ceygreen.iot.model.Zone;
 import com.ceygreen.iot.model.ZoneThresholds;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Repository;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 /**
  * Firebase Realtime Database storage when {@code ceygreen.firebase.enabled=true}.
+ * Uses the REST API so Docker can reach Firebase over HTTPS.
  *
  * <pre>
  * /greenhouses/{id}/zones/{zoneId}/readings/{timestamp}
@@ -35,38 +35,48 @@ import java.util.concurrent.atomic.AtomicReference;
 @ConditionalOnProperty(prefix = "ceygreen.firebase", name = "enabled", havingValue = "true")
 public class FirebaseRealtimeRepository implements TelemetryRepository {
 
-    private static final long TIMEOUT_SECONDS = 10;
+    private static final TypeReference<Map<String, Zone>> ZONES = new TypeReference<>() {};
+    private static final TypeReference<Map<String, SensorReading>> READINGS = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Suggestion>> SUGGESTIONS = new TypeReference<>() {};
 
-    private final FirebaseDatabase firebaseDatabase;
+    private final RestClient firebaseRestClient;
+    private final ObjectMapper objectMapper;
 
-    public FirebaseRealtimeRepository(FirebaseDatabase firebaseDatabase) {
-        this.firebaseDatabase = firebaseDatabase;
+    public FirebaseRealtimeRepository(
+            @Qualifier("firebaseRestClient") RestClient firebaseRestClient,
+            ObjectMapper objectMapper) {
+        this.firebaseRestClient = firebaseRestClient;
+        this.objectMapper = objectMapper.copy()
+                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Override
     public Greenhouse saveGreenhouse(Greenhouse greenhouse) {
-        // Merge metadata only. setValue(greenhouse) would wipe readings/suggestions.
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("id", greenhouse.getId());
         root.put("name", greenhouse.getName());
         root.put("farmerId", greenhouse.getFarmerId());
         root.put("createdAt", greenhouse.getCreatedAt());
-        awaitUpdate(greenhouseRef(greenhouse.getId()), root);
+        patch("/greenhouses/{id}.json", root, greenhouse.getId());
 
         if (greenhouse.getZones() != null) {
             for (Zone zone : greenhouse.getZones().values()) {
-                DatabaseReference zoneNode = zoneRef(greenhouse.getId(), zone.getZoneId());
                 Map<String, Object> zoneMeta = new LinkedHashMap<>();
                 zoneMeta.put("zoneId", zone.getZoneId());
                 zoneMeta.put("zoneName", zone.getZoneName());
                 zoneMeta.put("cropType", zone.getCropType());
-                awaitUpdate(zoneNode, zoneMeta);
+                patch("/greenhouses/{id}/zones/{zoneId}.json", zoneMeta, greenhouse.getId(), zone.getZoneId());
                 if (zone.getThresholds() != null) {
-                    awaitSet(zoneNode.child("thresholds"), zone.getThresholds());
+                    put("/greenhouses/{id}/zones/{zoneId}/thresholds.json",
+                            zone.getThresholds(), greenhouse.getId(), zone.getZoneId());
                 }
                 if (zone.getDevices() != null) {
                     for (var device : zone.getDevices().entrySet()) {
-                        awaitSet(zoneNode.child("devices").child(device.getKey()), device.getValue());
+                        put("/greenhouses/{id}/zones/{zoneId}/devices/{deviceId}.json",
+                                device.getValue(),
+                                greenhouse.getId(),
+                                zone.getZoneId(),
+                                device.getKey());
                     }
                 }
             }
@@ -76,19 +86,14 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
 
     @Override
     public Optional<Greenhouse> findGreenhouse(String greenhouseId) {
-        try {
-            DataSnapshot snapshot = awaitGet(greenhouseRef(greenhouseId));
-            if (!snapshot.exists()) {
-                return Optional.empty();
-            }
-            Greenhouse greenhouse = snapshot.getValue(Greenhouse.class);
-            if (greenhouse != null && greenhouse.getId() == null) {
-                greenhouse.setId(greenhouseId);
-            }
-            return Optional.ofNullable(greenhouse);
-        } catch (RuntimeException ex) {
-            throw new IllegalStateException("Firebase read failed: " + ex.getMessage(), ex);
+        Greenhouse greenhouse = get("/greenhouses/{id}.json", Greenhouse.class, greenhouseId);
+        if (greenhouse == null) {
+            return Optional.empty();
         }
+        if (greenhouse.getId() == null) {
+            greenhouse.setId(greenhouseId);
+        }
+        return Optional.of(greenhouse);
     }
 
     @Override
@@ -96,23 +101,28 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
         String key = reading.getTimestamp() != null
                 ? reading.getTimestamp().replace(".", "_").replace(":", "-")
                 : String.valueOf(System.currentTimeMillis());
-        DatabaseReference ref = zoneRef(reading.getGreenhouseId(), reading.getZoneId())
-                .child("readings")
-                .child(key);
-        awaitSet(ref, reading);
+        put("/greenhouses/{id}/zones/{zoneId}/readings/{key}.json",
+                reading, reading.getGreenhouseId(), reading.getZoneId(), key);
         return reading;
     }
 
     @Override
     public Optional<SensorReading> findLatestReading(String greenhouseId) {
-        DataSnapshot zonesSnap = awaitGet(greenhouseRef(greenhouseId).child("zones"));
-        SensorReading latest = null;
-        if (!zonesSnap.exists()) {
+        Map<String, Zone> zones = get("/greenhouses/{id}/zones.json", ZONES, greenhouseId);
+        if (zones == null || zones.isEmpty()) {
             return Optional.empty();
         }
-        for (DataSnapshot zoneSnap : zonesSnap.getChildren()) {
-            for (DataSnapshot readingSnap : zoneSnap.child("readings").getChildren()) {
-                SensorReading candidate = readingSnap.getValue(SensorReading.class);
+        SensorReading latest = null;
+        for (var zoneEntry : zones.entrySet()) {
+            Map<String, SensorReading> readings = get(
+                    "/greenhouses/{id}/zones/{zoneId}/readings.json",
+                    READINGS,
+                    greenhouseId,
+                    zoneEntry.getKey());
+            if (readings == null) {
+                continue;
+            }
+            for (SensorReading candidate : readings.values()) {
                 if (candidate == null) {
                     continue;
                 }
@@ -129,33 +139,34 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
 
     @Override
     public List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> suggestions) {
-        DatabaseReference suggestionsRef = zoneRef(greenhouseId, zoneId).child("suggestions");
-        awaitRemove(suggestionsRef);
+        delete("/greenhouses/{id}/zones/{zoneId}/suggestions.json", greenhouseId, zoneId);
         int index = 0;
         for (Suggestion suggestion : suggestions) {
             String raw = suggestion.getId() != null
                     ? suggestion.getId()
                     : String.valueOf(System.currentTimeMillis());
             String key = raw.replace(".", "_").replace(":", "-") + "-" + index++;
-            awaitSet(suggestionsRef.child(key), suggestion);
+            put("/greenhouses/{id}/zones/{zoneId}/suggestions/{key}.json",
+                    suggestion, greenhouseId, zoneId, key);
         }
         return List.copyOf(suggestions);
     }
 
     @Override
     public List<Suggestion> findSuggestions(String greenhouseId) {
-        DataSnapshot greenhouseSnap = awaitGet(greenhouseRef(greenhouseId).child("zones"));
+        Map<String, Zone> zones = get("/greenhouses/{id}/zones.json", ZONES, greenhouseId);
         List<Suggestion> result = new ArrayList<>();
-        if (!greenhouseSnap.exists()) {
+        if (zones == null) {
             return result;
         }
-        for (DataSnapshot zoneSnap : greenhouseSnap.getChildren()) {
-            DataSnapshot suggestionsSnap = zoneSnap.child("suggestions");
-            for (DataSnapshot suggestionSnap : suggestionsSnap.getChildren()) {
-                Suggestion suggestion = suggestionSnap.getValue(Suggestion.class);
-                if (suggestion != null) {
-                    result.add(suggestion);
-                }
+        for (String zoneId : zones.keySet()) {
+            Map<String, Suggestion> suggestions = get(
+                    "/greenhouses/{id}/zones/{zoneId}/suggestions.json",
+                    SUGGESTIONS,
+                    greenhouseId,
+                    zoneId);
+            if (suggestions != null) {
+                result.addAll(suggestions.values());
             }
         }
         return result;
@@ -170,108 +181,92 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
             throw new IllegalArgumentException("Zone not found: " + zoneId);
         }
         zone.setThresholds(thresholds);
-        awaitSet(zoneRef(greenhouseId, zoneId).child("thresholds"), thresholds);
+        put("/greenhouses/{id}/zones/{zoneId}/thresholds.json", thresholds, greenhouseId, zoneId);
         return thresholds;
     }
 
     @Override
     public Optional<ZoneThresholds> findThresholds(String greenhouseId, String zoneId) {
-        DataSnapshot snapshot = awaitGet(zoneRef(greenhouseId, zoneId).child("thresholds"));
-        if (!snapshot.exists()) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(snapshot.getValue(ZoneThresholds.class));
+        ZoneThresholds thresholds = get(
+                "/greenhouses/{id}/zones/{zoneId}/thresholds.json",
+                ZoneThresholds.class,
+                greenhouseId,
+                zoneId);
+        return Optional.ofNullable(thresholds);
     }
 
-    private DatabaseReference greenhouseRef(String greenhouseId) {
-        return firebaseDatabase.getReference("greenhouses").child(greenhouseId);
-    }
-
-    private DatabaseReference zoneRef(String greenhouseId, String zoneId) {
-        return greenhouseRef(greenhouseId).child("zones").child(zoneId);
-    }
-
-    private static void awaitUpdate(DatabaseReference ref, Map<String, Object> values) {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<DatabaseError> error = new AtomicReference<>();
-        ref.updateChildren(values, (databaseError, databaseReference) -> {
-            if (databaseError != null) {
-                error.set(databaseError);
-            }
-            latch.countDown();
-        });
-        awaitLatch(latch);
-        if (error.get() != null) {
-            throw new IllegalStateException("Firebase update failed: " + error.get().getMessage());
-        }
-    }
-
-    private static void awaitSet(DatabaseReference ref, Object value) {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<DatabaseError> error = new AtomicReference<>();
-        ref.setValue(value, (databaseError, databaseReference) -> {
-            if (databaseError != null) {
-                error.set(databaseError);
-            }
-            latch.countDown();
-        });
-        awaitLatch(latch);
-        if (error.get() != null) {
-            throw new IllegalStateException("Firebase write failed: " + error.get().getMessage());
-        }
-    }
-
-    private static void awaitRemove(DatabaseReference ref) {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<DatabaseError> error = new AtomicReference<>();
-        ref.removeValue((databaseError, databaseReference) -> {
-            if (databaseError != null) {
-                error.set(databaseError);
-            }
-            latch.countDown();
-        });
-        awaitLatch(latch);
-        if (error.get() != null) {
-            throw new IllegalStateException("Firebase remove failed: " + error.get().getMessage());
-        }
-    }
-
-    private static DataSnapshot awaitGet(DatabaseReference ref) {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<DataSnapshot> snapshot = new AtomicReference<>();
-        AtomicReference<DatabaseError> error = new AtomicReference<>();
-
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                snapshot.set(dataSnapshot);
-                latch.countDown();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                error.set(databaseError);
-                latch.countDown();
-            }
-        });
-
-        awaitLatch(latch);
-        if (error.get() != null) {
-            throw new IllegalStateException("Firebase read failed: " + error.get().getMessage());
-        }
-        return snapshot.get();
-    }
-
-    private static void awaitLatch(CountDownLatch latch) {
+    private <T> T get(String path, Class<T> type, Object... uriVars) {
         try {
-            if (!latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                throw new TimeoutException("Timed out waiting for Firebase");
-            }
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted waiting for Firebase", ex);
-        } catch (TimeoutException ex) {
-            throw new IllegalStateException("Firebase operation failed", ex);
+            return firebaseRestClient.get()
+                    .uri(path, uriVars)
+                    .retrieve()
+                    .body(type);
+        } catch (RestClientException ex) {
+            throw wrap(ex);
         }
+    }
+
+    private <T> T get(String path, TypeReference<T> type, Object... uriVars) {
+        try {
+            JsonNode node = firebaseRestClient.get()
+                    .uri(path, uriVars)
+                    .retrieve()
+                    .body(JsonNode.class);
+            if (node == null || node.isNull() || node.isMissingNode()) {
+                return null;
+            }
+            return objectMapper.convertValue(node, type);
+        } catch (RestClientException | IllegalArgumentException ex) {
+            throw wrap(ex);
+        }
+    }
+
+    private void put(String path, Object body, Object... uriVars) {
+        try {
+            firebaseRestClient.put()
+                    .uri(path, uriVars)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientException ex) {
+            throw wrap(ex);
+        }
+    }
+
+    private void patch(String path, Object body, Object... uriVars) {
+        try {
+            firebaseRestClient.patch()
+                    .uri(path, uriVars)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientException ex) {
+            throw wrap(ex);
+        }
+    }
+
+    private void delete(String path, Object... uriVars) {
+        try {
+            firebaseRestClient.delete()
+                    .uri(path, uriVars)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientException ex) {
+            throw wrap(ex);
+        }
+    }
+
+    private static IllegalStateException wrap(Exception ex) {
+        if (ex instanceof ResourceAccessException) {
+            return new IllegalStateException("Firebase request timed out", ex);
+        }
+        if (ex instanceof RestClientResponseException responseEx) {
+            return new IllegalStateException(
+                    "Firebase HTTP " + responseEx.getStatusCode().value() + ": " + responseEx.getStatusText(),
+                    ex);
+        }
+        return new IllegalStateException("Firebase request failed: " + ex.getMessage(), ex);
     }
 }

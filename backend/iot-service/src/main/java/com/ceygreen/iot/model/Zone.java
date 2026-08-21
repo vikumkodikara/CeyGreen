@@ -3,6 +3,7 @@ package com.ceygreen.iot.model;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 /**
@@ -11,6 +12,7 @@ import com.google.firebase.database.IgnoreExtraProperties;
  * Readings and suggestions are sibling nodes, not fields on this class.
  */
 @IgnoreExtraProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Zone {
 
     private String zoneId;

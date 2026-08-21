@@ -206,6 +206,7 @@ services:
     environment:
       SERVER_PORT: 8082
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75 -Djava.net.preferIPv4Stack=true"
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
       FIREBASE_ENABLED: ${FIREBASE_ENABLED:-false}
       FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
