@@ -30,13 +30,21 @@
   gap: 0.9rem;
 }
 
+.npk-heading {
+  margin: 1.1rem 0 0.65rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--jade);
+}
+
 .sensor-meter {
   --meter: var(--leaf);
   background: #fff;
   border: 1px solid #e7eee9;
-  border-radius: 18px;
-  padding: 0.85rem 0.75rem 0.65rem;
+  border-radius: 20px;
+  padding: 0.9rem 0.85rem 0.7rem;
   min-width: 0;
+  box-shadow: 0 8px 22px rgba(20, 50, 35, 0.05);
 }
 .sensor-meter-top {
   display: flex;
@@ -44,65 +52,127 @@
   gap: 0.65rem;
 }
 .sensor-meter-ico {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--meter) 14%, #fff);
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--meter) 16%, #fff);
   color: var(--meter);
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
 .sensor-meter-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--jade);
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #1f2937;
   margin: 0;
 }
 .sensor-meter-top small {
   color: var(--ink-3);
-  font-size: 0.7rem;
-}
-.sensor-meter-value {
-  margin: 0.85rem 0 0.15rem;
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-.sensor-meter-value strong {
-  font-size: 2rem;
-  line-height: 1;
-  color: var(--meter);
-  letter-spacing: -0.04em;
-}
-.sensor-meter-value span {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink-3);
+  font-size: 0.72rem;
 }
 
-.zone-blueprint {
-  margin: 0 0 1rem;
+.gauge-wrap {
+  position: relative;
+  margin-top: 0.35rem;
 }
-.zone-blueprint-svg {
+.gauge-svg {
   width: 100%;
   height: auto;
   display: block;
 }
-.zone-blueprint-svg rect {
-  stroke-width: 2;
+.gauge-track {
+  stroke: #eef2f0;
 }
-.zone-blueprint-svg text {
-  font-size: 15px;
+.gauge-center {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translate(-50%, -40%);
+  text-align: center;
+}
+.gauge-center strong {
+  display: block;
+  font-size: 1.55rem;
+  line-height: 1;
+  color: #111827;
+  letter-spacing: -0.03em;
+}
+.gauge-center strong span {
+  font-size: 0.78rem;
+  margin-left: 0.12rem;
+  color: #6b7280;
   font-weight: 700;
-  font-family: inherit;
 }
-.zone-blueprint.ok rect { fill: #dcfce7; stroke: #16a34a; }
-.zone-blueprint.ok text { fill: #166534; }
-.zone-blueprint.watch rect { fill: #fef3c7; stroke: #d97706; }
-.zone-blueprint.watch text { fill: #92400e; }
-.zone-blueprint.alert rect { fill: #fee2e2; stroke: #dc2626; }
-.zone-blueprint.alert text { fill: #991b1b; }
+.gauge-status {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+}
+.gauge-status.ok { color: #16a34a; }
+.gauge-status.watch { color: #d97706; }
+.gauge-status.alert { color: #dc2626; }
+.gauge-status.idle { color: #9ca3af; }
+.gauge-min,
+.gauge-max {
+  position: absolute;
+  bottom: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+.gauge-min { left: 8%; }
+.gauge-max { right: 8%; }
+
+.sensor-location h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+.sensor-location-art {
+  position: relative;
+  background: linear-gradient(180deg, #f7fbf8 0%, #eef6f1 100%);
+  border: 1px solid #e3eee7;
+  border-radius: 18px;
+  padding: 0.6rem 0.4rem 0.2rem;
+  overflow: hidden;
+}
+.greenhouse-iso {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.zone-chip {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -30%);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: #fff;
+  border: 1.5px solid #22c55e;
+  border-radius: 12px;
+  padding: 0.45rem 0.7rem;
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.16);
+  min-width: 148px;
+}
+.zone-chip-pin {
+  display: grid;
+  place-items: center;
+}
+.zone-chip strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #111827;
+}
+.zone-chip small {
+  color: #6b7280;
+  font-size: 0.72rem;
+}
 
 .suggest-list {
   list-style: none;

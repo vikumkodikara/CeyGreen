@@ -18,9 +18,10 @@ public class SuggestionService {
         this.telemetryRepository = telemetryRepository;
     }
 
-    public List<SuggestionResponse> listByGreenhouse(String greenhouseId) {
-        telemetryRepository.findGreenhouse(greenhouseId)
+    public List<SuggestionResponse> listByGreenhouse(String greenhouseId, String farmerId) {
+        var greenhouse = telemetryRepository.findGreenhouse(greenhouseId)
                 .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
+        GreenhouseOwnership.requireOwner(greenhouse, farmerId);
 
         return telemetryRepository.findSuggestions(greenhouseId).stream()
                 .map(SuggestionResponse::from)

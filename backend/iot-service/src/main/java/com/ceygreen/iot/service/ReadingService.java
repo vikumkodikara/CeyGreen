@@ -95,9 +95,10 @@ public class ReadingService {
         return SensorReadingResponse.from(saved);
     }
 
-    public SensorReadingResponse latest(String greenhouseId) {
-        telemetryRepository.findGreenhouse(greenhouseId)
+    public SensorReadingResponse latest(String greenhouseId, String farmerId) {
+        Greenhouse greenhouse = telemetryRepository.findGreenhouse(greenhouseId)
                 .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
+        GreenhouseOwnership.requireOwner(greenhouse, farmerId);
         SensorReading reading = telemetryRepository.findLatestReading(greenhouseId)
                 .orElseThrow(() -> new IllegalArgumentException("No readings yet for " + greenhouseId));
         SensorReadingResponse response = SensorReadingResponse.from(reading);

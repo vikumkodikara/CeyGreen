@@ -1,5 +1,6 @@
 package com.ceygreen.iot.service;
 
+import com.ceygreen.iot.common.ApiException;
 import com.ceygreen.iot.dto.CreateGreenhouseRequest;
 import com.ceygreen.iot.dto.GreenhouseResponse;
 import com.ceygreen.iot.dto.ZoneRequest;
@@ -36,7 +37,12 @@ public class GreenhouseService {
 
         Optional<Greenhouse> existing = telemetryRepository.findGreenhouse(greenhouseId);
         if (existing.isPresent()) {
-            return GreenhouseResponse.from(existing.get());
+            Greenhouse found = existing.get();
+            String owner = found.getFarmerId();
+            if (owner != null && owner.equals(request.getFarmerId().trim())) {
+                return GreenhouseResponse.from(found);
+            }
+            throw ApiException.conflict("Greenhouse ID already registered to another farmer");
         }
 
         Greenhouse greenhouse = new Greenhouse(

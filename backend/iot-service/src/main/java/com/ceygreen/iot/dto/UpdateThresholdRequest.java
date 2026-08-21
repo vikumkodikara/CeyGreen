@@ -13,6 +13,9 @@ public class UpdateThresholdRequest {
     @NotBlank
     private String greenhouseId;
 
+    @NotBlank
+    private String farmerId;
+
     @NotNull
     @Positive
     private Double maxTemperature;
@@ -63,6 +66,14 @@ public class UpdateThresholdRequest {
 
     public void setGreenhouseId(String greenhouseId) {
         this.greenhouseId = greenhouseId;
+    }
+
+    public String getFarmerId() {
+        return farmerId;
+    }
+
+    public void setFarmerId(String farmerId) {
+        this.farmerId = farmerId;
     }
 
     public Double getMaxTemperature() {
