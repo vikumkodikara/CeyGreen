@@ -34,35 +34,37 @@ export const ingestReading = async (data: ReadingRequest): Promise<void> => {
   });
 };
 
-export const getLatestReading = async (greenhouseId: string): Promise<LiveReading> => {
-  const res = await apiClient.get<LiveReading>(`/iot/readings/${greenhouseId}/latest`);
+export const getLatestReading = async (
+  greenhouseId: string,
+  farmerId?: string
+): Promise<LiveReading> => {
+  const res = await apiClient.get<LiveReading>(`/iot/readings/${greenhouseId}/latest`, {
+    params: farmerId ? { farmerId } : undefined,
+  });
   return res.data;
 };
 
-export const getSuggestions = async (greenhouseId: string): Promise<Suggestion[]> => {
-  const res = await apiClient.get<Suggestion[]>(`/iot/suggestions/${greenhouseId}`);
+export const getSuggestions = async (
+  greenhouseId: string,
+  farmerId?: string
+): Promise<Suggestion[]> => {
+  const res = await apiClient.get<Suggestion[]>(`/iot/suggestions/${greenhouseId}`, {
+    params: farmerId ? { farmerId } : undefined,
+  });
   return res.data;
 };
 
 export const updateThresholds = async (
   zoneId: string,
   greenhouseId: string,
-  thresholds: {
-    maxTemperature: number;
-    urgentMaxTemperature: number;
-    minTemperature: number;
-    minSoilMoisture: number;
-    urgentMinSoilMoisture: number;
-    maxSoilMoisture: number;
-    maxHumidity: number;
-    minHumidity: number;
-    minNitrogen: number;
-    minPhosphorus: number;
-    minPotassium: number;
-  }
+  farmerId: string | any,
+  thresholds?: any
 ): Promise<void> => {
+  const actualThresholds = typeof farmerId === 'object' ? farmerId : thresholds;
+  const actualFarmerId = typeof farmerId === 'string' ? farmerId : undefined;
   await apiClient.put(`/iot/thresholds/${zoneId}`, {
     greenhouseId,
-    ...thresholds,
+    ...(actualFarmerId ? { farmerId: actualFarmerId } : {}),
+    ...actualThresholds,
   });
 };

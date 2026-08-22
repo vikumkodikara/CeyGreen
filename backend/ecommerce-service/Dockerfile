@@ -2,10 +2,13 @@
 
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /build
-COPY pom.xml .
-RUN mvn dependency:go-offline -B -ntp
+COPY pom.xml mvnw ./
+COPY .mvn .mvn
+RUN chmod +x mvnw
+RUN ./mvnw -B -ntp dependency:go-offline -DskipTests || true
+
 COPY src ./src
-RUN mvn -B -ntp clean package -DskipTests
+RUN ./mvnw -B -ntp package -DskipTests
 
 FROM eclipse-temurin:17-jre AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
