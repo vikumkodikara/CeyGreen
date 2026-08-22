@@ -5,6 +5,7 @@ WORKDIR /build
 COPY pom.xml mvnw ./
 COPY .mvn .mvn
 RUN chmod +x mvnw
+# Resolve dependencies in a separate layer so rebuilds are faster and more reliable.
 RUN ./mvnw -B -ntp dependency:go-offline -DskipTests || true
 
 COPY src ./src
