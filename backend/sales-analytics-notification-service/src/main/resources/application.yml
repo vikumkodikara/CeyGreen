@@ -100,5 +100,6 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     listener:
-      auto-startup: true
+      auto-startup: ${KAFKA_LISTENER_AUTO_STARTUP:false}
       missing-topics-fatal: false
+

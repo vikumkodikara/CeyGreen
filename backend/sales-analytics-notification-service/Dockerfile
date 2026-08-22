@@ -7,11 +7,10 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Add non-root application user
-RUN addgroup -S ceygreen && adduser -S ceygreen -G ceygreen
+RUN useradd -u 1001 -r -s /bin/false ceygreen
 USER ceygreen
 
 COPY --from=build /app/target/sales-analytics-notification-service-1.0.0.jar app.jar
@@ -20,3 +19,4 @@ ENV PORT=8086
 EXPOSE 8086
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
+

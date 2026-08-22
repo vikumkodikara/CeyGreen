@@ -45,7 +45,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/treatments" element={<ProtectedRoute><TreatmentsPage /></ProtectedRoute>} />
     <Route path="/greenhouse" element={<ProtectedRoute><GreenhousePage /></ProtectedRoute>} />
     <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
-    <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+    <Route path="/analytics" element={<AnalyticsPage />} />
 
     <Route path="/marketplace" element={<ProtectedRoute><MarketplaceBrowsePage /></ProtectedRoute>} />
     <Route path="/marketplace/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />

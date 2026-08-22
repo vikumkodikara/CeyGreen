@@ -1,9 +1,13 @@
 import axios from 'axios';
 
 /**
- * Axios client for Sales Analytics and Notification services routed via API Gateway.
+ * Axios client for Sales Analytics and Notification services (Student 6).
+ * Defaults to direct port 8086 or proxied /api/analytics route.
  */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL =
+  import.meta.env.VITE_ANALYTICS_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://localhost:8086';
 
 export const analyticsClient = axios.create({
   baseURL: API_BASE_URL,
@@ -22,4 +26,5 @@ analyticsClient.interceptors.request.use((config) => {
     import.meta.env.VITE_API_KEY || 'ceygreen-dev-api-key';
   return config;
 });
+
 

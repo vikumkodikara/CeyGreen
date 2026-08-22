@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: CeyGreen Analytics DB
+    uid: ceygreen-analytics-pg
+    type: postgres
+    url: postgres:5432
+    user: ceygreen_user
+    secureJsonData:
+      password: ceygreen_pass
+    jsonData:
+      database: ceygreen_sales_db
+      sslmode: disable
+      maxOpenConns: 10
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1600
+      timescaledb: false
+    editable: false

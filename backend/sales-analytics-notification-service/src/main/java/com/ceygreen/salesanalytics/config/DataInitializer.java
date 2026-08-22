@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@org.springframework.context.annotation.Profile({"dev","test"})
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -47,12 +46,19 @@ public class DataInitializer implements CommandLineRunner {
 
         log.info("=== Initializing CeyGreen Sales Analytics & Notification Seed Data ===");
 
-        // 1. Seed Initial Sales Summaries
+        // 1. Seed Initial Sales Summaries (including FARMER-101 and the target UUID farmer)
         SalesSummary farmer1 = SalesSummary.builder()
                 .farmerId("FARMER-101")
-                .totalOrders(12L)
+                .totalOrders(24L)
                 .totalRevenue(BigDecimal.valueOf(148500.00))
                 .lastUpdated(LocalDateTime.now().minusHours(2))
+                .build();
+
+        SalesSummary farmerUuid = SalesSummary.builder()
+                .farmerId("a5ab4a42-b957-4379-8317-414f2ae178fe")
+                .totalOrders(18L)
+                .totalRevenue(BigDecimal.valueOf(215400.00))
+                .lastUpdated(LocalDateTime.now().minusHours(1))
                 .build();
 
         SalesSummary farmer2 = SalesSummary.builder()
@@ -69,7 +75,7 @@ public class DataInitializer implements CommandLineRunner {
                 .lastUpdated(LocalDateTime.now().minusMinutes(30))
                 .build();
 
-        salesSummaryRepository.saveAll(List.of(farmer1, farmer2, farmer3));
+        salesSummaryRepository.saveAll(List.of(farmer1, farmerUuid, farmer2, farmer3));
 
         // 2. Seed Initial Order Logs for FARMER-101
         OrderLog log1 = OrderLog.builder()
@@ -96,7 +102,32 @@ public class DataInitializer implements CommandLineRunner {
                 .recordedAt(LocalDateTime.now().minusHours(2))
                 .build();
 
-        orderLogRepository.saveAll(List.of(log1, log2, log3));
+        // Order Logs for UUID Farmer
+        OrderLog logUuid1 = OrderLog.builder()
+                .farmerId("a5ab4a42-b957-4379-8317-414f2ae178fe")
+                .orderId("ORD-2026-101")
+                .amount(BigDecimal.valueOf(45000.00))
+                .product("Ceylon Cinnamon & Organic Ginger")
+                .recordedAt(LocalDateTime.now().minusDays(4))
+                .build();
+
+        OrderLog logUuid2 = OrderLog.builder()
+                .farmerId("a5ab4a42-b957-4379-8317-414f2ae178fe")
+                .orderId("ORD-2026-102")
+                .amount(BigDecimal.valueOf(62400.00))
+                .product("Premium Hydroponic Strawberries")
+                .recordedAt(LocalDateTime.now().minusDays(1))
+                .build();
+
+        OrderLog logUuid3 = OrderLog.builder()
+                .farmerId("a5ab4a42-b957-4379-8317-414f2ae178fe")
+                .orderId("ORD-2026-103")
+                .amount(BigDecimal.valueOf(38000.00))
+                .product("Organic Seedless English Cucumbers")
+                .recordedAt(LocalDateTime.now().minusHours(1))
+                .build();
+
+        orderLogRepository.saveAll(List.of(log1, log2, log3, logUuid1, logUuid2, logUuid3));
 
         // 3. Seed Notification Preferences
         NotificationPreference pref1 = NotificationPreference.builder()

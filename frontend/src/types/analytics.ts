@@ -5,6 +5,15 @@ export interface SalesSummary {
   lastUpdated: string;
 }
 
+export interface OrderLogEntry {
+  id: number | string;
+  farmerId: string;
+  orderId: string;
+  amount: number;
+  product: string;
+  recordedAt: string;
+}
+
 export interface TrendPoint {
   date: string;
   revenue: number;
@@ -13,7 +22,11 @@ export interface TrendPoint {
 
 export interface SalesTrend {
   farmerId: string;
-  trend: TrendPoint[];
+  totalOrders?: number;
+  totalRevenue?: number;
+  averageOrderValue?: number;
+  orderHistory?: OrderLogEntry[];
+  trend?: TrendPoint[];
 }
 
 export interface LeaderboardEntry {
@@ -26,3 +39,4 @@ export interface LeaderboardEntry {
 
 // The backend returns a plain LeaderboardEntry[] array (not a wrapped object)
 export type LeaderboardResponse = LeaderboardEntry[];
+
