@@ -22,6 +22,10 @@ public interface TelemetryRepository {
 
     Optional<SensorReading> findLatestReading(String greenhouseId);
 
+    List<Greenhouse> findByFarmerId(String farmerId);
+
+    List<SensorReading> findReadings(String greenhouseId);
+
     List<Suggestion> saveSuggestions(String greenhouseId, String zoneId, List<Suggestion> suggestions);
 
     List<Suggestion> findSuggestions(String greenhouseId);
@@ -29,4 +33,6 @@ public interface TelemetryRepository {
     ZoneThresholds updateThresholds(String greenhouseId, String zoneId, ZoneThresholds thresholds);
 
     Optional<ZoneThresholds> findThresholds(String greenhouseId, String zoneId);
+
+    void deleteGreenhouse(String greenhouseId);
 }

@@ -39,6 +39,7 @@ This service therefore maps controllers at `/iot/**`, not `/api/iot/**`.
 | POST | `/api/iot/greenhouses` | Create greenhouse + zones + ESP32 devices |
 | POST | `/api/iot/readings` | Ingest one ESP32 reading |
 | GET | `/api/iot/suggestions/{greenhouseId}` | List suggestions for the dashboard |
+| GET | `/api/iot/grafana/series` | Time-series rows for Grafana (query `greenhouseId`, `farmerId`) |
 | PUT | `/api/iot/thresholds/{zoneId}` | Update zone rule limits |
 
 ### Auth

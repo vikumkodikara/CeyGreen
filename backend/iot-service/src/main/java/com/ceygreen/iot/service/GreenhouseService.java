@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,6 +69,22 @@ public class GreenhouseService {
 
         Greenhouse saved = telemetryRepository.saveGreenhouse(greenhouse);
         return GreenhouseResponse.from(saved);
+    }
+
+    public List<GreenhouseResponse> listMine(String farmerId) {
+        if (farmerId == null || farmerId.isBlank()) {
+            throw ApiException.badRequest("farmerId is required");
+        }
+        return telemetryRepository.findByFarmerId(farmerId.trim()).stream()
+                .map(GreenhouseResponse::from)
+                .toList();
+    }
+
+    public void remove(String greenhouseId, String farmerId) {
+        Greenhouse greenhouse = telemetryRepository.findGreenhouse(greenhouseId)
+                .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
+        GreenhouseOwnership.requireOwner(greenhouse, farmerId);
+        telemetryRepository.deleteGreenhouse(greenhouseId);
     }
 
     private static String blankToNull(String value) {

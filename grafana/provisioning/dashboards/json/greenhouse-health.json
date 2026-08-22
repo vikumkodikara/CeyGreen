@@ -1,0 +1,220 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "spanNulls": true },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Temperature",
+      "type": "timeseries",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "timestamp" },
+            { "selector": "temperature", "text": "Temperature", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "spanNulls": true },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "title": "Humidity",
+      "type": "timeseries",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "timestamp" },
+            { "selector": "humidity", "text": "Humidity", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "spanNulls": true },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "title": "Soil moisture",
+      "type": "timeseries",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "timestamp" },
+            { "selector": "soilMoisture", "text": "Soil moisture", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "spanNulls": true }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "title": "NPK",
+      "type": "timeseries",
+      "targets": [
+        {
+          "refId": "N",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "timestamp" },
+            { "selector": "n", "text": "Nitrogen", "type": "number" }
+          ]
+        },
+        {
+          "refId": "P",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "timestamp" },
+            { "selector": "p", "text": "Phosphorus", "type": "number" }
+          ]
+        },
+        {
+          "refId": "K",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "timeseries",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "timestamp" },
+            { "selector": "k", "text": "Potassium", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "title": "Zone readings",
+      "type": "table",
+      "targets": [
+        {
+          "refId": "T",
+          "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "ceygreen-iot" },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "http://iot-service:8082/iot/grafana/series?greenhouseId=${greenhouseId}&farmerId=${farmerId}",
+          "url_options": { "method": "GET" },
+          "columns": [
+            { "selector": "time", "text": "Time", "type": "string" },
+            { "selector": "zoneId", "text": "Zone", "type": "string" },
+            { "selector": "temperature", "text": "Temperature", "type": "number" },
+            { "selector": "humidity", "text": "Humidity", "type": "number" },
+            { "selector": "soilMoisture", "text": "Soil moisture", "type": "number" },
+            { "selector": "n", "text": "N", "type": "number" },
+            { "selector": "p", "text": "P", "type": "number" },
+            { "selector": "k", "text": "K", "type": "number" }
+          ]
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["ceygreen", "iot", "greenhouse"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "GH001", "value": "GH001" },
+        "name": "greenhouseId",
+        "label": "Greenhouse ID",
+        "options": [],
+        "query": "GH001",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": true, "text": "farmer-001", "value": "farmer-001" },
+        "name": "farmerId",
+        "label": "Farmer ID",
+        "options": [],
+        "query": "farmer-001",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timezone": "browser",
+  "title": "Greenhouse Health",
+  "uid": "ceygreen-greenhouse-health",
+  "version": 1
+}

@@ -21,6 +21,22 @@ export const registerGreenhouse = async (
   return res.data;
 };
 
+export const unregisterGreenhouse = async (
+  greenhouseId: string,
+  farmerId: string
+): Promise<void> => {
+  await apiClient.delete(`/iot/greenhouses/${encodeURIComponent(greenhouseId)}`, {
+    params: { farmerId },
+  });
+};
+
+export const listMyGreenhouses = async (farmerId: string): Promise<Greenhouse[]> => {
+  const res = await apiClient.get<Greenhouse[]>('/iot/greenhouses', {
+    params: { farmerId },
+  });
+  return Array.isArray(res.data) ? res.data : [];
+};
+
 export const ingestReading = async (data: ReadingRequest): Promise<void> => {
   await apiClient.post('/iot/readings', {
     greenhouseId: data.greenhouseId,

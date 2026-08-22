@@ -105,4 +105,20 @@ public class ReadingService {
         response.setStatus("LIVE");
         return response;
     }
+
+    public List<SensorReading> series(String greenhouseId, String farmerId) {
+        Greenhouse greenhouse = telemetryRepository.findGreenhouse(greenhouseId)
+                .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
+        GreenhouseOwnership.requireOwner(greenhouse, farmerId);
+        List<SensorReading> readings = new ArrayList<>(telemetryRepository.findReadings(greenhouseId));
+        readings.sort((a, b) -> {
+            String left = a.getTimestamp() != null ? a.getTimestamp() : "";
+            String right = b.getTimestamp() != null ? b.getTimestamp() : "";
+            return left.compareTo(right);
+        });
+        if (readings.size() > 500) {
+            return readings.subList(readings.size() - 500, readings.size());
+        }
+        return readings;
+    }
 }

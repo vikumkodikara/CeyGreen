@@ -35,6 +35,7 @@ import org.springframework.web.client.RestClientResponseException;
 @ConditionalOnProperty(prefix = "ceygreen.firebase", name = "enabled", havingValue = "true")
 public class FirebaseRealtimeRepository implements TelemetryRepository {
 
+    private static final TypeReference<Map<String, Greenhouse>> GREENHOUSES = new TypeReference<>() {};
     private static final TypeReference<Map<String, Zone>> ZONES = new TypeReference<>() {};
     private static final TypeReference<Map<String, SensorReading>> READINGS = new TypeReference<>() {};
     private static final TypeReference<Map<String, Suggestion>> SUGGESTIONS = new TypeReference<>() {};
@@ -97,6 +98,30 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
     }
 
     @Override
+    public List<Greenhouse> findByFarmerId(String farmerId) {
+        String owner = farmerId != null ? farmerId.trim() : "";
+        List<Greenhouse> result = new ArrayList<>();
+        if (owner.isEmpty()) {
+            return result;
+        }
+        Map<String, Greenhouse> all = get("/greenhouses.json", GREENHOUSES);
+        if (all == null) {
+            return result;
+        }
+        for (var entry : all.entrySet()) {
+            Greenhouse greenhouse = entry.getValue();
+            if (greenhouse == null || !owner.equals(greenhouse.getFarmerId())) {
+                continue;
+            }
+            if (greenhouse.getId() == null) {
+                greenhouse.setId(entry.getKey());
+            }
+            result.add(greenhouse);
+        }
+        return result;
+    }
+
+    @Override
     public SensorReading saveReading(SensorReading reading) {
         String key = reading.getTimestamp() != null
                 ? reading.getTimestamp().replace(".", "_").replace(":", "-")
@@ -135,6 +160,38 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
             }
         }
         return Optional.ofNullable(latest);
+    }
+
+    @Override
+    public List<SensorReading> findReadings(String greenhouseId) {
+        Map<String, Zone> zones = get("/greenhouses/{id}/zones.json", ZONES, greenhouseId);
+        List<SensorReading> result = new ArrayList<>();
+        if (zones == null || zones.isEmpty()) {
+            return result;
+        }
+        for (var zoneEntry : zones.entrySet()) {
+            Map<String, SensorReading> readings = get(
+                    "/greenhouses/{id}/zones/{zoneId}/readings.json",
+                    READINGS,
+                    greenhouseId,
+                    zoneEntry.getKey());
+            if (readings == null) {
+                continue;
+            }
+            for (SensorReading candidate : readings.values()) {
+                if (candidate == null) {
+                    continue;
+                }
+                if (candidate.getGreenhouseId() == null) {
+                    candidate.setGreenhouseId(greenhouseId);
+                }
+                if (candidate.getZoneId() == null) {
+                    candidate.setZoneId(zoneEntry.getKey());
+                }
+                result.add(candidate);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -193,6 +250,11 @@ public class FirebaseRealtimeRepository implements TelemetryRepository {
                 greenhouseId,
                 zoneId);
         return Optional.ofNullable(thresholds);
+    }
+
+    @Override
+    public void deleteGreenhouse(String greenhouseId) {
+        delete("/greenhouses/{id}.json", greenhouseId);
     }
 
     private <T> T get(String path, Class<T> type, Object... uriVars) {

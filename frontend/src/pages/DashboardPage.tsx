@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { WeatherPanel } from '../components/dashboard/WeatherPanel';
-import { farmerStorageId, readSavedGreenhouse } from '../utils/greenhouseStorage';
+import { readSavedGreenhouseForUser } from '../utils/greenhouseStorage';
 import {
   IconArrow, IconBeaker, IconChart, IconChat, IconDrop, IconGauge,
   IconScan, IconShield, IconStore, IconSun, IconThermo,
@@ -20,7 +20,7 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const first = (user?.fullName || user?.name || 'Grower').split(' ')[0];
   const isBuyer = user?.role === 'BUYER';
-  const savedHouse = readSavedGreenhouse(farmerStorageId(user));
+  const savedHouse = readSavedGreenhouseForUser(user);
   const houseLabel = savedHouse.name
     ? `${savedHouse.name} · Zone 1`
     : 'Register a greenhouse to see your house';

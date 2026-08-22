@@ -261,6 +261,19 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+.gh-register-btn-ghost {
+  background: #fff;
+  color: #b45309;
+  border: 1.5px solid #f3d2a4;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.95rem;
+  min-height: 46px;
+}
+.gh-register-btn-ghost:hover:not(:disabled) {
+  background: #fff7ed;
+}
 
 .suggest-empty {
   margin: 0;

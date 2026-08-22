@@ -370,23 +370,32 @@ services:
       start_period: 90s
 
   # ═══════════════════════════════════════════════════════════════════════
-  #  GRAFANA — Dashboards (port 3001)
-  #  Uncomment once dashboard configs are added to grafana/provisioning/
+  #  GRAFANA — Greenhouse Health (port 3001)
+  #  Charts ESP32 readings the IoT service stored (Firebase or in-memory).
   # ═══════════════════════════════════════════════════════════════════════
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   ports:
-  #     - "3001:3000"
-  #   volumes:
-  #     - ./grafana/provisioning:/etc/grafana/provisioning
-  #     - grafana_data:/var/lib/grafana
-  #   environment:
-  #     GF_SECURITY_ADMIN_USER: admin
-  #     GF_SECURITY_ADMIN_PASSWORD: admin
+  grafana:
+    build: ./grafana
+    image: ceygreen-grafana:10.4.8-infinity-2.12.2
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_PATHS_PLUGINS: /opt/plugins
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: yesoreyeram-infinity-datasource
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      iot-service:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   mongo_data:
   diagnosis_images:
-  # grafana_data:
+  grafana_data:

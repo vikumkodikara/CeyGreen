@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { getLatestReading, getSuggestions, registerGreenhouse } from '../api/iot';
+import { getLatestReading, getSuggestions, listMyGreenhouses, registerGreenhouse, unregisterGreenhouse } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
 import { LiveReading, Suggestion } from '../types/iot';
 import { evaluateReading } from '../utils/iotRules';
 import {
   clearSavedGreenhouse,
   farmerStorageId,
-  readSavedGreenhouse,
-  saveGreenhouse,
+  readSavedGreenhouseForUser,
+  saveGreenhouseForUser,
 } from '../utils/greenhouseStorage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SensorMeter } from '../components/iot/SensorMeter';
@@ -17,9 +17,9 @@ import { SensorLocation } from '../components/iot/SensorLocation';
 import { IconBeaker, IconDrop, IconSprout, IconThermo } from '../components/icons/Icons';
 import './GreenhousePage.css';
 
-function idleReading(): LiveReading {
+function idleReading(greenhouseId = ''): LiveReading {
   return {
-    greenhouseId: '',
+    greenhouseId,
     zoneId: 'ZONE1',
     timestamp: new Date().toISOString(),
     temperature: 0,
@@ -75,6 +75,7 @@ export const GreenhousePage: React.FC = () => {
   const [requestedId, setRequestedId] = useState('');
   const [greenhouseId, setGreenhouseId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [live, setLive] = useState<LiveReading>(idleReading);
   const [liveError, setLiveError] = useState('');
   const [apiSuggestions, setApiSuggestions] = useState<Suggestion[]>([]);
@@ -92,16 +93,38 @@ export const GreenhousePage: React.FC = () => {
       setLive(idleReading());
       setApiSuggestions([]);
       setSuggestionsFromApi(false);
-      return;
+      return undefined;
     }
-    const saved = readSavedGreenhouse(ownerId);
-    setGreenhouseId(saved.id);
-    setRequestedId(saved.id || suggestedGreenhouseId(ownerId));
-    if (saved.name) setGhName(saved.name);
-    setLive(idleReading());
+
+    let cancelled = false;
+    const saved = readSavedGreenhouseForUser(user);
+    if (saved.id) {
+      setGreenhouseId(saved.id);
+      setRequestedId(saved.id);
+      if (saved.name) setGhName(saved.name);
+    }
+    setLive(idleReading(saved.id));
     setApiSuggestions([]);
     setSuggestionsFromApi(false);
     setLiveError('');
+
+    const restoreFromApi = async () => {
+      try {
+        const mine = await listMyGreenhouses(ownerId);
+        if (cancelled || !mine.length) return;
+        const house = mine[0];
+        setGreenhouseId(house.id);
+        setRequestedId(house.id);
+        if (house.name) setGhName(house.name);
+        saveGreenhouseForUser(user, house.id, house.name || saved.name || 'My greenhouse');
+      } catch {
+        /* keep local restore */
+      }
+    };
+    restoreFromApi();
+    return () => {
+      cancelled = true;
+    };
   }, [ownerId]);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -117,9 +140,9 @@ export const GreenhousePage: React.FC = () => {
       setGreenhouseId(res.id);
       setRequestedId(res.id);
       setGhName(res.name || ghName);
-      saveGreenhouse(ownerId, res.id, res.name || ghName);
-      setLive(idleReading());
-      setLiveError('');
+      saveGreenhouseForUser(user, res.id, res.name || ghName);
+      setLive(idleReading(res.id));
+      setLiveError('Waiting for the ESP32 to send a reading…');
     } catch (err: any) {
       const status = err.response?.status;
       const msg = err.response?.data?.message || 'Greenhouse registration failed';
@@ -131,6 +154,31 @@ export const GreenhousePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUnregister = async () => {
+    if (!greenhouseId || !ownerId) return;
+    if (!window.confirm('Remove this greenhouse so you can register again for the lecture demo?')) {
+      return;
+    }
+    setRemoving(true);
+    try {
+      await unregisterGreenhouse(greenhouseId, ownerId);
+    } catch (err: any) {
+      if (err.response?.status !== 400 && err.response?.status !== 404) {
+        alert(err.response?.data?.message || 'Could not remove greenhouse');
+        setRemoving(false);
+        return;
+      }
+    }
+    clearSavedGreenhouse(ownerId);
+    setGreenhouseId('');
+    setRequestedId(suggestedGreenhouseId(ownerId));
+    setLive(idleReading());
+    setLiveError('');
+    setApiSuggestions([]);
+    setSuggestionsFromApi(false);
+    setRemoving(false);
   };
 
   useEffect(() => {
@@ -148,15 +196,16 @@ export const GreenhousePage: React.FC = () => {
         if (reading) {
           setLive(reading);
           setLiveError('');
+          const list = await getSuggestions(greenhouseId, ownerId).catch(() => null);
+          if (!cancelled && list) {
+            setApiSuggestions(list);
+            setSuggestionsFromApi(true);
+          }
         } else {
-          setLive(idleReading());
+          setLive(idleReading(greenhouseId));
           setLiveError('Waiting for the ESP32 to send a reading…');
-        }
-
-        const list = await getSuggestions(greenhouseId, ownerId).catch(() => null);
-        if (!cancelled && list) {
-          setApiSuggestions(list);
-          setSuggestionsFromApi(true);
+          setApiSuggestions([]);
+          setSuggestionsFromApi(false);
         }
       } catch (err: any) {
         if (cancelled) return;
@@ -188,33 +237,50 @@ export const GreenhousePage: React.FC = () => {
     <div className="page-wrap">
       <PageHeader
         title="Greenhouse"
-        subtitle="Register your own greenhouse ID. Meters stay at 0 until that house has a reading."
+        subtitle="Register once. After login the same house comes back. Meters stay at 0 until the ESP32 sends a reading."
       />
 
       <div className="stack">
-        <Card title="Register greenhouse" subtitle="Creates ZONE1 for your account only. Use the same ID on the ESP32.">
-          <form onSubmit={handleRegister} className="gh-register">
-            <div className="gh-register-fields">
-              <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
-              <Input
-                label="Greenhouse ID"
-                value={requestedId}
-                onChange={(e) => setRequestedId(e.target.value.toUpperCase())}
-                required
-              />
-            </div>
-            <button type="submit" className="gh-register-btn" disabled={loading || !ownerId}>
-              {loading ? 'Registering…' : 'Register'}
-            </button>
-          </form>
-          {greenhouseId ? (
-            <p className="alert alert-success" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-              Your house {greenhouseId} · ZONE1 · live poll
-            </p>
+        <Card
+          title={greenhouseId ? 'Your greenhouse' : 'Register greenhouse'}
+          subtitle={
+            greenhouseId
+              ? 'Already registered. You do not need to register again after login.'
+              : 'Creates ZONE1 for your account only. Use the same ID on the ESP32.'
+          }
+        >
+          {!greenhouseId ? (
+            <form onSubmit={handleRegister} className="gh-register">
+              <div className="gh-register-fields">
+                <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
+                <Input
+                  label="Greenhouse ID"
+                  value={requestedId}
+                  onChange={(e) => setRequestedId(e.target.value.toUpperCase())}
+                  required
+                />
+              </div>
+              <button type="submit" className="gh-register-btn" disabled={loading || !ownerId}>
+                {loading ? 'Registering…' : 'Register'}
+              </button>
+              <p className="page-subtitle" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+                No greenhouse registered yet. Readings stay at 0 until the ESP32 connects.
+              </p>
+            </form>
           ) : (
-            <p className="page-subtitle" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-              No greenhouse registered yet. Readings below stay at 0.
+            <p className="alert alert-success" style={{ marginTop: 0, marginBottom: '0.85rem' }}>
+              Your house <strong>{greenhouseId}</strong> · ZONE1
+              <br />
+              Farmer ID for Grafana: <strong>{ownerId}</strong>
             </p>
+            <button
+              type="button"
+              className="gh-register-btn gh-register-btn-ghost"
+              onClick={handleUnregister}
+              disabled={removing}
+            >
+              {removing ? 'Removing…' : 'Remove greenhouse'}
+            </button>
           )}
         </Card>
 
@@ -222,7 +288,9 @@ export const GreenhousePage: React.FC = () => {
           <div className="live-head">
             <p className="page-subtitle">
               {greenhouseId
-                ? `Last update ${new Date(live.timestamp).toLocaleTimeString()} · ${greenhouseId} / ${formatZone(live.zoneId)}`
+                ? live.status === 'LIVE'
+                  ? `Last update ${new Date(live.timestamp).toLocaleTimeString()} · ${greenhouseId} / ${formatZone(live.zoneId)}`
+                  : `Waiting for ESP32 · ${greenhouseId} / Zone 1 · meters stay at 0`
                 : 'Register a greenhouse ID to start live data. Values are 0 until then.'}
             </p>
             <span className="live-dot">
