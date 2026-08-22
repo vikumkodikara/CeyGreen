@@ -11,12 +11,12 @@ import { ConfirmDialog, FarmerListingForm } from '../../components/marketplace';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { Spinner } from '../../components/ui/Spinner';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import { Product, ProductCreateRequest } from '../../types/product';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
@@ -138,14 +138,21 @@ export const FarmerProductsPage: React.FC = () => {
     }
   };
 
-  if (!farmerId) return <div className="marketplace-alert error">Farmer profile required.</div>;
+  if (!farmerId) {
+    return (
+      <div className="marketplace-page">
+        <div className="alert alert-error">Farmer profile required.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="marketplace-page">
-      <div className="marketplace-header">
-        <h1>My Products</h1>
-        <Button onClick={() => setShowCreate(true)}>+ New listing</Button>
-      </div>
+      <PageHeader
+        title="My Products"
+        subtitle="Create and manage your marketplace listings."
+        actions={<Button onClick={() => setShowCreate(true)}>+ New listing</Button>}
+      />
 
       {loading ? (
         <Spinner />

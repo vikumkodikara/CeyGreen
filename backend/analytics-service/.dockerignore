@@ -1,4 +1,5 @@
-target/
+target/*
+!target/analytics-service-*.jar
 data/
 .tools/
 *.log

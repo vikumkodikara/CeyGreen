@@ -89,10 +89,13 @@
   gap: clamp(1.1rem, 2.5vh, 1.75rem);
 }
 
-.auth-brand {
-  display: flex;
-  justify-content: center;
-  flex: 0 0 auto;
+.auth-brand .logo-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+.auth-brand .logo-word {
+  font-size: 1.45rem;
 }
 
 /* ---------------------------------------------------------------- card ---- */

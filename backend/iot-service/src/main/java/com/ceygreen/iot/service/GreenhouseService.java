@@ -1,5 +1,6 @@
 package com.ceygreen.iot.service;
 
+import com.ceygreen.iot.common.ApiException;
 import com.ceygreen.iot.dto.CreateGreenhouseRequest;
 import com.ceygreen.iot.dto.GreenhouseResponse;
 import com.ceygreen.iot.dto.ZoneRequest;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,7 +38,12 @@ public class GreenhouseService {
 
         Optional<Greenhouse> existing = telemetryRepository.findGreenhouse(greenhouseId);
         if (existing.isPresent()) {
-            return GreenhouseResponse.from(existing.get());
+            Greenhouse found = existing.get();
+            String owner = found.getFarmerId();
+            if (owner != null && owner.equals(request.getFarmerId().trim())) {
+                return GreenhouseResponse.from(found);
+            }
+            throw ApiException.conflict("Greenhouse ID already registered to another farmer");
         }
 
         Greenhouse greenhouse = new Greenhouse(
@@ -62,6 +69,22 @@ public class GreenhouseService {
 
         Greenhouse saved = telemetryRepository.saveGreenhouse(greenhouse);
         return GreenhouseResponse.from(saved);
+    }
+
+    public List<GreenhouseResponse> listMine(String farmerId) {
+        if (farmerId == null || farmerId.isBlank()) {
+            throw ApiException.badRequest("farmerId is required");
+        }
+        return telemetryRepository.findByFarmerId(farmerId.trim()).stream()
+                .map(GreenhouseResponse::from)
+                .toList();
+    }
+
+    public void remove(String greenhouseId, String farmerId) {
+        Greenhouse greenhouse = telemetryRepository.findGreenhouse(greenhouseId)
+                .orElseThrow(() -> new IllegalArgumentException("Greenhouse not found: " + greenhouseId));
+        GreenhouseOwnership.requireOwner(greenhouse, farmerId);
+        telemetryRepository.deleteGreenhouse(greenhouseId);
     }
 
     private static String blankToNull(String value) {

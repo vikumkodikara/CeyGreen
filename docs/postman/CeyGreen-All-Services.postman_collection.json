@@ -1,0 +1,329 @@
+{
+  "info": {
+    "_postman_id": "a8e1c4d2-6b7f-4c3a-9e21-5d8f0a1b2c3d",
+    "name": "CeyGreen All Services",
+    "description": "Import this collection, then import one environment file. Select CeyGreen Local Direct. Every request sends X-API-Key. Run User Login farmer first, then IoT Create greenhouse, then POST reading.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "noauth" },
+  "event": [],
+  "variable": [
+    { "key": "apiKey", "value": "ceygreen-dev-api-key" },
+    { "key": "userUrl", "value": "http://localhost:8081" },
+    { "key": "iotUrl", "value": "http://localhost:8082" },
+    { "key": "treatmentUrl", "value": "http://localhost:8083" },
+    { "key": "ecommerceUrl", "value": "http://localhost:8084" },
+    { "key": "forumUrl", "value": "http://localhost:8085" },
+    { "key": "analyticsUrl", "value": "http://localhost:8086" },
+    { "key": "diagnosisUrl", "value": "http://localhost:8087" },
+    { "key": "notificationUrl", "value": "http://localhost:8088" }
+  ],
+  "item": [
+    {
+      "name": "0 Health",
+      "item": [
+        { "name": "User health", "request": { "method": "GET", "header": [], "url": "http://localhost:8081/actuator/health" } },
+        { "name": "IoT health", "request": { "method": "GET", "header": [], "url": "http://localhost:8082/actuator/health" } },
+        { "name": "Treatment health", "request": { "method": "GET", "header": [], "url": "http://localhost:8083/actuator/health" } },
+        { "name": "Ecommerce health", "request": { "method": "GET", "header": [], "url": "http://localhost:8084/actuator/health" } },
+        { "name": "Forum health", "request": { "method": "GET", "header": [], "url": "http://localhost:8085/actuator/health" } },
+        { "name": "Analytics health", "request": { "method": "GET", "header": [], "url": "http://localhost:8086/actuator/health" } },
+        { "name": "Diagnosis health", "request": { "method": "GET", "header": [], "url": "http://localhost:8087/actuator/health" } },
+        { "name": "Notifications health", "request": { "method": "GET", "header": [], "url": "http://localhost:8088/actuator/health" } }
+      ]
+    },
+    {
+      "name": "1 User",
+      "item": [
+        {
+          "name": "Register farmer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Viva Farmer\",\n  \"email\": \"{{farmerEmail}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"FARMER\",\n  \"farmLocation\": \"Kandy\",\n  \"contactInfo\": \"0771111111\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{userUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Register buyer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Viva Buyer\",\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"BUYER\",\n  \"contactInfo\": \"0772222222\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{userUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Login farmer",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  const j = pm.response.json();", "  pm.environment.set('farmerToken', j.access_token);", "  pm.environment.set('userId', j.user_id);", "  pm.environment.set('farmerId', j.user_id);", "}"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{farmerEmail}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{userUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Login buyer",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  const j = pm.response.json();", "  pm.environment.set('buyerToken', j.access_token);", "  pm.environment.set('buyerId', j.user_id);", "}"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{buyerEmail}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{userUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Get profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{farmerToken}}" }],
+            "url": "{{userUrl}}/users/{{userId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 IoT",
+      "item": [
+        {
+          "name": "1 Create greenhouse",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"greenhouseId\": \"{{greenhouseId}}\",\n  \"name\": \"Demo Greenhouse\",\n  \"farmerId\": \"farmer-001\",\n  \"zones\": [\n    {\n      \"zoneId\": \"{{zoneId}}\",\n      \"zoneName\": \"Zone 1\",\n      \"cropType\": \"Tomato\",\n      \"deviceCode\": \"ESP32-001\"\n    }\n  ]\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{iotUrl}}/iot/greenhouses"
+          }
+        },
+        {
+          "name": "2 POST reading",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"greenhouseId\": \"{{greenhouseId}}\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"temperature\": 32.5,\n  \"humidity\": 65.0,\n  \"soilMoisture\": 28.0,\n  \"n\": 12.0,\n  \"p\": 8.0,\n  \"k\": 15.0\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{iotUrl}}/iot/readings"
+          }
+        },
+        {
+          "name": "2b POST reading WRONG API key (expect 401)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "wrong-key" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"greenhouseId\": \"{{greenhouseId}}\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"temperature\": 32.5,\n  \"humidity\": 65.0,\n  \"soilMoisture\": 28.0,\n  \"n\": 12.0,\n  \"p\": 8.0,\n  \"k\": 15.0\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{iotUrl}}/iot/readings"
+          }
+        },
+        {
+          "name": "3 GET latest reading",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{apiKey}}" }],
+            "url": "{{iotUrl}}/iot/readings/{{greenhouseId}}/latest"
+          }
+        },
+        {
+          "name": "4 GET suggestions",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{apiKey}}" }],
+            "url": "{{iotUrl}}/iot/suggestions/{{greenhouseId}}"
+          }
+        },
+        {
+          "name": "5 PUT thresholds",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"greenhouseId\": \"{{greenhouseId}}\",\n  \"maxTemperature\": 35,\n  \"urgentMaxTemperature\": 40,\n  \"minTemperature\": 15,\n  \"minSoilMoisture\": 30,\n  \"urgentMinSoilMoisture\": 15,\n  \"maxSoilMoisture\": 80,\n  \"maxHumidity\": 90,\n  \"minHumidity\": 40,\n  \"minNitrogen\": 10,\n  \"minPhosphorus\": 8,\n  \"minPotassium\": 10\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{iotUrl}}/iot/thresholds/{{zoneId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 Treatment",
+      "item": [
+        { "name": "Get by disease", "request": { "method": "GET", "header": [], "url": "{{treatmentUrl}}/treatments/Early%20Blight" } },
+        { "name": "Search by crop", "request": { "method": "GET", "header": [], "url": "{{treatmentUrl}}/treatments/search?crop=Tomato" } },
+        { "name": "Get by crop", "request": { "method": "GET", "header": [], "url": "{{treatmentUrl}}/treatments/crop/Tomato" } },
+        {
+          "name": "Create treatment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{farmerToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"diseaseName\": \"Early Blight\",\n  \"productName\": \"Mancozeb Demo\",\n  \"type\": \"FUNGICIDE\",\n  \"dosage\": \"2g/L\",\n  \"frequency\": \"Weekly\",\n  \"safetyNotes\": \"Wear gloves\",\n  \"cropType\": \"Tomato\",\n  \"severity\": \"MODERATE\",\n  \"active\": true,\n  \"addedByFarmerId\": \"{{farmerId}}\",\n  \"addedByFarmerName\": \"Viva Farmer\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{treatmentUrl}}/treatments"
+          }
+        },
+        {
+          "name": "Rate treatment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"farmerId\": \"{{farmerId}}\",\n  \"farmerName\": \"Viva Farmer\",\n  \"rating\": 5,\n  \"comment\": \"Worked well\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{treatmentUrl}}/treatments/{{treatmentId}}/rate"
+          }
+        },
+        { "name": "Get alternatives", "request": { "method": "GET", "header": [], "url": "{{treatmentUrl}}/treatments/{{treatmentId}}/alternatives" } }
+      ]
+    },
+    {
+      "name": "4 Ecommerce",
+      "item": [
+        { "name": "List products", "request": { "method": "GET", "header": [], "url": "{{ecommerceUrl}}/products" } },
+        { "name": "List categories", "request": { "method": "GET", "header": [], "url": "{{ecommerceUrl}}/products/categories" } },
+        { "name": "Featured products", "request": { "method": "GET", "header": [], "url": "{{ecommerceUrl}}/products/featured" } },
+        { "name": "Get product", "request": { "method": "GET", "header": [], "url": "{{ecommerceUrl}}/products/{{productId}}" } },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{farmerToken}}" },
+              { "key": "X-User-Id", "value": "{{farmerId}}" },
+              { "key": "X-User-Role", "value": "FARMER" },
+              { "key": "X-Farmer-Id", "value": "{{farmerId}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"cropName\": \"Tomato\",\n  \"quantity\": 50,\n  \"unitPrice\": 250.00,\n  \"harvestDate\": \"2026-08-20\",\n  \"location\": \"Kandy\",\n  \"description\": \"Fresh greenhouse tomatoes\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{ecommerceUrl}}/products"
+          }
+        },
+        {
+          "name": "Farmer products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{farmerToken}}" },
+              { "key": "X-User-Id", "value": "{{farmerId}}" },
+              { "key": "X-User-Role", "value": "FARMER" },
+              { "key": "X-Farmer-Id", "value": "{{farmerId}}" }
+            ],
+            "url": "{{ecommerceUrl}}/products/farmer/{{farmerId}}"
+          }
+        },
+        {
+          "name": "Farmer dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{farmerToken}}" },
+              { "key": "X-User-Id", "value": "{{farmerId}}" },
+              { "key": "X-User-Role", "value": "FARMER" },
+              { "key": "X-Farmer-Id", "value": "{{farmerId}}" }
+            ],
+            "url": "{{ecommerceUrl}}/dashboard/summary"
+          }
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-User-Id", "value": "{{buyerId}}" },
+              { "key": "X-User-Role", "value": "BUYER" },
+              { "key": "X-Buyer-Id", "value": "{{buyerId}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"items\": [{ \"productId\": 1, \"quantity\": 2 }],\n  \"buyerName\": \"Viva Buyer\",\n  \"phone\": \"0772222222\",\n  \"address\": \"12 Temple Road\",\n  \"city\": \"Kandy\",\n  \"postalCode\": \"20000\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{ecommerceUrl}}/orders/checkout"
+          }
+        },
+        {
+          "name": "My orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "X-User-Id", "value": "{{buyerId}}" },
+              { "key": "X-User-Role", "value": "BUYER" },
+              { "key": "X-Buyer-Id", "value": "{{buyerId}}" }
+            ],
+            "url": "{{ecommerceUrl}}/orders/my-orders"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 Forum",
+      "item": [
+        { "name": "List posts", "request": { "method": "GET", "header": [], "url": "{{forumUrl}}/forum/posts" } },
+        {
+          "name": "Create post",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 201 || pm.response.code === 200) {", "  const j = pm.response.json();", "  if (j.id) { pm.environment.set('postId', j.id); }", "}"] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{farmerToken}}" },
+              { "key": "X-User-Id", "value": "{{farmerId}}" },
+              { "key": "X-User-Role", "value": "FARMER" },
+              { "key": "X-User-Name", "value": "Viva Farmer" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Tomato leaves turning yellow\",\n  \"body\": \"Need advice on early blight.\",\n  \"tags\": [\"tomato\", \"disease\"],\n  \"cropType\": \"Tomato\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{forumUrl}}/forum/posts"
+          }
+        },
+        { "name": "Get post", "request": { "method": "GET", "header": [], "url": "{{forumUrl}}/forum/posts/{{postId}}" } }
+      ]
+    },
+    {
+      "name": "6 Analytics",
+      "item": [
+        { "name": "Sales summary", "request": { "method": "GET", "header": [], "url": "{{analyticsUrl}}/analytics/sales/{{farmerId}}" } },
+        { "name": "Sales trend", "request": { "method": "GET", "header": [], "url": "{{analyticsUrl}}/analytics/sales/{{farmerId}}/trend" } },
+        { "name": "Leaderboard", "request": { "method": "GET", "header": [], "url": "{{analyticsUrl}}/analytics/leaderboard" } }
+      ]
+    },
+    {
+      "name": "7 Diagnosis",
+      "item": [
+        {
+          "name": "History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{farmerToken}}" }],
+            "url": "{{diagnosisUrl}}/diagnosis/history/{{farmerId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 Notifications",
+      "item": [
+        { "name": "Get history", "request": { "method": "GET", "header": [], "url": "{{notificationUrl}}/notify/history/{{userId}}" } },
+        {
+          "name": "Update preferences",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"emailEnabled\": true,\n  \"pushEnabled\": true,\n  \"orderAlerts\": true,\n  \"stockAlerts\": true,\n  \"greenhouseAlerts\": true,\n  \"forumAlerts\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{notificationUrl}}/notify/preferences/{{userId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 package com.ceygreen.iot.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.firebase.database.IgnoreExtraProperties;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Map;
  * Timestamps are ISO-8601 strings because Firebase cannot deserialize {@code java.time.Instant}.
  */
 @IgnoreExtraProperties
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Greenhouse {
 
     private String id;

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Compares sensor readings to zone thresholds and produces suggestions.
+ * Hourly suggestion engine: reading vs zone limits → action (Kafka only for severe heat).
  */
 @Component
 public class RuleEngine {
@@ -27,15 +27,15 @@ public class RuleEngine {
 
         if (temperature > thresholds.getUrgentMaxTemperature()) {
             results.add(new RuleResult(
-                    "URGENT: Open roof — temperature critical",
+                    "Open roof vents for passive cooling",
                     RuleSeverity.HIGH));
         } else if (temperature > thresholds.getMaxTemperature()) {
             results.add(new RuleResult(
-                    "Cool the greenhouse",
+                    "Cool the zone with the misting/water system",
                     RuleSeverity.NORMAL));
         } else if (temperature < thresholds.getMinTemperature()) {
             results.add(new RuleResult(
-                    "Warm the greenhouse",
+                    "Close vents; activate heating if available",
                     RuleSeverity.NORMAL));
         }
 
@@ -45,17 +45,9 @@ public class RuleEngine {
     List<RuleResult> evaluateSoilMoisture(double soilMoisture, ZoneThresholds thresholds) {
         List<RuleResult> results = new ArrayList<>();
 
-        if (soilMoisture < thresholds.getUrgentMinSoilMoisture()) {
+        if (soilMoisture < thresholds.getMinSoilMoisture()) {
             results.add(new RuleResult(
-                    "Start irrigation — soil critically dry",
-                    RuleSeverity.HIGH));
-        } else if (soilMoisture < thresholds.getMinSoilMoisture()) {
-            results.add(new RuleResult(
-                    "Start irrigation",
-                    RuleSeverity.NORMAL));
-        } else if (soilMoisture > thresholds.getMaxSoilMoisture()) {
-            results.add(new RuleResult(
-                    "Reduce irrigation — soil too wet",
+                    "Trigger irrigation for that zone",
                     RuleSeverity.NORMAL));
         }
 
@@ -67,11 +59,7 @@ public class RuleEngine {
 
         if (humidity > thresholds.getMaxHumidity()) {
             results.add(new RuleResult(
-                    "Open vent",
-                    RuleSeverity.NORMAL));
-        } else if (humidity < thresholds.getMinHumidity()) {
-            results.add(new RuleResult(
-                    "Raise humidity",
+                    "Open vents to reduce humidity",
                     RuleSeverity.NORMAL));
         }
 
@@ -83,17 +71,17 @@ public class RuleEngine {
 
         if (n < thresholds.getMinNitrogen()) {
             results.add(new RuleResult(
-                    "Apply Nitrogen fertilizer",
+                    "Apply Nitrogen at the recommended dose",
                     RuleSeverity.NORMAL));
         }
         if (p < thresholds.getMinPhosphorus()) {
             results.add(new RuleResult(
-                    "Apply Phosphorus fertilizer",
+                    "Apply Phosphorus at the recommended dose",
                     RuleSeverity.NORMAL));
         }
         if (k < thresholds.getMinPotassium()) {
             results.add(new RuleResult(
-                    "Apply Potassium fertilizer",
+                    "Apply Potassium at the recommended dose",
                     RuleSeverity.NORMAL));
         }
 

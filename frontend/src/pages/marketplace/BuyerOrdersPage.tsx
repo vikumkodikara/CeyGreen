@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyOrders } from '../../api/orderApi';
-import { Card } from '../../components/ui/Card';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { Spinner } from '../../components/ui/Spinner';
 import { OrderStatus } from '../../types/order';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 export const BuyerOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Awaited<ReturnType<typeof getMyOrders>>['content']>([]);
@@ -23,7 +22,8 @@ export const BuyerOrdersPage: React.FC = () => {
 
   return (
     <div className="marketplace-page">
-      <h1>My Orders</h1>
+      <PageHeader title="My Orders" subtitle="Track your marketplace purchases." />
+
       <label className="marketplace-field">
         <span>Filter by status</span>
         <select
@@ -38,7 +38,7 @@ export const BuyerOrdersPage: React.FC = () => {
         </select>
       </label>
 
-      {error && <div className="marketplace-alert error">{error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
       {loading ? (
         <Spinner />
       ) : orders.length === 0 ? (

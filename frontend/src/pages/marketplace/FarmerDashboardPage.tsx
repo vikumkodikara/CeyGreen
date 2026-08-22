@@ -4,11 +4,10 @@ import { getDashboardSummary } from '../../api/dashboardApi';
 import { listLowStockProducts } from '../../api/productApi';
 import { Card } from '../../components/ui/Card';
 import { Spinner } from '../../components/ui/Spinner';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { DashboardSummary } from '../../types/dashboard';
 import { Product } from '../../types/product';
-import { PageHeader } from '../../components/layout/PageHeader';
 import { getApiErrorMessage } from '../../utils/apiError';
-import '../../styles/marketplace.css';
 
 export const FarmerDashboardPage: React.FC = () => {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -28,7 +27,11 @@ export const FarmerDashboardPage: React.FC = () => {
 
   if (loading) return <Spinner />;
   if (error || !summary) {
-    return <div className="marketplace-alert error">{error || 'Unavailable'}</div>;
+    return (
+      <div className="marketplace-page">
+        <div className="alert alert-error">{error || 'Unavailable'}</div>
+      </div>
+    );
   }
 
   const stats = [
@@ -51,10 +54,10 @@ export const FarmerDashboardPage: React.FC = () => {
 
       <div className="dashboard-stats-grid">
         {stats.map((s) => (
-          <Card key={s.label} className="stat-card">
-            <p className="stat-label">{s.label}</p>
-            <p className="stat-value">{s.value}</p>
-          </Card>
+          <div key={s.label} className="stat-tile">
+            <div className="k">{s.label}</div>
+            <div className="v">{s.value}</div>
+          </div>
         ))}
       </div>
 
