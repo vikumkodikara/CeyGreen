@@ -27,12 +27,24 @@ public class AnalyticsController {
         this.analyticsService = analyticsService;
     }
 
+    /**
+     * Retrieves the sales summary for a specific farmer by ID.
+     *
+     * @param farmerId The unique identifier of the farmer
+     * @return SalesSummaryDto containing total revenue, total orders, and last updated time
+     */
     @GetMapping("/sales/{farmerId}")
     @Operation(summary = "Get Farmer Sales Summary", description = "Retrieves total orders, total revenue, and last updated timestamp for a specific farmer")
     public ResponseEntity<SalesSummaryDto> getSalesSummary(@PathVariable String farmerId) {
         return ResponseEntity.ok(analyticsService.getSalesSummary(farmerId));
     }
 
+    /**
+     * Retrieves sales trend and order history for a specific farmer.
+     *
+     * @param farmerId The unique identifier of the farmer
+     * @return SalesTrendDto containing trend metrics and order history logs
+     */
     @GetMapping("/sales/{farmerId}/trend")
     @Operation(summary = "Get Farmer Sales Trend", description = "Retrieves sales volume, revenue, average order value, and historical order breakdown for a specific farmer")
     public ResponseEntity<SalesTrendDto> getSalesTrend(@PathVariable String farmerId) {
