@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database for Sales Analytics
+  postgres:
+    image: postgres:16-alpine
+    container_name: ceygreen-postgres-student6
+    environment:
+      POSTGRES_DB: ceygreen_sales_db
+      POSTGRES_USER: ceygreen_user
+      POSTGRES_PASSWORD: ceygreen_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_student6_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ceygreen_user -d ceygreen_sales_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ceygreen-student6-net
+
+  # 2. Student 6 Backend Microservice
+  sales-analytics-notification-service:
+    build:
+      context: ./backend/sales-analytics-notification-service
+      dockerfile: Dockerfile
+    container_name: ceygreen-sales-analytics-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ceygreen_sales_db
+      SPRING_DATASOURCE_USERNAME: ceygreen_user
+      SPRING_DATASOURCE_PASSWORD: ceygreen_pass
+      CEYGREEN_API_KEY: ceygreen-secret-api-key-2026
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ceygreen-student6-net
+
+  # 3. Frontend Web Application (React + Vite/Nginx on port 3000)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ceygreen-frontend-student6
+    ports:
+      - "3000:80"
+    depends_on:
+      - sales-analytics-notification-service
+    networks:
+      - ceygreen-student6-net
+
+  # 4. Grafana — Sales Analytics Dashboard (port 3001)
+  grafana:
+    image: grafana/grafana:10.4.8
+    container_name: ceygreen-grafana-student6
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SERVER_ROOT_URL: http://localhost:3001
+      GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+      POSTGRES_USER: ceygreen_user
+      POSTGRES_PASSWORD: ceygreen_pass
+      POSTGRES_DB: ceygreen_sales_db
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_student6_data:/var/lib/grafana
+    depends_on:
+      - sales-analytics-notification-service
+    networks:
+      - ceygreen-student6-net
+
+networks:
+  ceygreen-student6-net:
+    driver: bridge
+
+volumes:
+  postgres_student6_data:
+  grafana_student6_data:
+

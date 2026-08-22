@@ -1,0 +1,374 @@
+{
+  "annotations": { "list": [] },
+  "description": "CeyGreen Sales Analytics & Revenue Intelligence — Student 6",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#4ade80", "mode": "fixed" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Total Orders",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT total_orders AS \"Total Orders\" FROM sales_summary WHERE farmer_id = '$farmer'",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#38bdf8", "mode": "fixed" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Total Revenue (LKR)",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT CAST(total_revenue AS float) AS \"Total Revenue\" FROM sales_summary WHERE farmer_id = '$farmer'",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#c084fc", "mode": "fixed" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Avg Order Value (LKR)",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT CASE WHEN total_orders > 0 THEN CAST(total_revenue AS float) / total_orders ELSE 0 END AS \"Avg Order\" FROM sales_summary WHERE farmer_id = '$farmer'",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#fb923c", "mode": "fixed" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] },
+          "unit": "short",
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Order Log Entries",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT COUNT(*) AS \"Log Entries\" FROM order_log WHERE farmer_id = '$farmer'",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Revenue (LKR)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "lineWidth": 1,
+            "spanNulls": false
+          },
+          "unit": "currencyUSD",
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 14, "x": 0, "y": 4 },
+      "id": 5,
+      "options": {
+        "barRadius": 0.12,
+        "barWidth": 0.65,
+        "fillOpacity": 85,
+        "gradientMode": "none",
+        "groupWidth": 0.7,
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": { "group": "A", "mode": "none" },
+        "tooltip": { "mode": "single", "sort": "none" },
+        "xTickLabelMaxLength": 18
+      },
+      "title": "Revenue by Product",
+      "type": "barchart",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT product AS \"Product\", CAST(SUM(amount) AS float) AS \"Revenue\" FROM order_log WHERE farmer_id = '$farmer' GROUP BY product ORDER BY \"Revenue\" DESC LIMIT 10",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
+          "unit": "short",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 10, "x": 14, "y": 4 },
+      "id": 6,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "donut",
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "title": "Orders by Product (Count)",
+      "type": "piechart",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT product AS \"Product\", COUNT(*) AS \"Orders\" FROM order_log WHERE farmer_id = '$farmer' GROUP BY product ORDER BY \"Orders\" DESC",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Amount (LKR)",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "opacity",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 6,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "currencyUSD",
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 13 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": ["sum", "mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "cross", "sort": "none" }
+      },
+      "title": "Order Activity Timeline",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT recorded_at AS time, CAST(amount AS float) AS \"Amount (LKR)\" FROM order_log WHERE farmer_id = '$farmer' ORDER BY recorded_at ASC",
+          "refId": "A",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "filterable": true, "inspect": false },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "amount" },
+            "properties": [
+              { "id": "unit", "value": "currencyUSD" },
+              { "id": "decimals", "value": 2 },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "rgba(22,163,74,0.15)" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 22 },
+      "id": 8,
+      "options": { "cellHeight": "sm", "footer": { "show": false }, "showHeader": true, "sortBy": [{ "desc": true, "displayName": "recorded_at" }] },
+      "title": "Recent Order Log",
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT order_id, product, CAST(amount AS float) AS amount, TO_CHAR(recorded_at, 'DD Mon YYYY HH24:MI') AS recorded_at FROM order_log WHERE farmer_id = '$farmer' ORDER BY recorded_at DESC LIMIT 20",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "filterable": false, "inspect": false },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "total_revenue" },
+            "properties": [
+              { "id": "unit", "value": "currencyUSD" },
+              { "id": "decimals", "value": 2 },
+              { "id": "custom.width", "value": 180 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "rank" },
+            "properties": [
+              { "id": "custom.width", "value": 60 },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } },
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "rgba(22,163,74,0.15)" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+      "id": 9,
+      "options": { "cellHeight": "md", "footer": { "show": false }, "showHeader": true },
+      "title": "🏆 Revenue Leaderboard — All Farmers",
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+          "rawSql": "SELECT ROW_NUMBER() OVER (ORDER BY total_revenue DESC) AS rank, farmer_id, total_orders, CAST(total_revenue AS float) AS total_revenue, TO_CHAR(last_updated, 'DD Mon YYYY') AS last_updated FROM sales_summary ORDER BY total_revenue DESC LIMIT 15",
+          "refId": "A",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["sales", "analytics", "student6", "ceygreen"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "FARMER-101", "value": "FARMER-101" },
+        "datasource": { "type": "postgres", "uid": "ceygreen-analytics-pg" },
+        "definition": "SELECT DISTINCT farmer_id FROM sales_summary ORDER BY farmer_id",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Farmer",
+        "multi": false,
+        "name": "farmer",
+        "options": [],
+        "query": "SELECT DISTINCT farmer_id FROM sales_summary ORDER BY farmer_id",
+        "refresh": 1,
+        "regex": "",
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-90d", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Sales Analytics",
+  "uid": "ceygreen-sales-analytics",
+  "version": 2
+}
