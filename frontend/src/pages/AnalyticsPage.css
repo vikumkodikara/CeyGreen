@@ -1,0 +1,32 @@
+/* Dark theme styling and responsive layout for Analytics Page */
+.analytics-page-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #134e25 100%);
+  padding-bottom: 4rem;
+  color: #f1f5f9;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.analytics-hero-header {
+  background: linear-gradient(120deg, rgba(22, 163, 74, 0.18) 0%, rgba(15, 23, 42, 0.95) 60%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2.5rem 2rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.analytics-grafana-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .analytics-grafana-grid {
+    grid-template-columns: 1fr;
+  }
+}
