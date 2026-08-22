@@ -4,6 +4,7 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 LABEL maintainer="Student 5"
 WORKDIR /build
 COPY pom.xml .
+RUN mvn dependency:go-offline -B -ntp
 COPY src ./src
 RUN mvn -B -ntp clean package -DskipTests
 

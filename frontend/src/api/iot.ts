@@ -85,6 +85,8 @@ export const updateThresholds = async (
     minPotassium: number;
   }
 ): Promise<void> => {
+  const actualThresholds = typeof farmerId === 'object' ? farmerId : thresholds;
+  const actualFarmerId = typeof farmerId === 'string' ? farmerId : undefined;
   await apiClient.put(`/iot/thresholds/${zoneId}`, {
     greenhouseId,
     farmerId,
