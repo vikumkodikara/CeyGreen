@@ -268,19 +268,21 @@ export const GreenhousePage: React.FC = () => {
               </p>
             </form>
           ) : (
-            <p className="alert alert-success" style={{ marginTop: 0, marginBottom: '0.85rem' }}>
-              Your house <strong>{greenhouseId}</strong> · ZONE1
-              <br />
-              Farmer ID for Grafana: <strong>{ownerId}</strong>
-            </p>
-            <button
-              type="button"
-              className="gh-register-btn gh-register-btn-ghost"
-              onClick={handleUnregister}
-              disabled={removing}
-            >
-              {removing ? 'Removing…' : 'Remove greenhouse'}
-            </button>
+            <>
+              <p className="alert alert-success" style={{ marginTop: 0, marginBottom: '0.85rem' }}>
+                Your house <strong>{greenhouseId}</strong> · ZONE1
+                <br />
+                Farmer ID for Grafana: <strong>{ownerId}</strong>
+              </p>
+              <button
+                type="button"
+                className="gh-register-btn gh-register-btn-ghost"
+                onClick={handleUnregister}
+                disabled={removing}
+              >
+                {removing ? 'Removing…' : 'Remove greenhouse'}
+              </button>
+            </>
           )}
         </Card>
 
