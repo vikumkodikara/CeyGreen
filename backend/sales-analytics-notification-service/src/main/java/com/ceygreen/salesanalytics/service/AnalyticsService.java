@@ -58,7 +58,8 @@ public class AnalyticsService {
         double aov = 0.0;
         if (summary.getTotalOrders() != null && summary.getTotalOrders() > 0 && summary.getTotalRevenue() != null) {
             aov = summary.getTotalRevenue()
-                    .divide(BigDecimal.valueOf(summary.getTotalOrders()), 2, RoundingMode.HALF_UP)
+                    .divide(BigDecimal.valueOf(summary.getTotalOrders()), 4, RoundingMode.HALF_EVEN)
+                    .setScale(2, RoundingMode.HALF_UP)
                     .doubleValue();
         }
 
