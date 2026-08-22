@@ -1,69 +1,153 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { getLatestReading, getSuggestions, registerGreenhouse, updateThresholds } from '../api/iot';
+import { getLatestReading, getSuggestions, listMyGreenhouses, registerGreenhouse, unregisterGreenhouse } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
 import { LiveReading, Suggestion } from '../types/iot';
-import { evaluateReading, IOT_THRESHOLDS } from '../utils/iotRules';
+import { evaluateReading } from '../utils/iotRules';
+import {
+  clearSavedGreenhouse,
+  farmerStorageId,
+  readSavedGreenhouseForUser,
+  saveGreenhouseForUser,
+} from '../utils/greenhouseStorage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SensorMeter } from '../components/iot/SensorMeter';
-import { IconDrop, IconSun, IconThermo } from '../components/icons/Icons';
+import { SensorLocation } from '../components/iot/SensorLocation';
+import { IconBeaker, IconDrop, IconSprout, IconThermo } from '../components/icons/Icons';
 import './GreenhousePage.css';
 
-const IOT_ONLY = import.meta.env.VITE_IOT_ONLY === 'true';
-
-function demoReading(id: string): LiveReading {
+function idleReading(greenhouseId = ''): LiveReading {
   return {
-    greenhouseId: id,
+    greenhouseId,
     zoneId: 'ZONE1',
     timestamp: new Date().toISOString(),
-    temperature: 28.4,
-    humidity: 72,
-    soilMoisture: 41,
-    n: 12,
-    p: 10,
-    k: 11,
-    status: 'PREVIEW',
+    temperature: 0,
+    humidity: 0,
+    soilMoisture: 0,
+    n: 0,
+    p: 0,
+    k: 0,
+    status: 'IDLE',
   };
+}
+
+function farmerKey(user: { farmerId?: string; id?: string } | null): string {
+  return farmerStorageId(user);
+}
+
+function suggestedGreenhouseId(ownerId: string): string {
+  const compact = ownerId.replace(/[^a-zA-Z0-9]/g, '').slice(-8).toUpperCase() || 'NEW';
+  return `GH-${compact}`;
+}
+
+function formatZone(zoneId: string): string {
+  const n = zoneId.replace(/^ZONE/i, '').replace(/^Z/i, '');
+  return n ? `Zone ${n}` : zoneId;
+}
+
+function gaugeState(
+  value: number,
+  live: boolean,
+  idealMin: number,
+  idealMax: number
+): { status: string; tone: 'ok' | 'watch' | 'alert' | 'idle' } {
+  if (!live) return { status: 'Idle', tone: 'idle' };
+  if (value < idealMin) return { status: 'Low', tone: 'watch' };
+  if (value > idealMax) return { status: 'High', tone: value > idealMax * 1.15 ? 'alert' : 'watch' };
+  return { status: 'Normal', tone: 'ok' };
+}
+
+function npkState(
+  value: number,
+  live: boolean,
+  min: number
+): { status: string; tone: 'ok' | 'watch' | 'alert' | 'idle' } {
+  const state = gaugeState(value, live, min, 40);
+  if (state.tone === 'ok') return { status: 'Optimal', tone: 'ok' };
+  return state;
 }
 
 export const GreenhousePage: React.FC = () => {
   const { user } = useAuth();
-  const [ghName, setGhName] = useState('Greenhouse Alpha');
-  const [requestedId, setRequestedId] = useState('GH001');
-  const [greenhouseId, setGreenhouseId] = useState(IOT_ONLY ? 'GH001' : '');
+  const ownerId = farmerKey(user);
+  const [ghName, setGhName] = useState('My greenhouse');
+  const [requestedId, setRequestedId] = useState('');
+  const [greenhouseId, setGreenhouseId] = useState('');
   const [loading, setLoading] = useState(false);
-  const [live, setLive] = useState<LiveReading | null>(IOT_ONLY ? demoReading('GH001') : null);
+  const [removing, setRemoving] = useState(false);
+  const [live, setLive] = useState<LiveReading>(idleReading);
   const [liveError, setLiveError] = useState('');
   const [apiSuggestions, setApiSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsFromApi, setSuggestionsFromApi] = useState(false);
-  const localSuggestions = useMemo(() => (live ? evaluateReading(live) : []), [live]);
+  const localSuggestions = useMemo(
+    () => (live.status === 'LIVE' ? evaluateReading(live) : []),
+    [live]
+  );
   const suggestions = suggestionsFromApi ? apiSuggestions : localSuggestions;
-  const [savingLimits, setSavingLimits] = useState(false);
-  const [limits, setLimits] = useState({ ...IOT_THRESHOLDS });
-  const zoneTone = suggestions.some((s) => s.severity === 'HIGH' || s.severity === 'CRITICAL')
-    ? 'alert'
-    : suggestions.length
-      ? 'watch'
-      : 'ok';
+
+  useEffect(() => {
+    if (!ownerId) {
+      setGreenhouseId('');
+      setRequestedId('');
+      setLive(idleReading());
+      setApiSuggestions([]);
+      setSuggestionsFromApi(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const saved = readSavedGreenhouseForUser(user);
+    if (saved.id) {
+      setGreenhouseId(saved.id);
+      setRequestedId(saved.id);
+      if (saved.name) setGhName(saved.name);
+    }
+    setLive(idleReading(saved.id));
+    setApiSuggestions([]);
+    setSuggestionsFromApi(false);
+    setLiveError('');
+
+    const restoreFromApi = async () => {
+      try {
+        const mine = await listMyGreenhouses(ownerId);
+        if (cancelled || !mine.length) return;
+        const house = mine[0];
+        setGreenhouseId(house.id);
+        setRequestedId(house.id);
+        if (house.name) setGhName(house.name);
+        saveGreenhouseForUser(user, house.id, house.name || saved.name || 'My greenhouse');
+      } catch {
+        /* keep local restore */
+      }
+    };
+    restoreFromApi();
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerId]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!ownerId) {
+      alert('Sign in as a farmer first.');
+      return;
+    }
     setLoading(true);
-    const id = requestedId.trim() || 'GH001';
+    const id = requestedId.trim() || suggestedGreenhouseId(ownerId);
     try {
-      const farmerId = user?.farmerId || user?.id || 'farmer-001';
-      const res = await registerGreenhouse(ghName, farmerId, id);
+      const res = await registerGreenhouse(ghName, ownerId, id);
       setGreenhouseId(res.id);
+      setRequestedId(res.id);
+      setGhName(res.name || ghName);
+      saveGreenhouseForUser(user, res.id, res.name || ghName);
+      setLive(idleReading(res.id));
+      setLiveError('Waiting for the ESP32 to send a reading…');
     } catch (err: any) {
-      if (IOT_ONLY) {
-        setGreenhouseId(id);
-        setLive((prev) => prev || demoReading(id));
-        return;
-      }
+      const status = err.response?.status;
       const msg = err.response?.data?.message || 'Greenhouse registration failed';
-      if (String(msg).toLowerCase().includes('already exists')) {
-        setGreenhouseId(id);
+      if (status === 409 || String(msg).toLowerCase().includes('another farmer')) {
+        alert('That greenhouse ID is already registered to another farmer. Choose a different ID.');
       } else {
         alert(msg);
       }
@@ -72,54 +156,68 @@ export const GreenhousePage: React.FC = () => {
     }
   };
 
-  const handleSaveThresholds = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!greenhouseId) return;
-    setSavingLimits(true);
-    try {
-      await updateThresholds('ZONE1', greenhouseId, limits);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Could not save thresholds');
-    } finally {
-      setSavingLimits(false);
+  const handleUnregister = async () => {
+    if (!greenhouseId || !ownerId) return;
+    if (!window.confirm('Remove this greenhouse so you can register again for the lecture demo?')) {
+      return;
     }
+    setRemoving(true);
+    try {
+      await unregisterGreenhouse(greenhouseId, ownerId);
+    } catch (err: any) {
+      if (err.response?.status !== 400 && err.response?.status !== 404) {
+        alert(err.response?.data?.message || 'Could not remove greenhouse');
+        setRemoving(false);
+        return;
+      }
+    }
+    clearSavedGreenhouse(ownerId);
+    setGreenhouseId('');
+    setRequestedId(suggestedGreenhouseId(ownerId));
+    setLive(idleReading());
+    setLiveError('');
+    setApiSuggestions([]);
+    setSuggestionsFromApi(false);
+    setRemoving(false);
   };
 
   useEffect(() => {
-    if (!greenhouseId) return undefined;
+    if (!greenhouseId || !ownerId) return undefined;
     let cancelled = false;
 
     const tick = async () => {
       try {
-        const reading = await getLatestReading(greenhouseId).catch((err) => {
-          if (err.response?.status === 400) return null;
+        const reading = await getLatestReading(greenhouseId, ownerId).catch((err) => {
+          if (err.response?.status === 400 || err.response?.status === 404) return null;
+          if (!err.response) return null;
           throw err;
         });
         if (cancelled) return;
         if (reading) {
           setLive(reading);
           setLiveError('');
-        } else if (IOT_ONLY) {
-          setLive((prev) => prev || demoReading(greenhouseId));
-          setLiveError('');
+          const list = await getSuggestions(greenhouseId, ownerId).catch(() => null);
+          if (!cancelled && list) {
+            setApiSuggestions(list);
+            setSuggestionsFromApi(true);
+          }
         } else {
+          setLive(idleReading(greenhouseId));
           setLiveError('Waiting for the ESP32 to send a reading…');
-        }
-
-        const list = await getSuggestions(greenhouseId).catch(() => null);
-        if (!cancelled && list) {
-          setApiSuggestions(list);
-          setSuggestionsFromApi(true);
+          setApiSuggestions([]);
+          setSuggestionsFromApi(false);
         }
       } catch (err: any) {
-        if (!cancelled) {
-          if (IOT_ONLY) {
-            setLive((prev) => prev || demoReading(greenhouseId));
-            setLiveError('');
-          } else {
-            setLiveError(err.response?.data?.message || 'Could not load live data');
-          }
+        if (cancelled) return;
+        if (err.response?.status === 403) {
+          setGreenhouseId('');
+          clearSavedGreenhouse(ownerId);
+          setLive(idleReading());
+          setLiveError('');
+          alert('That greenhouse belongs to another farmer.');
+          return;
         }
+        setLiveError(err.response?.data?.message || 'Could not load live data');
       }
     };
 
@@ -133,201 +231,176 @@ export const GreenhousePage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [greenhouseId]);
+  }, [greenhouseId, ownerId]);
 
   return (
     <div className="page-wrap">
       <PageHeader
         title="Greenhouse"
-        subtitle="Register GH001, then this page follows the ESP32 live."
+        subtitle="Register once. After login the same house comes back. Meters stay at 0 until the ESP32 sends a reading."
       />
 
       <div className="stack">
-        <Card title="Register greenhouse" subtitle="Creates ZONE1. Use the same id as the ESP32 sketch.">
-          <form onSubmit={handleRegister} className="gh-register">
-            <div className="gh-register-fields">
-              <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
-              <Input
-                label="Greenhouse ID"
-                value={requestedId}
-                onChange={(e) => setRequestedId(e.target.value.toUpperCase())}
-                required
-              />
-            </div>
-            <button type="submit" className="gh-register-btn" disabled={loading}>
-              {loading ? 'Registering…' : 'Register'}
-            </button>
-          </form>
-          {greenhouseId && (
-            <p className="alert alert-success" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
-              Live house {greenhouseId} · ZONE1 · live poll
+        <Card
+          title={greenhouseId ? 'Your greenhouse' : 'Register greenhouse'}
+          subtitle={
+            greenhouseId
+              ? 'Already registered. You do not need to register again after login.'
+              : 'Creates ZONE1 for your account only. Use the same ID on the ESP32.'
+          }
+        >
+          {!greenhouseId ? (
+            <form onSubmit={handleRegister} className="gh-register">
+              <div className="gh-register-fields">
+                <Input label="Greenhouse name" value={ghName} onChange={(e) => setGhName(e.target.value)} required />
+                <Input
+                  label="Greenhouse ID"
+                  value={requestedId}
+                  onChange={(e) => setRequestedId(e.target.value.toUpperCase())}
+                  required
+                />
+              </div>
+              <button type="submit" className="gh-register-btn" disabled={loading || !ownerId}>
+                {loading ? 'Registering…' : 'Register'}
+              </button>
+              <p className="page-subtitle" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+                No greenhouse registered yet. Readings stay at 0 until the ESP32 connects.
+              </p>
+            </form>
+          ) : (
+            <p className="alert alert-success" style={{ marginTop: 0, marginBottom: '0.85rem' }}>
+              Your house <strong>{greenhouseId}</strong> · ZONE1
+              <br />
+              Farmer ID for Grafana: <strong>{ownerId}</strong>
             </p>
+            <button
+              type="button"
+              className="gh-register-btn gh-register-btn-ghost"
+              onClick={handleUnregister}
+              disabled={removing}
+            >
+              {removing ? 'Removing…' : 'Remove greenhouse'}
+            </button>
           )}
         </Card>
 
-        {greenhouseId && (
-          <Card title="Live ESP32 reading">
-            {live ? (
-              <>
-                <div className="live-head">
-                  <p className="page-subtitle">
-                    Last update {new Date(live.timestamp).toLocaleTimeString()} · Firebase
-                    {' '}greenhouses/{greenhouseId}/zones/{live.zoneId}/readings
-                  </p>
-                  <span className="live-dot"><i /> {live.status === 'PREVIEW' ? 'PREVIEW' : 'LIVE'}</span>
-                </div>
-                <div className={`zone-blueprint ${zoneTone}`} aria-label={`Zone ${live.zoneId} ${zoneTone}`}>
-                  <svg viewBox="0 0 320 72" className="zone-blueprint-svg">
-                    <rect x="8" y="10" width="304" height="52" rx="10" />
-                    <text x="160" y="42" textAnchor="middle">{live.zoneId} · {zoneTone === 'alert' ? 'action needed' : zoneTone === 'watch' ? 'watch' : 'healthy'}</text>
-                  </svg>
-                </div>
-                <div className="sensor-grid">
-                  <SensorMeter
-                    label="Temperature"
-                    value={live.temperature}
-                    unit="°C"
-                    color="#e07a3d"
-                    hint="Ideal 24–32 °C"
-                    icon={<IconThermo />}
-                  />
-                  <SensorMeter
-                    label="Humidity"
-                    value={live.humidity}
-                    unit="%"
-                    color="#1f8a54"
-                    hint="Ideal 60–80%"
-                    icon={<IconDrop />}
-                  />
-                  <SensorMeter
-                    label="Soil moisture"
-                    value={live.soilMoisture}
-                    unit="%"
-                    color="#8b5e34"
-                    hint="Ideal 35–60%"
-                    icon={<IconDrop />}
-                  />
-                  <SensorMeter
-                    label="Nitrogen"
-                    value={live.n}
-                    unit="N"
-                    color="#166534"
-                    hint="Soil nutrient"
-                    icon={<IconSun />}
-                  />
-                  <SensorMeter
-                    label="Phosphorus"
-                    value={live.p}
-                    unit="P"
-                    color="#b45309"
-                    hint="Soil nutrient"
-                    icon={<IconSun />}
-                  />
-                  <SensorMeter
-                    label="Potassium"
-                    value={live.k}
-                    unit="K"
-                    color="#2563eb"
-                    hint="Soil nutrient"
-                    icon={<IconSun />}
-                  />
-                </div>
-              </>
-            ) : (
-              <p className="page-subtitle">{liveError || 'Waiting for the ESP32…'}</p>
-            )}
-          </Card>
-        )}
+        <Card title="Live ESP32 reading">
+          <div className="live-head">
+            <p className="page-subtitle">
+              {greenhouseId
+                ? live.status === 'LIVE'
+                  ? `Last update ${new Date(live.timestamp).toLocaleTimeString()} · ${greenhouseId} / ${formatZone(live.zoneId)}`
+                  : `Waiting for ESP32 · ${greenhouseId} / Zone 1 · meters stay at 0`
+                : 'Register a greenhouse ID to start live data. Values are 0 until then.'}
+            </p>
+            <span className="live-dot">
+              <i /> {live.status === 'LIVE' ? 'LIVE' : 'IDLE'}
+            </span>
+          </div>
+          {liveError && greenhouseId ? <p className="page-subtitle">{liveError}</p> : null}
 
-        {greenhouseId && (
-          <Card title="Rule-engine thresholds">
-            <form className="gh-register" onSubmit={handleSaveThresholds}>
-              <p className="page-subtitle" style={{ margin: 0 }}>
-                PUT /iot/thresholds/ZONE1 — hot, cold, dry, wet, and low NPK limits for this zone.
-              </p>
-              <div className="gh-register-fields">
-                <Input
-                  label="Max temperature (°C)"
-                  type="number"
-                  value={limits.maxTemperature}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, maxTemperature: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min temperature (°C)"
-                  type="number"
-                  value={limits.minTemperature}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minTemperature: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Dry soil (%)"
-                  type="number"
-                  value={limits.minSoilMoisture}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minSoilMoisture: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Wet soil (%)"
-                  type="number"
-                  value={limits.maxSoilMoisture}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, maxSoilMoisture: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Max humidity (%)"
-                  type="number"
-                  value={limits.maxHumidity}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, maxHumidity: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min humidity (%)"
-                  type="number"
-                  value={limits.minHumidity}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minHumidity: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min N"
-                  type="number"
-                  value={limits.minNitrogen}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minNitrogen: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min P"
-                  type="number"
-                  value={limits.minPhosphorus}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minPhosphorus: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min K"
-                  type="number"
-                  value={limits.minPotassium}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minPotassium: Number(e.target.value) }))}
-                />
-              </div>
-              <button type="submit" className="gh-register-btn" disabled={savingLimits}>
-                {savingLimits ? 'Saving…' : 'Save thresholds'}
-              </button>
-            </form>
-          </Card>
-        )}
+          {greenhouseId && (
+            <SensorLocation
+              greenhouseName={ghName}
+              zoneLabel={formatZone(live.zoneId || 'ZONE1')}
+              active={live.status === 'LIVE'}
+            />
+          )}
 
-        {greenhouseId && (
-          <Card title="Rule engine suggestions">
-            {suggestions.length === 0 ? (
-              <p className="suggest-empty">
-                {live
+          <div className="sensor-grid" style={{ marginTop: greenhouseId ? '1rem' : 0 }}>
+            <SensorMeter
+              label="Temperature"
+              value={live.temperature}
+              unit="°C"
+              min={18}
+              max={40}
+              color="#f59e0b"
+              hint="Ideal 15–30 °C"
+              icon={<IconThermo />}
+              {...gaugeState(live.temperature, live.status === 'LIVE', 15, 30)}
+            />
+            <SensorMeter
+              label="Humidity"
+              value={live.humidity}
+              unit="%"
+              min={0}
+              max={100}
+              color="#3b82f6"
+              hint="Keep below 90%"
+              icon={<IconDrop />}
+              {...gaugeState(live.humidity, live.status === 'LIVE', 0, 90)}
+            />
+            <SensorMeter
+              label="Soil moisture"
+              value={live.soilMoisture}
+              unit="%"
+              min={0}
+              max={100}
+              color="#22c55e"
+              hint="Keep above 20%"
+              icon={<IconSprout />}
+              {...gaugeState(live.soilMoisture, live.status === 'LIVE', 20, 100)}
+            />
+          </div>
+
+          <p className="npk-heading">NPK nutrients</p>
+          <div className="sensor-grid">
+            <SensorMeter
+              label="Nitrogen"
+              value={live.n}
+              unit=""
+              min={0}
+              max={40}
+              color="#16a34a"
+              hint="N · soil nutrient"
+              icon={<IconBeaker />}
+              {...npkState(live.n, live.status === 'LIVE', 10)}
+            />
+            <SensorMeter
+              label="Phosphorus"
+              value={live.p}
+              unit=""
+              min={0}
+              max={40}
+              color="#a855f7"
+              hint="P · soil nutrient"
+              icon={<IconBeaker />}
+              {...npkState(live.p, live.status === 'LIVE', 8)}
+            />
+            <SensorMeter
+              label="Potassium"
+              value={live.k}
+              unit=""
+              min={0}
+              max={40}
+              color="#7c3aed"
+              hint="K · soil nutrient"
+              icon={<IconBeaker />}
+              {...npkState(live.k, live.status === 'LIVE', 8)}
+            />
+          </div>
+        </Card>
+
+        <Card title="Hourly suggestions">
+          {suggestions.length === 0 ? (
+            <p className="suggest-empty">
+              {!greenhouseId
+                ? 'Register your greenhouse to receive advice.'
+                : live.status === 'LIVE'
                   ? 'All sensors in range. No action needed.'
                   : 'Suggestions appear after the first ESP32 reading.'}
-              </p>
-            ) : (
-              <ul className="suggest-list">
-                {suggestions.map((s, index) => (
-                  <li key={`${s.zoneId}-${s.message}-${index}`}>
-                    <span className={`pill ${s.severity.toLowerCase()}`}>{s.severity}</span>
-                    <span>{s.message}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        )}
+            </p>
+          ) : (
+            <ul className="suggest-list">
+              {suggestions.map((s, index) => (
+                <li key={`${s.zoneId}-${s.message}-${index}`}>
+                  <span className={`pill ${s.severity.toLowerCase()}`}>{s.severity}</span>
+                  <span>{s.message}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
     </div>
   );

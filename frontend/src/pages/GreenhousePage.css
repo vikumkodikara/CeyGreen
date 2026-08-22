@@ -30,13 +30,21 @@
   gap: 0.9rem;
 }
 
+.npk-heading {
+  margin: 1.1rem 0 0.65rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--jade);
+}
+
 .sensor-meter {
   --meter: var(--leaf);
   background: #fff;
   border: 1px solid #e7eee9;
-  border-radius: 18px;
-  padding: 0.85rem 0.75rem 0.65rem;
+  border-radius: 20px;
+  padding: 0.9rem 0.85rem 0.7rem;
   min-width: 0;
+  box-shadow: 0 8px 22px rgba(20, 50, 35, 0.05);
 }
 .sensor-meter-top {
   display: flex;
@@ -44,65 +52,153 @@
   gap: 0.65rem;
 }
 .sensor-meter-ico {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--meter) 14%, #fff);
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--meter) 16%, #fff);
   color: var(--meter);
   display: grid;
   place-items: center;
   flex-shrink: 0;
 }
 .sensor-meter-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--jade);
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #1f2937;
   margin: 0;
 }
 .sensor-meter-top small {
   color: var(--ink-3);
-  font-size: 0.7rem;
-}
-.sensor-meter-value {
-  margin: 0.85rem 0 0.15rem;
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-.sensor-meter-value strong {
-  font-size: 2rem;
-  line-height: 1;
-  color: var(--meter);
-  letter-spacing: -0.04em;
-}
-.sensor-meter-value span {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink-3);
+  font-size: 0.72rem;
 }
 
-.zone-blueprint {
-  margin: 0 0 1rem;
+.gauge-wrap {
+  position: relative;
+  margin-top: 0.35rem;
 }
-.zone-blueprint-svg {
+.gauge-svg {
   width: 100%;
   height: auto;
   display: block;
 }
-.zone-blueprint-svg rect {
-  stroke-width: 2;
+.gauge-track {
+  stroke: #eef2f0;
 }
-.zone-blueprint-svg text {
-  font-size: 15px;
+.gauge-center {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translate(-50%, -40%);
+  text-align: center;
+}
+.gauge-center strong {
+  display: block;
+  font-size: 1.55rem;
+  line-height: 1;
+  color: #111827;
+  letter-spacing: -0.03em;
+}
+.gauge-center strong span {
+  font-size: 0.78rem;
+  margin-left: 0.12rem;
+  color: #6b7280;
   font-weight: 700;
-  font-family: inherit;
 }
-.zone-blueprint.ok rect { fill: #dcfce7; stroke: #16a34a; }
-.zone-blueprint.ok text { fill: #166534; }
-.zone-blueprint.watch rect { fill: #fef3c7; stroke: #d97706; }
-.zone-blueprint.watch text { fill: #92400e; }
-.zone-blueprint.alert rect { fill: #fee2e2; stroke: #dc2626; }
-.zone-blueprint.alert text { fill: #991b1b; }
+.gauge-status {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+}
+.gauge-status.ok { color: #16a34a; }
+.gauge-status.watch { color: #d97706; }
+.gauge-status.alert { color: #dc2626; }
+.gauge-status.idle { color: #9ca3af; }
+.gauge-min,
+.gauge-max {
+  position: absolute;
+  bottom: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+.gauge-min { left: 8%; }
+.gauge-max { right: 8%; }
+
+.sensor-location h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+.sensor-location-art {
+  position: relative;
+  border: 1px solid #e3eee7;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #eef2f0;
+  min-height: 220px;
+}
+.greenhouse-photo,
+.greenhouse-photo-fallback {
+  display: block;
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center 45%;
+}
+.greenhouse-photo-fallback {
+  background: linear-gradient(180deg, #e8f3ec 0%, #cfe4d6 100%);
+}
+.zone-chip {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -40%);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  background: #fff;
+  border: 1.5px solid #22c55e;
+  border-radius: 14px;
+  padding: 0.55rem 0.8rem;
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.2);
+  min-width: 180px;
+  max-width: calc(100% - 2rem);
+  pointer-events: none;
+}
+.zone-chip.is-idle {
+  border-color: #d1d5db;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+.zone-chip-pin {
+  display: grid;
+  place-items: center;
+  margin-top: 0.12rem;
+}
+.zone-chip strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #111827;
+  line-height: 1.2;
+}
+.zone-chip-zone {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #166534;
+}
+.zone-chip.is-idle .zone-chip-zone {
+  color: #6b7280;
+}
+.zone-chip small {
+  display: block;
+  margin-top: 0.1rem;
+  color: #6b7280;
+  font-size: 0.72rem;
+}
 
 .suggest-list {
   list-style: none;
@@ -165,6 +261,19 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+.gh-register-btn-ghost {
+  background: #fff;
+  color: #b45309;
+  border: 1.5px solid #f3d2a4;
+  box-shadow: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.95rem;
+  min-height: 46px;
+}
+.gh-register-btn-ghost:hover:not(:disabled) {
+  background: #fff7ed;
+}
 
 .suggest-empty {
   margin: 0;
@@ -175,6 +284,7 @@
 @media (max-width: 800px) {
   .sensor-grid { grid-template-columns: 1fr; }
   .gh-register-fields { grid-template-columns: 1fr; }
+  .greenhouse-photo { height: 210px; }
 }
 @media (min-width: 801px) and (max-width: 1100px) {
   .sensor-grid { grid-template-columns: 1fr 1fr; }

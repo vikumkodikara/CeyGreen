@@ -21,6 +21,22 @@ export const registerGreenhouse = async (
   return res.data;
 };
 
+export const unregisterGreenhouse = async (
+  greenhouseId: string,
+  farmerId: string
+): Promise<void> => {
+  await apiClient.delete(`/iot/greenhouses/${encodeURIComponent(greenhouseId)}`, {
+    params: { farmerId },
+  });
+};
+
+export const listMyGreenhouses = async (farmerId: string): Promise<Greenhouse[]> => {
+  const res = await apiClient.get<Greenhouse[]>('/iot/greenhouses', {
+    params: { farmerId },
+  });
+  return Array.isArray(res.data) ? res.data : [];
+};
+
 export const ingestReading = async (data: ReadingRequest): Promise<void> => {
   await apiClient.post('/iot/readings', {
     greenhouseId: data.greenhouseId,
@@ -34,28 +50,36 @@ export const ingestReading = async (data: ReadingRequest): Promise<void> => {
   });
 };
 
-export const getLatestReading = async (greenhouseId: string): Promise<LiveReading> => {
-  const res = await apiClient.get<LiveReading>(`/iot/readings/${greenhouseId}/latest`);
+export const getLatestReading = async (
+  greenhouseId: string,
+  farmerId: string
+): Promise<LiveReading> => {
+  const res = await apiClient.get<LiveReading>(`/iot/readings/${greenhouseId}/latest`, {
+    params: { farmerId },
+  });
   return res.data;
 };
 
-export const getSuggestions = async (greenhouseId: string): Promise<Suggestion[]> => {
-  const res = await apiClient.get<Suggestion[]>(`/iot/suggestions/${greenhouseId}`);
+export const getSuggestions = async (
+  greenhouseId: string,
+  farmerId: string
+): Promise<Suggestion[]> => {
+  const res = await apiClient.get<Suggestion[]>(`/iot/suggestions/${greenhouseId}`, {
+    params: { farmerId },
+  });
   return res.data;
 };
 
 export const updateThresholds = async (
   zoneId: string,
   greenhouseId: string,
+  farmerId: string,
   thresholds: {
     maxTemperature: number;
     urgentMaxTemperature: number;
     minTemperature: number;
     minSoilMoisture: number;
-    urgentMinSoilMoisture: number;
-    maxSoilMoisture: number;
     maxHumidity: number;
-    minHumidity: number;
     minNitrogen: number;
     minPhosphorus: number;
     minPotassium: number;
@@ -63,6 +87,7 @@ export const updateThresholds = async (
 ): Promise<void> => {
   await apiClient.put(`/iot/thresholds/${zoneId}`, {
     greenhouseId,
+    farmerId,
     ...thresholds,
   });
 };

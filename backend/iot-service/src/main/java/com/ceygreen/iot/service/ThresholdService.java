@@ -18,19 +18,17 @@ public class ThresholdService {
     }
 
     public ZoneThresholds update(String zoneId, UpdateThresholdRequest request) {
-        telemetryRepository.findGreenhouse(request.getGreenhouseId())
+        var greenhouse = telemetryRepository.findGreenhouse(request.getGreenhouseId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Greenhouse not found: " + request.getGreenhouseId()));
+        GreenhouseOwnership.requireOwner(greenhouse, request.getFarmerId());
 
         ZoneThresholds thresholds = new ZoneThresholds();
         thresholds.setMaxTemperature(request.getMaxTemperature());
         thresholds.setUrgentMaxTemperature(request.getUrgentMaxTemperature());
         thresholds.setMinTemperature(request.getMinTemperature());
         thresholds.setMinSoilMoisture(request.getMinSoilMoisture());
-        thresholds.setUrgentMinSoilMoisture(request.getUrgentMinSoilMoisture());
-        thresholds.setMaxSoilMoisture(request.getMaxSoilMoisture());
         thresholds.setMaxHumidity(request.getMaxHumidity());
-        thresholds.setMinHumidity(request.getMinHumidity());
         thresholds.setMinNitrogen(request.getMinNitrogen());
         thresholds.setMinPhosphorus(request.getMinPhosphorus());
         thresholds.setMinPotassium(request.getMinPotassium());

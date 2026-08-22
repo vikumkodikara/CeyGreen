@@ -148,3 +148,11 @@ export const IconSun: React.FC<IconProps> = ({ size = 18 }) => (
   </svg>
 );
 
+export const IconSprout: React.FC<IconProps> = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+    <path {...stroke} d="M12 21V11" />
+    <path {...stroke} d="M12 14c-4-1-6-4-6-8 5 0 6 4 6 8Z" />
+    <path {...stroke} d="M12 13c4-1 6-4 6-8-5 0-6 4-6 8Z" />
+  </svg>
+);
+

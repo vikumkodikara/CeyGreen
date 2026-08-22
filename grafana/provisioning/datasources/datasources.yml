@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: CeyGreen IoT
+    uid: ceygreen-iot
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      allowedHosts:
+        - http://iot-service:8082
+      httpHeaderName1: X-API-Key
+    secureJsonData:
+      httpHeaderValue1: $SERVICE_API_KEY

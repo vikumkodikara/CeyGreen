@@ -38,6 +38,21 @@ public class InMemoryTelemetryRepository implements TelemetryRepository {
     }
 
     @Override
+    public List<Greenhouse> findByFarmerId(String farmerId) {
+        String owner = farmerId != null ? farmerId.trim() : "";
+        List<Greenhouse> result = new ArrayList<>();
+        if (owner.isEmpty()) {
+            return result;
+        }
+        for (Greenhouse greenhouse : greenhouses.values()) {
+            if (greenhouse != null && owner.equals(greenhouse.getFarmerId())) {
+                result.add(greenhouse);
+            }
+        }
+        return result;
+    }
+
+    @Override
     public SensorReading saveReading(SensorReading reading) {
         String key = readingKey(reading.getGreenhouseId(), reading.getZoneId());
         readings.computeIfAbsent(key, ignored -> new ArrayList<>()).add(reading);
@@ -60,6 +75,18 @@ public class InMemoryTelemetryRepository implements TelemetryRepository {
             }
         }
         return Optional.ofNullable(latest);
+    }
+
+    @Override
+    public List<SensorReading> findReadings(String greenhouseId) {
+        List<SensorReading> result = new ArrayList<>();
+        String prefix = greenhouseId + "::";
+        for (Map.Entry<String, List<SensorReading>> entry : readings.entrySet()) {
+            if (entry.getKey().startsWith(prefix)) {
+                result.addAll(entry.getValue());
+            }
+        }
+        return result;
     }
 
     @Override
@@ -100,6 +127,14 @@ public class InMemoryTelemetryRepository implements TelemetryRepository {
                 .map(Greenhouse::getZones)
                 .map(zones -> zones.get(zoneId))
                 .map(Zone::getThresholds);
+    }
+
+    @Override
+    public void deleteGreenhouse(String greenhouseId) {
+        greenhouses.remove(greenhouseId);
+        String prefix = greenhouseId + "::";
+        readings.keySet().removeIf(key -> key.startsWith(prefix));
+        suggestions.keySet().removeIf(key -> key.startsWith(prefix));
     }
 
     private static String readingKey(String greenhouseId, String zoneId) {

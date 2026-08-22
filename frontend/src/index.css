@@ -110,25 +110,34 @@ button {
 }
 
 .logo-link { text-decoration: none; color: inherit; }
-.logo { display: inline-flex; align-items: center; gap: 0.6rem; }
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
 .logo-mark {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: var(--leaf);
+  background: #1f8a54;
   color: #fff;
+  box-shadow: 0 6px 14px rgba(31, 138, 84, 0.28);
+  flex-shrink: 0;
 }
 .logo-word {
-  font-weight: 700;
-  font-size: 1.12rem;
-  letter-spacing: -0.05em;
-  color: var(--white);
+  font-weight: 800;
+  font-size: 1.22rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
 }
-.logo-word i { font-style: normal; color: #b7f0cc; }
-.logo-on-light .logo-word { color: var(--jade); }
-.logo-on-light .logo-word i { color: var(--leaf); }
+.logo-word span { color: #b7f0cc; }
+.logo-on-light .logo-word { color: #1a2e24; }
+.logo-on-light .logo-word span { color: #1f8a54; }
+.logo-on-dark .logo-word { color: #fff; }
+.logo-on-dark .logo-word span { color: #b7f0cc; }
 
 .app-shell {
   height: 100vh;
@@ -171,13 +180,6 @@ button {
   box-shadow: none;
 }
 .nav-search input:focus { box-shadow: none; background: transparent; }
-.nav-search kbd {
-  font-size: 0.68rem;
-  border: 1px solid #d7e4db;
-  border-radius: 6px;
-  padding: 0.1rem 0.35rem;
-  color: var(--ink-3);
-}
 .nav-icon-btn {
   position: relative;
   width: 38px;
@@ -516,7 +518,6 @@ button {
   .nav-open .nav-scrim { display: block; }
   .app-main { padding: 1.1rem 0.9rem 2rem; border-radius: 0; }
   .user-chip { display: none; }
-  .nav-search kbd { display: none; }
   .app-footer { justify-content: center; text-align: center; }
 }
 
