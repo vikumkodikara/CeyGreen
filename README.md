@@ -9,7 +9,7 @@ All synchronous, user-facing traffic is securely routed through a central **Spri
 ## Live Deployment & Architecture Highlights
 
 ### Live AWS Deployment
-- **Live Server**: **[http://16.192.168.12:3000](http://16.192.168.12:3000)** (Hosted on AWS EC2, Ubuntu 24.04 LTS).
+- **Live Server**: **[http://13.48.196.207:3000](http://13.48.196.207:3000)** (Hosted on AWS EC2 `eu-north-1`, Ubuntu 24.04 LTS).
 - **Reverse Proxy**: Nginx container routing `/api/**` traffic directly to `api-gateway:8080` internally.
 - **Automated CI/CD**: GitHub Actions workflow (`.github/workflows/cd.yml`) automatically builds pre-built container images and updates the live EC2 host on `main` branch merges.
 
@@ -173,16 +173,16 @@ CeyGreen/
 
 | Resource | Local Endpoint | Live AWS Endpoint |
 |---|---|---|
-| **Web Application** | `http://localhost:3000` | **`http://16.192.168.12:3000`** |
-| **API Gateway Health** | `http://localhost:8080/actuator/health` | `http://16.192.168.12:8080/actuator/health` |
-| **User Service Health** | `http://localhost:8081/actuator/health` | `http://16.192.168.12:8081/actuator/health` |
-| **Diagnosis Service Health** | `http://localhost:8087/actuator/health` | `http://16.192.168.12:8087/actuator/health` |
-| **IoT Service Health** | `http://localhost:8082/actuator/health` | `http://16.192.168.12:8082/actuator/health` |
-| **Treatment Service Health** | `http://localhost:8083/actuator/health` | `http://16.192.168.12:8083/actuator/health` |
-| **E-Commerce Service Health** | `http://localhost:8084/actuator/health` | `http://16.192.168.12:8084/actuator/health` |
-| **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://16.192.168.12:8085/actuator/health` |
-| **Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://16.192.168.12:8086/actuator/health` |
-| **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://16.192.168.12:8088/actuator/health` |
+| **Web Application** | `http://localhost:3000` | **`http://13.48.196.207:3000`** |
+| **API Gateway Health** | `http://localhost:8080/actuator/health` | `http://13.48.196.207:8080/actuator/health` |
+| **User Service Health** | `http://localhost:8081/actuator/health` | `http://13.48.196.207:8081/actuator/health` |
+| **Diagnosis Service Health** | `http://localhost:8087/actuator/health` | `http://13.48.196.207:8087/actuator/health` |
+| **IoT Service Health** | `http://localhost:8082/actuator/health` | `http://13.48.196.207:8082/actuator/health` |
+| **Treatment Service Health** | `http://localhost:8083/actuator/health` | `http://13.48.196.207:8083/actuator/health` |
+| **E-Commerce Service Health** | `http://localhost:8084/actuator/health` | `http://13.48.196.207:8084/actuator/health` |
+| **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://13.48.196.207:8085/actuator/health` |
+| **Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://13.48.196.207:8086/actuator/health` |
+| **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://13.48.196.207:8088/actuator/health` |
 
 ---
 
