@@ -63,10 +63,7 @@ export const updateThresholds = async (
     urgentMaxTemperature: number;
     minTemperature: number;
     minSoilMoisture: number;
-    urgentMinSoilMoisture: number;
-    maxSoilMoisture: number;
     maxHumidity: number;
-    minHumidity: number;
     minNitrogen: number;
     minPhosphorus: number;
     minPotassium: number;

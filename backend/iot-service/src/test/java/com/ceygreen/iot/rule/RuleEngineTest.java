@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RuleEngineTest {
@@ -22,34 +23,71 @@ class RuleEngineTest {
     }
 
     @Test
-    void coolGreenhouseWhenTemperatureAboveMax() {
-        SensorReading reading = reading(33, 70, 40, 15, 15, 15);
+    void mistWhenTemperatureAbove30() {
+        SensorReading reading = reading(31, 70, 40, 15, 15, 15);
 
         List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
 
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Cool the greenhouse")));
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("misting")));
         assertEquals(RuleSeverity.NORMAL,
-                results.stream().filter(r -> r.getMessage().contains("Cool")).findFirst().orElseThrow().getSeverity());
+                results.stream().filter(r -> r.getMessage().contains("misting")).findFirst().orElseThrow().getSeverity());
     }
 
     @Test
-    void urgentAlertWhenTemperatureCritical() {
-        SensorReading reading = reading(40, 70, 40, 15, 15, 15);
+    void urgentRoofVentsWhenTemperatureAbove38() {
+        SensorReading reading = reading(39, 70, 40, 15, 15, 15);
 
         List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
 
         assertTrue(results.stream().anyMatch(RuleResult::isUrgent));
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Open roof")));
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("roof vents")));
     }
 
     @Test
-    void startIrrigationWhenSoilTooDry() {
-        SensorReading reading = reading(25, 70, 10, 15, 15, 15);
+    void heatWhenTemperatureBelow15() {
+        SensorReading reading = reading(14, 70, 40, 15, 15, 15);
 
         List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
 
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Start irrigation")));
-        assertTrue(results.stream().anyMatch(RuleResult::isUrgent));
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("heating")));
+        assertFalse(results.stream().anyMatch(RuleResult::isUrgent));
+    }
+
+    @Test
+    void irrigateWhenSoilLow() {
+        SensorReading reading = reading(25, 70, 19, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("irrigation")));
+        assertFalse(results.stream().anyMatch(RuleResult::isUrgent));
+    }
+
+    @Test
+    void noWetSoilRule() {
+        SensorReading reading = reading(25, 70, 80, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.isEmpty());
+    }
+
+    @Test
+    void openVentsWhenHumidityVeryHigh() {
+        SensorReading reading = reading(25, 91, 40, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("humidity")));
+    }
+
+    @Test
+    void noLowHumidityRule() {
+        SensorReading reading = reading(25, 40, 40, 15, 15, 15);
+
+        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
+
+        assertTrue(results.isEmpty());
     }
 
     @Test
@@ -59,42 +97,6 @@ class RuleEngineTest {
         List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
 
         assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Nitrogen")));
-    }
-
-    @Test
-    void startIrrigationWhenSoilBelowIdeal() {
-        SensorReading reading = reading(25, 70, 27, 15, 15, 15);
-
-        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
-
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().equals("Start irrigation")));
-    }
-
-    @Test
-    void reduceIrrigationWhenSoilTooWet() {
-        SensorReading reading = reading(25, 70, 72, 15, 15, 15);
-
-        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
-
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("too wet")));
-    }
-
-    @Test
-    void warmGreenhouseWhenTemperatureBelowMin() {
-        SensorReading reading = reading(23, 70, 40, 15, 15, 15);
-
-        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
-
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Warm the greenhouse")));
-    }
-
-    @Test
-    void raiseHumidityWhenHumidityBelowMin() {
-        SensorReading reading = reading(25, 55, 40, 15, 15, 15);
-
-        List<RuleResult> results = ruleEngine.evaluate(reading, thresholds);
-
-        assertTrue(results.stream().anyMatch(r -> r.getMessage().contains("Raise humidity")));
     }
 
     private static SensorReading reading(

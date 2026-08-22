@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/iot/thresholds")
-@Tag(name = "Thresholds", description = "Hot / cold / dry / wet / low-NPK rule limits.")
+@Tag(name = "Thresholds", description = "Hourly suggestion-engine limits for the zone.")
 @SecurityRequirement(name = "apiKey")
 public class ThresholdController {
 

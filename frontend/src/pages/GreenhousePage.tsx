@@ -1,10 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { getLatestReading, getSuggestions, registerGreenhouse, updateThresholds } from '../api/iot';
+import { getLatestReading, getSuggestions, registerGreenhouse } from '../api/iot';
 import { useAuth } from '../hooks/useAuth';
 import { LiveReading, Suggestion } from '../types/iot';
-import { evaluateReading, IOT_THRESHOLDS } from '../utils/iotRules';
+import { evaluateReading } from '../utils/iotRules';
+import {
+  clearSavedGreenhouse,
+  farmerStorageId,
+  readSavedGreenhouse,
+  saveGreenhouse,
+} from '../utils/greenhouseStorage';
 import { PageHeader } from '../components/layout/PageHeader';
 import { SensorMeter } from '../components/iot/SensorMeter';
 import { SensorLocation } from '../components/iot/SensorLocation';
@@ -27,11 +33,7 @@ function idleReading(): LiveReading {
 }
 
 function farmerKey(user: { farmerId?: string; id?: string } | null): string {
-  return (user?.farmerId || user?.id || '').trim();
-}
-
-function greenhouseStorageKey(ownerId: string): string {
-  return `ceygreen.greenhouse.${ownerId}`;
+  return farmerStorageId(user);
 }
 
 function suggestedGreenhouseId(ownerId: string): string {
@@ -42,6 +44,18 @@ function suggestedGreenhouseId(ownerId: string): string {
 function formatZone(zoneId: string): string {
   const n = zoneId.replace(/^ZONE/i, '').replace(/^Z/i, '');
   return n ? `Zone ${n}` : zoneId;
+}
+
+function gaugeState(
+  value: number,
+  live: boolean,
+  idealMin: number,
+  idealMax: number
+): { status: string; tone: 'ok' | 'watch' | 'alert' | 'idle' } {
+  if (!live) return { status: 'Idle', tone: 'idle' };
+  if (value < idealMin) return { status: 'Low', tone: 'watch' };
+  if (value > idealMax) return { status: 'High', tone: value > idealMax * 1.15 ? 'alert' : 'watch' };
+  return { status: 'Normal', tone: 'ok' };
 }
 
 function npkState(
@@ -70,8 +84,6 @@ export const GreenhousePage: React.FC = () => {
     [live]
   );
   const suggestions = suggestionsFromApi ? apiSuggestions : localSuggestions;
-  const [savingLimits, setSavingLimits] = useState(false);
-  const [limits, setLimits] = useState({ ...IOT_THRESHOLDS });
 
   useEffect(() => {
     if (!ownerId) {
@@ -82,9 +94,10 @@ export const GreenhousePage: React.FC = () => {
       setSuggestionsFromApi(false);
       return;
     }
-    const saved = localStorage.getItem(greenhouseStorageKey(ownerId)) || '';
-    setGreenhouseId(saved);
-    setRequestedId(saved || suggestedGreenhouseId(ownerId));
+    const saved = readSavedGreenhouse(ownerId);
+    setGreenhouseId(saved.id);
+    setRequestedId(saved.id || suggestedGreenhouseId(ownerId));
+    if (saved.name) setGhName(saved.name);
     setLive(idleReading());
     setApiSuggestions([]);
     setSuggestionsFromApi(false);
@@ -103,7 +116,8 @@ export const GreenhousePage: React.FC = () => {
       const res = await registerGreenhouse(ghName, ownerId, id);
       setGreenhouseId(res.id);
       setRequestedId(res.id);
-      localStorage.setItem(greenhouseStorageKey(ownerId), res.id);
+      setGhName(res.name || ghName);
+      saveGreenhouse(ownerId, res.id, res.name || ghName);
       setLive(idleReading());
       setLiveError('');
     } catch (err: any) {
@@ -119,19 +133,6 @@ export const GreenhousePage: React.FC = () => {
     }
   };
 
-  const handleSaveThresholds = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!greenhouseId || !ownerId) return;
-    setSavingLimits(true);
-    try {
-      await updateThresholds('ZONE1', greenhouseId, ownerId, limits);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Could not save thresholds');
-    } finally {
-      setSavingLimits(false);
-    }
-  };
-
   useEffect(() => {
     if (!greenhouseId || !ownerId) return undefined;
     let cancelled = false;
@@ -139,7 +140,8 @@ export const GreenhousePage: React.FC = () => {
     const tick = async () => {
       try {
         const reading = await getLatestReading(greenhouseId, ownerId).catch((err) => {
-          if (err.response?.status === 400) return null;
+          if (err.response?.status === 400 || err.response?.status === 404) return null;
+          if (!err.response) return null;
           throw err;
         });
         if (cancelled) return;
@@ -160,7 +162,7 @@ export const GreenhousePage: React.FC = () => {
         if (cancelled) return;
         if (err.response?.status === 403) {
           setGreenhouseId('');
-          localStorage.removeItem(greenhouseStorageKey(ownerId));
+          clearSavedGreenhouse(ownerId);
           setLive(idleReading());
           setLiveError('');
           alert('That greenhouse belongs to another farmer.');
@@ -231,9 +233,9 @@ export const GreenhousePage: React.FC = () => {
 
           {greenhouseId && (
             <SensorLocation
+              greenhouseName={ghName}
               zoneLabel={formatZone(live.zoneId || 'ZONE1')}
               active={live.status === 'LIVE'}
-              registered
             />
           )}
 
@@ -245,9 +247,9 @@ export const GreenhousePage: React.FC = () => {
               min={18}
               max={40}
               color="#f59e0b"
-              hint="Ideal 24–32 °C"
+              hint="Ideal 15–30 °C"
               icon={<IconThermo />}
-              {...gaugeState(live.temperature, live.status === 'LIVE', 24, 32)}
+              {...gaugeState(live.temperature, live.status === 'LIVE', 15, 30)}
             />
             <SensorMeter
               label="Humidity"
@@ -256,9 +258,9 @@ export const GreenhousePage: React.FC = () => {
               min={0}
               max={100}
               color="#3b82f6"
-              hint="Ideal 60–80%"
+              hint="Keep below 90%"
               icon={<IconDrop />}
-              {...gaugeState(live.humidity, live.status === 'LIVE', 60, 80)}
+              {...gaugeState(live.humidity, live.status === 'LIVE', 0, 90)}
             />
             <SensorMeter
               label="Soil moisture"
@@ -267,9 +269,9 @@ export const GreenhousePage: React.FC = () => {
               min={0}
               max={100}
               color="#22c55e"
-              hint="Ideal 35–60%"
+              hint="Keep above 20%"
               icon={<IconSprout />}
-              {...gaugeState(live.soilMoisture, live.status === 'LIVE', 35, 60)}
+              {...gaugeState(live.soilMoisture, live.status === 'LIVE', 20, 100)}
             />
           </div>
 
@@ -311,76 +313,7 @@ export const GreenhousePage: React.FC = () => {
           </div>
         </Card>
 
-        {greenhouseId && (
-          <Card title="Rule-engine thresholds">
-            <form className="gh-register" onSubmit={handleSaveThresholds}>
-              <p className="page-subtitle" style={{ margin: 0 }}>
-                PUT /iot/thresholds/ZONE1 — hot, cold, dry, wet, and low NPK limits for this zone.
-              </p>
-              <div className="gh-register-fields">
-                <Input
-                  label="Max temperature (°C)"
-                  type="number"
-                  value={limits.maxTemperature}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, maxTemperature: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min temperature (°C)"
-                  type="number"
-                  value={limits.minTemperature}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minTemperature: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Dry soil (%)"
-                  type="number"
-                  value={limits.minSoilMoisture}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minSoilMoisture: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Wet soil (%)"
-                  type="number"
-                  value={limits.maxSoilMoisture}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, maxSoilMoisture: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Max humidity (%)"
-                  type="number"
-                  value={limits.maxHumidity}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, maxHumidity: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min humidity (%)"
-                  type="number"
-                  value={limits.minHumidity}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minHumidity: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min N"
-                  type="number"
-                  value={limits.minNitrogen}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minNitrogen: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min P"
-                  type="number"
-                  value={limits.minPhosphorus}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minPhosphorus: Number(e.target.value) }))}
-                />
-                <Input
-                  label="Min K"
-                  type="number"
-                  value={limits.minPotassium}
-                  onChange={(e) => setLimits((prev) => ({ ...prev, minPotassium: Number(e.target.value) }))}
-                />
-              </div>
-              <button type="submit" className="gh-register-btn" disabled={savingLimits}>
-                {savingLimits ? 'Saving…' : 'Save thresholds'}
-              </button>
-            </form>
-          </Card>
-        )}
-
-        <Card title="Rule engine suggestions">
+        <Card title="Hourly suggestions">
           {suggestions.length === 0 ? (
             <p className="suggest-empty">
               {!greenhouseId

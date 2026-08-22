@@ -79,15 +79,16 @@ POST /api/iot/readings
 }
 ```
 
-## Rule engine (defaults)
+## Hourly suggestion engine (defaults)
 
-| Condition | Suggestion | Kafka? |
-|---|---|---|
-| temp > 30 | Cool the greenhouse | No |
-| temp > 38 | URGENT: Open roof | Yes (`HIGH`) |
-| soil < 20 | Start irrigation | No |
-| humidity > 90 | Open vent | No |
-| N / P / K low | Apply fertilizer | No |
+| Reading | Condition | Suggested action | Kafka? |
+|---|---|---|---|
+| Temperature | > 30 °C | Cool the zone with the misting/water system | No |
+| Temperature | > 38 °C | Open roof vents for passive cooling | Yes (`HIGH`) |
+| Temperature | < 15 °C | Close vents; activate heating if available | No |
+| Soil moisture | < 20% | Trigger irrigation for that zone | No |
+| Humidity | > 90% | Open vents to reduce humidity | No |
+| N / P / K | low | Apply the deficient nutrient at the recommended dose | No |
 
 ## Firebase schema
 

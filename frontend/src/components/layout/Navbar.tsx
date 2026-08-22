@@ -121,7 +121,6 @@ export const Navbar: React.FC = () => {
         <label className="nav-search">
           <IconSearch />
           <input ref={searchRef} type="search" placeholder="Search something..." />
-          <kbd>⌘ K</kbd>
         </label>
       )}
 

@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Positive;
 
 /**
  * Body for {@code PUT /api/iot/thresholds/{zoneId}}.
- * Farmer adjusts limits for their zone from the web app.
  */
 public class UpdateThresholdRequest {
 
@@ -34,19 +33,7 @@ public class UpdateThresholdRequest {
 
     @NotNull
     @Positive
-    private Double urgentMinSoilMoisture;
-
-    @NotNull
-    @Positive
-    private Double maxSoilMoisture;
-
-    @NotNull
-    @Positive
     private Double maxHumidity;
-
-    @NotNull
-    @Positive
-    private Double minHumidity;
 
     @NotNull
     @Positive
@@ -108,36 +95,12 @@ public class UpdateThresholdRequest {
         this.minSoilMoisture = minSoilMoisture;
     }
 
-    public Double getUrgentMinSoilMoisture() {
-        return urgentMinSoilMoisture;
-    }
-
-    public void setUrgentMinSoilMoisture(Double urgentMinSoilMoisture) {
-        this.urgentMinSoilMoisture = urgentMinSoilMoisture;
-    }
-
-    public Double getMaxSoilMoisture() {
-        return maxSoilMoisture;
-    }
-
-    public void setMaxSoilMoisture(Double maxSoilMoisture) {
-        this.maxSoilMoisture = maxSoilMoisture;
-    }
-
     public Double getMaxHumidity() {
         return maxHumidity;
     }
 
     public void setMaxHumidity(Double maxHumidity) {
         this.maxHumidity = maxHumidity;
-    }
-
-    public Double getMinHumidity() {
-        return minHumidity;
-    }
-
-    public void setMinHumidity(Double minHumidity) {
-        this.minHumidity = minHumidity;
     }
 
     public Double getMinNitrogen() {

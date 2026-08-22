@@ -134,42 +134,68 @@
 }
 .sensor-location-art {
   position: relative;
-  background: linear-gradient(180deg, #f7fbf8 0%, #eef6f1 100%);
   border: 1px solid #e3eee7;
   border-radius: 18px;
-  padding: 0.6rem 0.4rem 0.2rem;
   overflow: hidden;
+  background: #eef2f0;
+  min-height: 220px;
 }
-.greenhouse-iso {
-  width: 100%;
-  height: auto;
+.greenhouse-photo,
+.greenhouse-photo-fallback {
   display: block;
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center 45%;
+}
+.greenhouse-photo-fallback {
+  background: linear-gradient(180deg, #e8f3ec 0%, #cfe4d6 100%);
 }
 .zone-chip {
   position: absolute;
   left: 50%;
-  top: 38%;
-  transform: translate(-50%, -30%);
+  top: 46%;
+  transform: translate(-50%, -40%);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.55rem;
   background: #fff;
   border: 1.5px solid #22c55e;
-  border-radius: 12px;
-  padding: 0.45rem 0.7rem;
-  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.16);
-  min-width: 148px;
+  border-radius: 14px;
+  padding: 0.55rem 0.8rem;
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.2);
+  min-width: 180px;
+  max-width: calc(100% - 2rem);
+  pointer-events: none;
+}
+.zone-chip.is-idle {
+  border-color: #d1d5db;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
 }
 .zone-chip-pin {
   display: grid;
   place-items: center;
+  margin-top: 0.12rem;
 }
 .zone-chip strong {
   display: block;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: #111827;
+  line-height: 1.2;
+}
+.zone-chip-zone {
+  display: block;
+  margin-top: 0.12rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #166534;
+}
+.zone-chip.is-idle .zone-chip-zone {
+  color: #6b7280;
 }
 .zone-chip small {
+  display: block;
+  margin-top: 0.1rem;
   color: #6b7280;
   font-size: 0.72rem;
 }
@@ -245,6 +271,7 @@
 @media (max-width: 800px) {
   .sensor-grid { grid-template-columns: 1fr; }
   .gh-register-fields { grid-template-columns: 1fr; }
+  .greenhouse-photo { height: 210px; }
 }
 @media (min-width: 801px) and (max-width: 1100px) {
   .sensor-grid { grid-template-columns: 1fr 1fr; }

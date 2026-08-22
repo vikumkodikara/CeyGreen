@@ -28,10 +28,7 @@ public class ThresholdService {
         thresholds.setUrgentMaxTemperature(request.getUrgentMaxTemperature());
         thresholds.setMinTemperature(request.getMinTemperature());
         thresholds.setMinSoilMoisture(request.getMinSoilMoisture());
-        thresholds.setUrgentMinSoilMoisture(request.getUrgentMinSoilMoisture());
-        thresholds.setMaxSoilMoisture(request.getMaxSoilMoisture());
         thresholds.setMaxHumidity(request.getMaxHumidity());
-        thresholds.setMinHumidity(request.getMinHumidity());
         thresholds.setMinNitrogen(request.getMinNitrogen());
         thresholds.setMinPhosphorus(request.getMinPhosphorus());
         thresholds.setMinPotassium(request.getMinPotassium());

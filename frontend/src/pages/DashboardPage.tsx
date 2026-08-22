@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { WeatherPanel } from '../components/dashboard/WeatherPanel';
+import { farmerStorageId, readSavedGreenhouse } from '../utils/greenhouseStorage';
 import {
   IconArrow, IconBeaker, IconChart, IconChat, IconDrop, IconGauge,
   IconScan, IconShield, IconStore, IconSun, IconThermo,
@@ -18,11 +20,15 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const first = (user?.fullName || user?.name || 'Grower').split(' ')[0];
   const isBuyer = user?.role === 'BUYER';
+  const savedHouse = readSavedGreenhouse(farmerStorageId(user));
+  const houseLabel = savedHouse.name
+    ? `${savedHouse.name} · Zone 1`
+    : 'Register a greenhouse to see your house';
 
   const metrics = [
-    { label: 'Temperature', value: '27.4 °C', hint: 'Ideal 24–30 °C', icon: <IconThermo /> },
-    { label: 'Humidity', value: '68%', hint: 'Ideal 60–75%', icon: <IconDrop /> },
-    { label: 'Soil Moisture', value: '42%', hint: 'Ideal 35–50%', icon: <IconDrop /> },
+    { label: 'Temperature', value: '27.4 °C', hint: 'Ideal 15–30 °C', icon: <IconThermo /> },
+    { label: 'Humidity', value: '68%', hint: 'Keep below 90%', icon: <IconDrop /> },
+    { label: 'Soil Moisture', value: '42%', hint: 'Keep above 20%', icon: <IconDrop /> },
     { label: 'Light Intensity', value: '580 lux', hint: 'Ideal 400–800', icon: <IconSun /> },
   ];
 
@@ -110,25 +116,13 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       <aside className="dash-rail">
-        <article className="panel wx">
-          <h3>Weather</h3>
-          <p className="wx-place">Kandy, Sri Lanka</p>
-          <div className="weather-now">
-            <span className="wx-temp">27°</span>
-            <div>
-              <p>Partly Cloudy</p>
-              <small>Humidity 68% · Wind 8 km/h</small>
-            </div>
-          </div>
-        </article>
+        <WeatherPanel />
 
         <article className="panel">
           <h3>My greenhouse</h3>
-          <select defaultValue="alpha" aria-label="Select greenhouse">
-            <option value="alpha">Greenhouse Alpha · ZONE1</option>
-          </select>
-          <img className="gh-photo" src="/dashboard/greenhouse.jpg" alt="Rows of healthy greenhouse greens" />
-          <p className="gh-ok">Excellent conditions</p>
+          <p className="wx-place">{houseLabel}</p>
+          <img className="gh-photo" src="/dashboard/greenhouse.jpg" alt="" />
+          <p className="gh-ok">{savedHouse.id ? 'Open live meters in the greenhouse page' : 'No house registered yet'}</p>
           <Link to="/greenhouse" className="text-link">
             Open house <IconGauge size={14} />
           </Link>
