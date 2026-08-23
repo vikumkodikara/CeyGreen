@@ -99,9 +99,12 @@ public class DiagnosisController {
     @Operation(summary = "Serve a previously uploaded diagnosis image")
     public ResponseEntity<Resource> image(@PathVariable String filename) {
         Resource resource = diagnosisService.loadImage(filename);
+        MediaType mediaType = org.springframework.http.MediaTypeFactory
+                .getMediaType(resource)
+                .orElse(MediaType.IMAGE_JPEG);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(mediaType)
                 .body(resource);
     }
 }
