@@ -3,6 +3,7 @@ import { getSalesSummary, getSalesTrend, getLeaderboard } from '../api/analytics
 import { Spinner } from '../components/ui/Spinner';
 import { useAuth } from '../hooks/useAuth';
 import { LeaderboardResponse, SalesSummary, SalesTrend } from '../types/analytics';
+import './AnalyticsPage.css';
 
 // ─── Grafana base URL ──────────────────────────────────────────────────────────
 const getGrafanaBaseUrl = (): string => {
@@ -24,24 +25,24 @@ function grafanaPanelUrl(panelId: number, farmerId: string) {
     'var-farmer': farmerId,
     from: 'now-90d',
     to: 'now',
-    theme: 'dark',
+    theme: 'light',
     refresh: '30s',
   });
   return `${getGrafanaBaseUrl()}/d-solo/${GRAFANA_DASHBOARD_UID}/sales-analytics?${params}`;
 }
 
-// ─── Static styles ─────────────────────────────────────────────────────────────
+// ─── Static styles — CeyGreen Light Theme ─────────────────────────────────────
 const S = {
   page: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #134e25 100%)',
+    background: '#f8fafc',
     padding: '0 0 4rem',
     fontFamily: "'Inter', system-ui, sans-serif",
   } as React.CSSProperties,
 
   hero: {
-    background: 'linear-gradient(120deg, rgba(22,163,74,0.18) 0%, rgba(15,23,42,0.95) 60%)',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    background: 'linear-gradient(120deg, #f0fdf4 0%, #ffffff 60%)',
+    borderBottom: '1px solid #e2e8f0',
     padding: '2.5rem 2rem 2rem',
     display: 'flex',
     alignItems: 'center',
@@ -54,13 +55,13 @@ const S = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.4rem',
-    background: 'rgba(22,163,74,0.15)',
-    border: '1px solid rgba(22,163,74,0.35)',
+    background: '#dcfce7',
+    border: '1px solid #bbf7d0',
     borderRadius: '100px',
     padding: '0.25rem 0.875rem',
     fontSize: '0.75rem',
     fontWeight: 600,
-    color: '#4ade80',
+    color: '#15803d',
     letterSpacing: '0.04em',
     textTransform: 'uppercase',
     marginBottom: '0.75rem',
@@ -68,15 +69,15 @@ const S = {
 
   heroTitle: {
     margin: 0,
-    fontSize: 'clamp(1.6rem, 4vw, 2.5rem)',
+    fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
     fontWeight: 800,
-    color: '#f1f5f9',
+    color: '#0f172a',
     lineHeight: 1.15,
   } as React.CSSProperties,
 
   heroSubtitle: {
     margin: '0.5rem 0 0',
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '1rem',
     maxWidth: '520px',
   } as React.CSSProperties,
@@ -85,15 +86,16 @@ const S = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.5rem',
-    background: 'rgba(249,115,22,0.12)',
-    border: '1px solid rgba(249,115,22,0.4)',
+    background: '#fff7ed',
+    border: '1px solid #fed7aa',
     borderRadius: '0.6rem',
     padding: '0.5rem 1.1rem',
-    color: '#fb923c',
+    color: '#c2410c',
     fontWeight: 600,
     fontSize: '0.875rem',
     textDecoration: 'none',
     whiteSpace: 'nowrap',
+    transition: 'background 0.15s',
   } as React.CSSProperties,
 
   content: {
@@ -103,12 +105,12 @@ const S = {
   } as React.CSSProperties,
 
   lookupCard: {
-    background: 'rgba(255,255,255,0.04)',
-    backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255,255,255,0.09)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '1.25rem',
     padding: '1.75rem 2rem',
     marginBottom: '1.5rem',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
   } as React.CSSProperties,
 
   lookupLabel: {
@@ -129,18 +131,18 @@ const S = {
 
   lookupInput: {
     flex: 1,
-    background: 'rgba(255,255,255,0.07)',
-    border: '1px solid rgba(255,255,255,0.12)',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.1rem',
-    color: '#f1f5f9',
+    color: '#0f172a',
     fontSize: '1rem',
     outline: 'none',
     fontFamily: 'inherit',
   } as React.CSSProperties,
 
   fetchBtn: {
-    background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+    background: 'linear-gradient(135deg, #16a34a 0%, #059669 100%)',
     border: 'none',
     borderRadius: '0.75rem',
     padding: '0.75rem 1.75rem',
@@ -153,6 +155,7 @@ const S = {
     alignItems: 'center',
     gap: '0.4rem',
     whiteSpace: 'nowrap',
+    boxShadow: '0 4px 6px -1px rgba(5,150,105,0.25)',
   } as React.CSSProperties,
 
   statsGrid: {
@@ -172,7 +175,7 @@ const S = {
   sectionTitle: {
     fontSize: '1rem',
     fontWeight: 700,
-    color: '#e2e8f0',
+    color: '#1e293b',
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
@@ -187,22 +190,26 @@ const S = {
   } as React.CSSProperties,
 
   grafanaCard: {
-    background: '#161b27',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '1.1rem',
     overflow: 'hidden',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
   } as React.CSSProperties,
 
   grafanaFrame: {
     width: '100%',
     border: 'none',
     display: 'block',
+    background: '#ffffff',
   } as React.CSSProperties,
 
   tableWrap: {
     overflowX: 'auto',
     borderRadius: '1.1rem',
-    border: '1px solid rgba(255,255,255,0.07)',
+    border: '1px solid #e2e8f0',
+    background: '#ffffff',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
   } as React.CSSProperties,
 
   table: {
@@ -219,15 +226,15 @@ const S = {
     color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: '0.07em',
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
-    background: 'rgba(0,0,0,0.2)',
+    borderBottom: '1px solid #e2e8f0',
+    background: '#f8fafc',
     whiteSpace: 'nowrap',
   } as React.CSSProperties,
 
   td: {
     padding: '0.8rem 1rem',
-    color: '#cbd5e1',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    color: '#334155',
+    borderBottom: '1px solid #f1f5f9',
   } as React.CSSProperties,
 
   loadingWrap: {
@@ -241,16 +248,17 @@ const S = {
   } as React.CSSProperties,
 };
 
-// ─── Style helpers (functions — NOT in the styles record) ──────────────────────
-function statCardStyle(accent: string): React.CSSProperties {
+// ─── Style helpers ─────────────────────────────────────────────────────────────
+function statCardStyle(bg: string, border: string): React.CSSProperties {
   return {
-    background: `linear-gradient(135deg, rgba(${accent},0.14) 0%, rgba(${accent},0.04) 100%)`,
-    border: `1px solid rgba(${accent},0.22)`,
+    background: bg,
+    border: `1px solid ${border}`,
     borderRadius: '1.1rem',
     padding: '1.4rem 1.5rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.4rem',
+    gap: '0.35rem',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)',
   };
 }
 
@@ -267,19 +275,19 @@ function noticeStyle(type: 'info' | 'warn'): React.CSSProperties {
     borderRadius: '0.875rem',
     marginBottom: '1.25rem',
     fontSize: '0.875rem',
-    background: type === 'info' ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.1)',
-    border: `1px solid ${type === 'info' ? 'rgba(22,163,74,0.3)' : 'rgba(245,158,11,0.3)'}`,
-    color: type === 'info' ? '#4ade80' : '#fbbf24',
+    background: type === 'info' ? '#f0fdf4' : '#fffbeb',
+    border: `1px solid ${type === 'info' ? '#bbf7d0' : '#fde68a'}`,
+    color: type === 'info' ? '#15803d' : '#92400e',
   };
 }
 
 function badgeStyle(status: string): React.CSSProperties {
   const map: Record<string, [string, string]> = {
-    COMPLETED: ['rgba(22,163,74,0.15)',  '#4ade80'],
-    PENDING:   ['rgba(245,158,11,0.15)', '#fbbf24'],
-    CANCELLED: ['rgba(239,68,68,0.15)',  '#f87171'],
+    COMPLETED: ['#dcfce7', '#15803d'],
+    PENDING:   ['#fef9c3', '#854d0e'],
+    CANCELLED: ['#fee2e2', '#b91c1c'],
   };
-  const [bg, color] = map[status] ?? ['rgba(100,116,139,0.15)', '#94a3b8'];
+  const [bg, color] = map[status] ?? ['#f1f5f9', '#475569'];
   return {
     display: 'inline-block',
     padding: '0.2rem 0.65rem',
@@ -444,7 +452,7 @@ export const AnalyticsPage: React.FC = () => {
         {loading && (
           <div style={S.loadingWrap}>
             <Spinner />
-            <span>Fetching sales analytics for {farmerId}…</span>
+            <span style={{ color: '#64748b' }}>Fetching sales analytics for {farmerId}…</span>
           </div>
         )}
 
@@ -453,25 +461,29 @@ export const AnalyticsPage: React.FC = () => {
           <>
             {/* KPI stat cards */}
             <div style={S.statsGrid}>
-              <div style={statCardStyle('22,163,74')}>
+              {/* Total Orders — Deep Forest Green */}
+              <div style={statCardStyle('#f0fdf4', '#bbf7d0')}>
                 <span style={S.lookupLabel}>Total Orders</span>
-                <span style={statValueStyle('#4ade80')}>{summary.totalOrders.toLocaleString()}</span>
-                <span style={{ fontSize: '0.8rem', color: '#475569' }}>lifetime orders</span>
+                <span style={statValueStyle('#15803d')}>{summary.totalOrders.toLocaleString()}</span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>lifetime orders</span>
               </div>
-              <div style={statCardStyle('14,165,233')}>
+              {/* Total Revenue — Emerald Green */}
+              <div style={statCardStyle('#ecfdf5', '#a7f3d0')}>
                 <span style={S.lookupLabel}>Total Revenue</span>
-                <span style={statValueStyle('#38bdf8')}>{fmtCurrency(summary.totalRevenue)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#475569' }}>all-time gross</span>
+                <span style={statValueStyle('#059669')}>{fmtCurrency(summary.totalRevenue)}</span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>all-time gross</span>
               </div>
-              <div style={statCardStyle('168,85,247')}>
+              {/* Avg Order Value — Teal */}
+              <div style={statCardStyle('#f0fdfa', '#99f6e4')}>
                 <span style={S.lookupLabel}>Avg Order Value</span>
-                <span style={statValueStyle('#c084fc')}>{fmtCurrency(avgOrderValue)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#475569' }}>per transaction</span>
+                <span style={statValueStyle('#0d9488')}>{fmtCurrency(avgOrderValue)}</span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>per transaction</span>
               </div>
-              <div style={statCardStyle('249,115,22')}>
+              {/* Last Updated — Slate Blue */}
+              <div style={statCardStyle('#f8fafc', '#e2e8f0')}>
                 <span style={S.lookupLabel}>Last Updated</span>
-                <span style={{ ...statValueStyle('#fb923c'), fontSize: '1.1rem' }}>{fmtDate(summary.lastUpdated)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#475569' }}>latest sync</span>
+                <span style={{ ...statValueStyle('#1e40af'), fontSize: '1.05rem' }}>{fmtDate(summary.lastUpdated)}</span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>latest sync</span>
               </div>
             </div>
 
@@ -482,7 +494,7 @@ export const AnalyticsPage: React.FC = () => {
                   <h2 style={S.sectionTitle}>
                     <span>📈</span> Charts — Powered by Grafana + PostgreSQL
                   </h2>
-                  <span style={{ fontSize: '0.78rem', color: '#475569' }}>auto-refreshes every 30s</span>
+                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>auto-refreshes every 30s</span>
                 </div>
 
                 <div style={S.grafanaGrid}>
@@ -518,7 +530,7 @@ export const AnalyticsPage: React.FC = () => {
             {/* ── Recent Order Log ── */}
             <div style={S.sectionHeader}>
               <h2 style={S.sectionTitle}><span>🧾</span> Recent Activity &amp; Order Log</h2>
-              {isMock && <span style={{ fontSize: '0.78rem', color: '#fbbf24' }}>mock data</span>}
+              {isMock && <span style={{ fontSize: '0.78rem', color: '#d97706', background: '#fef3c7', padding: '0.15rem 0.6rem', borderRadius: '100px', fontWeight: 600 }}>mock data</span>}
             </div>
             <div style={{ ...S.tableWrap, marginBottom: '1.5rem' }}>
               {logs.length > 0 ? (
@@ -532,21 +544,21 @@ export const AnalyticsPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {logs.map((log) => (
-                      <tr key={log.id}>
-                        <td style={{ ...S.td, fontWeight: 700, color: '#e2e8f0', fontFamily: 'monospace' }}>#{log.id}</td>
+                      <tr key={log.id} style={{ background: '#ffffff' }}>
+                        <td style={{ ...S.td, fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>#{log.id}</td>
                         <td style={S.td}>{log.cropName}</td>
-                        <td style={{ ...S.td, color: '#94a3b8' }}>{log.quantity} units</td>
-                        <td style={{ ...S.td, fontWeight: 700, color: '#38bdf8' }}>{fmtCurrency(log.totalAmount)}</td>
+                        <td style={{ ...S.td, color: '#64748b' }}>{log.quantity} units</td>
+                        <td style={{ ...S.td, fontWeight: 700, color: '#059669' }}>{fmtCurrency(log.totalAmount)}</td>
                         <td style={S.td}>{log.buyerName}</td>
                         <td style={S.td}><span style={badgeStyle(log.status)}>{log.status}</span></td>
-                        <td style={{ ...S.td, fontSize: '0.8rem', color: '#475569' }}>{fmtDate(log.date)}</td>
+                        <td style={{ ...S.td, fontSize: '0.8rem', color: '#94a3b8' }}>{fmtDate(log.date)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <div style={{ padding: '2.5rem', textAlign: 'center', color: '#475569' }}>
-                  No order logs found for <strong style={{ color: '#94a3b8' }}>{activeFid}</strong>.
+                <div style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8', background: '#ffffff' }}>
+                  No order logs found for <strong style={{ color: '#64748b' }}>{activeFid}</strong>.
                 </div>
               )}
             </div>
@@ -570,21 +582,21 @@ export const AnalyticsPage: React.FC = () => {
                       {leaderboard.map((e) => {
                         const isActive = e.farmerId === activeFid;
                         return (
-                          <tr key={e.farmerId} style={{ background: isActive ? 'rgba(22,163,74,0.07)' : 'transparent' }}>
+                          <tr key={e.farmerId} style={{ background: isActive ? '#f0fdf4' : '#ffffff' }}>
                             <td style={{ ...S.td, fontWeight: 800, fontSize: '1.1rem' }}>
                               {e.rank === 1 ? '🥇' : e.rank === 2 ? '🥈' : e.rank === 3 ? '🥉' : `#${e.rank}`}
                             </td>
-                            <td style={{ ...S.td, fontWeight: isActive ? 700 : 400, color: isActive ? '#4ade80' : '#e2e8f0', fontFamily: 'monospace' }}>
+                            <td style={{ ...S.td, fontWeight: isActive ? 700 : 400, color: isActive ? '#15803d' : '#1e293b', fontFamily: 'monospace' }}>
                               {e.farmerId}
                               {isActive && (
-                                <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: '#4ade80', background: 'rgba(22,163,74,0.15)', padding: '0.1rem 0.5rem', borderRadius: '100px' }}>
+                                <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: '#15803d', background: '#dcfce7', padding: '0.1rem 0.5rem', borderRadius: '100px', fontWeight: 700 }}>
                                   you
                                 </span>
                               )}
                             </td>
-                            <td style={{ ...S.td, fontWeight: 700, color: '#38bdf8' }}>{fmtCurrency(e.totalRevenue)}</td>
+                            <td style={{ ...S.td, fontWeight: 700, color: '#059669' }}>{fmtCurrency(e.totalRevenue)}</td>
                             <td style={S.td}>{e.totalOrders.toLocaleString()}</td>
-                            <td style={{ ...S.td, fontSize: '0.8rem', color: '#475569' }}>{fmtDate(e.lastUpdated)}</td>
+                            <td style={{ ...S.td, fontSize: '0.8rem', color: '#94a3b8' }}>{fmtDate(e.lastUpdated)}</td>
                           </tr>
                         );
                       })}
