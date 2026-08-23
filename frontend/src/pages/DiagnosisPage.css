@@ -105,7 +105,7 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 50%;
+  width: 54%;
   z-index: 1;
   overflow: hidden;
 }
@@ -114,7 +114,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #032b18 0%, rgba(3, 43, 24, 0.7) 25%, transparent 55%);
+  background: linear-gradient(90deg, #032b18 0%, rgba(3, 43, 24, 0.75) 20%, rgba(3, 43, 24, 0.15) 50%, transparent 65%);
   z-index: 2;
   pointer-events: none;
 }
@@ -123,13 +123,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: right center;
   display: block;
   transition: transform 0.4s ease;
 }
 
 .hero-scanner-img:hover {
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
 /* ==========================================================================
