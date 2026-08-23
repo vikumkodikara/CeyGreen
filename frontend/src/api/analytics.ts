@@ -6,7 +6,7 @@ import { LeaderboardResponse, SalesSummary, SalesTrend } from '../types/analytic
  * Returns total orders, total revenue, and last updated timestamp for a farmer.
  */
 export const getSalesSummary = async (farmerId: string): Promise<SalesSummary> => {
-  const res = await analyticsClient.get<SalesSummary>(`/analytics/sales/${farmerId}`);
+  const res = await analyticsClient.get<SalesSummary>(`/sales/${farmerId}`);
   return res.data;
 };
 
@@ -15,16 +15,15 @@ export const getSalesSummary = async (farmerId: string): Promise<SalesSummary> =
  * Returns sales volume, revenue, average order value, and historical order breakdown.
  */
 export const getSalesTrend = async (farmerId: string): Promise<SalesTrend> => {
-  const res = await analyticsClient.get<SalesTrend>(`/analytics/sales/${farmerId}/trend`);
+  const res = await analyticsClient.get<SalesTrend>(`/sales/${farmerId}/trend`);
   return res.data;
 };
 
 /**
  * GET /analytics/leaderboard
  * Returns top farmers ranked by total sales revenue.
- * Backend returns a plain array of LeaderboardEntry objects.
  */
 export const getLeaderboard = async (): Promise<LeaderboardResponse> => {
-  const res = await analyticsClient.get<LeaderboardResponse>('/analytics/leaderboard');
+  const res = await analyticsClient.get<LeaderboardResponse>('/leaderboard');
   return res.data;
 };
