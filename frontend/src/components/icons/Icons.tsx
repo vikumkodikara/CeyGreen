@@ -156,3 +156,11 @@ export const IconSprout: React.FC<IconProps> = ({ size = 18 }) => (
   </svg>
 );
 
+export const IconClock: React.FC<IconProps> = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+    <circle cx="12" cy="12" r="9" {...stroke} />
+    <path {...stroke} d="M12 7v5l3 2" />
+  </svg>
+);
+
+

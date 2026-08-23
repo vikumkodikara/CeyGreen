@@ -13,6 +13,8 @@ import { Footer } from './components/layout/Footer';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DiagnosisPage } from './pages/DiagnosisPage';
+import { ScanHistoryPage } from './pages/ScanHistoryPage';
+import { ScanDetailPage } from './pages/ScanDetailPage';
 import { TreatmentsPage } from './pages/TreatmentsPage';
 import { GreenhousePage } from './pages/GreenhousePage';
 import { ForumPage } from './pages/ForumPage';
@@ -42,6 +44,10 @@ const AppRoutes: React.FC = () => (
 
     <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
     <Route path="/diagnosis" element={<ProtectedRoute><DiagnosisPage /></ProtectedRoute>} />
+    <Route path="/recent-scans" element={<ProtectedRoute><ScanHistoryPage /></ProtectedRoute>} />
+    <Route path="/recent-scans/:id" element={<ProtectedRoute><ScanDetailPage /></ProtectedRoute>} />
+    <Route path="/scan-history" element={<ProtectedRoute><ScanHistoryPage /></ProtectedRoute>} />
+    <Route path="/scan-history/:id" element={<ProtectedRoute><ScanDetailPage /></ProtectedRoute>} />
     <Route path="/treatments" element={<ProtectedRoute><TreatmentsPage /></ProtectedRoute>} />
     <Route path="/greenhouse" element={<ProtectedRoute><GreenhousePage /></ProtectedRoute>} />
     <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
