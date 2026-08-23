@@ -14,15 +14,37 @@
 
 /* Header */
 .history-header {
+  position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 1.5rem;
-  background: linear-gradient(135deg, #032b18 0%, #064e2b 60%, #0b3d2e 100%);
-  padding: 2.2rem 2.5rem;
-  border-radius: 22px;
+  background-color: #032b18;
+  background-image: url('/images/hero/scan-history-banner.webp'), url('/images/hero/scan-history-banner.jpg');
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 2.6rem 2.8rem 3rem;
+  border-radius: 24px;
   color: #ffffff;
-  box-shadow: 0 14px 36px rgba(3, 43, 24, 0.2);
+  box-shadow: 0 16px 40px rgba(3, 43, 24, 0.22);
+  overflow: hidden;
+  min-height: 220px;
+}
+
+.history-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(3, 43, 24, 0.96) 0%, rgba(3, 43, 24, 0.88) 38%, rgba(3, 43, 24, 0.35) 68%, rgba(3, 43, 24, 0) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.history-header-left {
+  position: relative;
+  z-index: 2;
+  max-width: 40rem;
 }
 
 .history-badge {
@@ -38,23 +60,52 @@
   padding: 0.35rem 0.85rem;
   border-radius: 999px;
   margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .history-title {
-  font-size: 2.15rem;
+  font-size: 2.3rem;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.5rem;
   letter-spacing: -0.03em;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .history-subtitle {
   color: #d1fae5;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   max-width: 38rem;
-  line-height: 1.5;
+  line-height: 1.55;
   opacity: 0.95;
+  margin-bottom: 0.85rem;
+}
+
+.history-meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.history-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(3, 43, 24, 0.75);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.history-header-actions {
+  position: relative;
+  z-index: 2;
+  align-self: center;
 }
 
 .history-cta-btn {
@@ -64,18 +115,18 @@
   background: #22c55e;
   color: #032b18;
   font-weight: 700;
-  font-size: 0.9rem;
-  padding: 0.75rem 1.4rem;
-  border-radius: 12px;
+  font-size: 0.92rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 14px;
   white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .history-cta-btn:hover {
   background: #4ade80;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.45);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.5);
   color: #032b18;
 }
 

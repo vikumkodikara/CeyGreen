@@ -77,13 +77,23 @@ export const ScanHistoryPage: React.FC = () => {
       <header className="history-header">
         <div className="history-header-left">
           <div className="history-badge">
-            <IconScan size={15} />
-            <span>Diagnosis Archive</span>
+            <IconScan size={14} />
+            <span>DIAGNOSIS ARCHIVE</span>
           </div>
           <h1 className="history-title">Scan History</h1>
           <p className="history-subtitle">
             Review past plant diagnoses, track crop health progression, and access treatment protocols.
           </p>
+          <div className="history-meta-pills">
+            <span className="history-meta-pill">
+              <IconLeaf size={14} />
+              <span>Multi-Crop Archive</span>
+            </span>
+            <span className="history-meta-pill">
+              <IconScan size={14} />
+              <span>Deep AI Analysis</span>
+            </span>
+          </div>
         </div>
 
         <div className="history-header-actions">
