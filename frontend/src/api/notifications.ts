@@ -1,4 +1,4 @@
-import { analyticsClient } from './analyticsClient';
+import { apiClient } from './client';
 
 export interface NotificationItem {
   id: number;
@@ -11,11 +11,11 @@ export interface NotificationItem {
 }
 
 /**
- * GET /notify/history/{userId}
- * Fetches all notification history for a user from the
- * CeyGreen Sales Analytics & Notification Service (port 8086).
+ * GET /api/notify/history/{userId}
+ * Fetches all notification history for a user via the API gateway,
+ * which routes to the notification service.
  */
 export const getNotificationHistory = async (userId: string): Promise<NotificationItem[]> => {
-  const res = await analyticsClient.get<NotificationItem[]>(`/notify/history/${userId}`);
+  const res = await apiClient.get<NotificationItem[]>(`/notify/history/${userId}`);
   return res.data;
 };
