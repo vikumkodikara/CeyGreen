@@ -5,7 +5,7 @@ import { useCart } from '../../hooks/useCart';
 import { useShell } from '../../App';
 import { Logo } from './Logo';
 import {
-  IconHome, IconScan, IconBeaker, IconGauge, IconStore, IconBag,
+  IconHome, IconScan, IconClock, IconBeaker, IconGauge, IconStore, IconBag,
   IconBox, IconList, IconTruck, IconChat, IconChart,
 } from '../icons/Icons';
 
@@ -21,6 +21,7 @@ export const Sidebar: React.FC = () => {
   const grow: Item[] = [
     { label: 'Home', path: '/', icon: <IconHome />, end: true },
     { label: 'Diagnosis', path: '/diagnosis', icon: <IconScan /> },
+    { label: 'Scan History', path: '/recent-scans', icon: <IconClock /> },
     { label: 'Treatments', path: '/treatments', icon: <IconBeaker /> },
     { label: 'Greenhouse', path: '/greenhouse', icon: <IconGauge /> },
   ];

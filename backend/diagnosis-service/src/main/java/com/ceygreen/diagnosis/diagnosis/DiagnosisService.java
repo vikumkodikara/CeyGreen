@@ -4,6 +4,7 @@ import com.ceygreen.diagnosis.common.ApiException;
 import com.ceygreen.diagnosis.diagnosis.classifier.DiagnosisResult;
 import com.ceygreen.diagnosis.diagnosis.classifier.DiseaseClassifier;
 import com.ceygreen.diagnosis.diagnosis.dto.DiagnosisResponse;
+import com.ceygreen.diagnosis.diagnosis.dto.DiagnosisSummaryDto;
 import com.ceygreen.diagnosis.security.CallerIdentity;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -16,6 +17,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -102,6 +105,12 @@ public class DiagnosisService {
         return diagnosisRepository.findByFarmerIdOrderByTimestampDesc(farmerId).stream()
                 .map(DiagnosisResponse::from)
                 .toList();
+    }
+
+    public Page<DiagnosisSummaryDto> historyPaged(UUID farmerId, CallerIdentity caller, Pageable pageable) {
+        caller.requireCanActAs(farmerId, "view diagnosis history");
+        return diagnosisRepository.findByFarmerIdOrderByTimestampDesc(farmerId, pageable)
+                .map(DiagnosisSummaryDto::from);
     }
 
     public void delete(String id, CallerIdentity caller) {

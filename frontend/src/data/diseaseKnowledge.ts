@@ -1,256 +1,578 @@
-export interface RecommendedProduct {
-  name: string;
-  type: string;
-  dosage: string;
+export interface MicroclimateDrivers {
+  temperatureRange: string;
+  criticalHumidity: string;
+  leafWetnessHours: string;
+  vpdRiskLevel: 'Low' | 'Moderate' | 'High' | 'Extreme';
 }
 
 export interface DiseaseDetail {
   name: string;
   displayName: string;
+  scientificName: string;
   crop: string;
-  category: 'Fungal' | 'Bacterial' | 'Viral' | 'Healthy';
+  category: 'Fungal' | 'Bacterial' | 'Viral' | 'Pest' | 'Healthy';
   severity: 'Critical' | 'High' | 'Moderate' | 'Low' | 'Healthy';
   description: string;
-  symptoms: string[];
-  causes: string[];
-  organicTreatments: string[];
-  chemicalTreatments: string[];
-  prevention: string[];
-  recommendedProducts: RecommendedProduct[];
+  etiology: {
+    pathogenType: string;
+    incubationPeriod: string;
+    transmissionVectors: string[];
+    inoculumSource: string;
+    hostInvasionMechanism: string;
+  };
+  symptoms: {
+    leafMarkers: string[];
+    canopyProgression: string;
+    stemAndFruitSigns: string[];
+    lookAlikes: string[];
+  };
+  microclimate: MicroclimateDrivers;
+  preventionAndQuarantine: {
+    sanitation: string[];
+    cropRotation: string;
+    airflowAndSpacing: string;
+    scoutingCadence: string;
+    quarantineAction: string;
+  };
 }
 
-export const CROPS_LIST = [
-  { id: 'Tomato', name: 'Tomato', icon: '🍅', diseases: ['Tomato___Early_blight', 'Tomato___Late_blight', 'Tomato___Bacterial_spot', 'Tomato___Healthy'] },
-  { id: 'Potato', name: 'Potato', icon: '🥔', diseases: ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___Healthy'] },
-  { id: 'Grape', name: 'Grape', icon: '🍇', diseases: ['Grape___Black_rot', 'Grape___Healthy'] },
-  { id: 'Pepper', name: 'Bell Pepper', icon: '🫑', diseases: ['Pepper___Bacterial_spot', 'Pepper___Healthy'] },
-  { id: 'Apple', name: 'Apple', icon: '🍎', diseases: ['Apple___Black_rot', 'Apple___Healthy'] },
-  { id: 'Corn', name: 'Corn (Maize)', icon: '🌽', diseases: ['Corn___Common_rust', 'Corn___Healthy'] },
+export interface CropInfo {
+  id: string;
+  name: string;
+  image: string;
+  diseases: string[];
+}
+
+export const CROPS_LIST: CropInfo[] = [
+  { id: 'Tomato', name: 'Tomato', image: '/images/crops/tomato.webp', diseases: ['Tomato___Early_blight', 'Tomato___Late_blight', 'Tomato___Bacterial_spot', 'Tomato___Leaf_Mold', 'Tomato___Septoria_leaf_spot', 'Tomato___healthy'] },
+  { id: 'Potato', name: 'Potato', image: '/images/crops/potato.webp', diseases: ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___healthy'] },
+  { id: 'Pepper', name: 'Bell Pepper', image: '/images/crops/bell-pepper.webp', diseases: ['Pepper,_bell___Bacterial_spot', 'Pepper,_bell___healthy'] },
+  { id: 'Grape', name: 'Grape', image: '/images/crops/grape.webp', diseases: ['Grape___Black_rot', 'Grape___Esca_(Black_Measles)', 'Grape___healthy'] },
+  { id: 'Strawberry', name: 'Strawberry', image: '/images/crops/strawberry.webp', diseases: ['Strawberry___Leaf_scorch', 'Strawberry___healthy'] },
+  { id: 'Apple', name: 'Apple', image: '/images/crops/apple.webp', diseases: ['Apple___Black_rot', 'Apple___healthy'] },
+  { id: 'Corn', name: 'Corn (Maize)', image: '/images/crops/corn.webp', diseases: ['Corn___Common_rust', 'Corn___healthy'] },
 ];
 
 export const DISEASE_KNOWLEDGE: Record<string, DiseaseDetail> = {
-  // Tomato Early Blight
+  // 1. Tomato Early Blight
   'Tomato___Early_blight': {
     name: 'Tomato___Early_blight',
-    displayName: 'Tomato Early Blight (Alternaria solani)',
+    displayName: 'Tomato Early Blight',
+    scientificName: 'Alternaria solani',
     crop: 'Tomato',
     category: 'Fungal',
     severity: 'High',
-    description: 'Early Blight is a common fungal foliage disease caused by Alternaria solani. It produces distinct target-like brown spot lesions with yellow halos on older leaves first.',
-    symptoms: [
-      'Circular dark brown spots with concentric ring "target" patterns on lower leaves',
-      'Yellow halos surrounding leaf spots causing premature leaf drop',
-      'Sunken dark lesions on lower stems and collar rot near soil line',
-      'Leathery, dark sunken decay spots on fruit near stem end',
-    ],
-    causes: [
-      'Fungal spores overwinter in crop debris and infected soil',
-      'Splashing rain or overhead irrigation spreading spores onto lower leaves',
-      'Warm temperatures (24°C–29°C) accompanied by wet leaf surface conditions',
-    ],
-    organicTreatments: [
-      'Apply Copper Octanoate or Liquid Copper Fungicide spray every 7–10 days',
-      'Spray Bacillus subtilis bio-fungicide preventative solution',
-      'Apply Neem Oil 70% EC foliar spray to suppress fungal germination',
-    ],
-    chemicalTreatments: [
-      'Spray Chlorothalonil 75% WP or Mancozeb preventative protectant fungicide',
-      'Apply Azoxystrobin or Difenoconazole systemic fungicide at first sight',
-    ],
-    prevention: [
-      'Implement 3-year crop rotation away from solanaceous family (tomatoes, potatoes)',
-      'Mulch heavily around plant base to prevent soil splash onto lower foliage',
-      'Water exclusively using drip irrigation at soil level, avoiding leaf wetness',
-      'Prune lower 12 inches of leaves once plants reach 3 feet in height',
-    ],
-    recommendedProducts: [
-      { name: 'CeyBio CopperShield Liquid', type: 'Organic Protectant', dosage: '2.5 ml / Litre of water' },
-      { name: 'CeyFungi Chlorothalonil 75', type: 'Chemical Protectant', dosage: '2 g / Litre of water' },
-      { name: 'CeyBio Neem Shield EC', type: 'Bio-Fungicide', dosage: '5 ml / Litre of water' },
-    ],
+    description: 'Early Blight is a common fungus that attacks older lower leaves first. It creates dark brown spots with distinctive circular ring patterns (like a target) surrounded by yellow halos, causing leaves to turn yellow and drop off.',
+    etiology: {
+      pathogenType: 'Foliar Fungal Disease',
+      incubationPeriod: '3 to 5 days after contact with moisture',
+      transmissionVectors: ['Wind-blown spores', 'Splashing rain or irrigation water', 'Dirty tools and handling'],
+      inoculumSource: 'Lives in old crop debris, infected soil, and weeds around the greenhouse.',
+      hostInvasionMechanism: 'Fungal spores land on wet leaves, sprout in water droplets, and penetrate leaf pores.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Dark brown circular spots with target-like concentric rings on lower leaves.',
+        'Yellow halos surrounding dark spots causing premature leaf drop.',
+        'Older lower leaves turning completely yellow and drying out.',
+      ],
+      canopyProgression: 'Starts on bottom leaves near the soil and moves upward through the plant canopy.',
+      stemAndFruitSigns: [
+        'Sunken, dark dry collar spots on stems near the soil line.',
+        'Dark sunken leathery decay near the stem-end of ripe or green tomatoes.',
+      ],
+      lookAlikes: ['Septoria Leaf Spot (has smaller spots with tiny black dots)', 'Magnesium deficiency (yellowing between leaf veins without brown target rings)'],
+    },
+    microclimate: {
+      temperatureRange: '24°C – 29°C (Warm greenhouse weather)',
+      criticalHumidity: '> 80% Relative Humidity',
+      leafWetnessHours: '2–4 hours of wet leaf surfaces',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Prune and remove all bottom leaves within 30 cm of the ground.',
+        'Always clean pruning shears with disinfectant alcohol between plant rows.',
+        'Immediately bag and remove trimmed infected leaves from the greenhouse.',
+      ],
+      cropRotation: 'Do not plant tomatoes, potatoes, or eggplants in the same soil for at least 3 seasons.',
+      airflowAndSpacing: 'Space plants at least 50–60 cm apart and keep ventilation fans running for airflow.',
+      scoutingCadence: 'Check lower leaves twice a week, especially after humid or cloudy mornings.',
+      quarantineAction: 'Isolate affected rows, avoid overhead watering, and prune infected lower leaves immediately.',
+    },
   },
 
-  // Tomato Late Blight
+  // 2. Tomato Late Blight
   'Tomato___Late_blight': {
     name: 'Tomato___Late_blight',
-    displayName: 'Tomato Late Blight (Phytophthora infestans)',
+    displayName: 'Tomato Late Blight',
+    scientificName: 'Phytophthora infestans',
     crop: 'Tomato',
     category: 'Fungal',
     severity: 'Critical',
-    description: 'Late Blight is a devastating water-mold disease capable of completely killing tomato canopy within days under cool, humid weather conditions.',
-    symptoms: [
-      'Large, irregular dark grey or pale green water-soaked spots on foliage',
-      'White fuzzy fungal growth on the underside of leaves during humid weather',
-      'Firm, brown greasy rot extending deep into green fruit tissue',
-    ],
-    causes: [
-      'Cool temperatures (15°C–22°C) combined with high relative humidity (>90%)',
-      'Wind-borne sporangia travelling from infected neighboring fields',
-    ],
-    organicTreatments: [
-      'Copper Hydroxide 50% WP preventative spray',
-      'Trichoderma harzianum soil and foliar bio-fungicide',
-    ],
-    chemicalTreatments: [
-      'Metalaxyl + Mancozeb systemic formulation for curative action',
-      'Dimethomorph or Cymoxanil spray applied immediately at outbreak',
-    ],
-    prevention: [
-      'Maintain greenhouse humidity below 80% using exhaust fans',
-      'Destroy all infected crop residues immediately upon detection',
-    ],
-    recommendedProducts: [
-      { name: 'CeyCure Metalaxyl-M Systemic', type: 'Fungicide', dosage: '1.5 g / Litre of water' },
-      { name: 'CopperCure 50 WP', type: 'Protectant', dosage: '3 g / Litre of water' },
-    ],
+    description: 'Late Blight is a rapid, high-risk disease that thrives in cool, humid conditions. It produces large water-soaked greasy brown spots on leaves with white fuzzy growth underneath, and can destroy an entire greenhouse crop in 7 to 10 days if unchecked.',
+    etiology: {
+      pathogenType: 'Water-Mold Fungal Pathogen',
+      incubationPeriod: '2 to 4 days in cool, humid air',
+      transmissionVectors: ['Wind-borne spores travelling across fields', 'Splashing water', 'Infected seedlings'],
+      inoculumSource: 'Survives in cull piles, volunteer potato tubers, and living green host tissue.',
+      hostInvasionMechanism: 'Swimming spores quickly bore into leaf tissue when leaves stay wet for hours.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Large, irregular dark grey to greasy water-soaked patches on leaves.',
+        'White fuzzy mold on the underside of leaves during humid morning hours.',
+        'Leaves rapidly turning black, wilting, and rotting with a distinct smell.',
+      ],
+      canopyProgression: 'Rapid collapse of entire branches and canopy within 48 to 72 hours.',
+      stemAndFruitSigns: [
+        'Dark brown greasy lesions that girdle stems and branch joints.',
+        'Firm, brown leathery rot patches spreading across green tomatoes.',
+      ],
+      lookAlikes: ['Cold/Frost injury (does not produce white fuzzy mold on leaf undersides)', 'Blossom End Rot (occurs only on the bottom blossom tip of the fruit)'],
+    },
+    microclimate: {
+      temperatureRange: '15°C – 22°C (Cool, damp conditions)',
+      criticalHumidity: '> 85% Relative Humidity',
+      leafWetnessHours: '6–8 hours of wet leaves',
+      vpdRiskLevel: 'Extreme',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Immediately remove and destroy all infected plants in sealed plastic bags.',
+        'Never throw infected tomato waste in open compost piles; burn or bury deeply.',
+        'Eliminate any wild volunteer potatoes growing near the greenhouse.',
+      ],
+      cropRotation: 'Rotate out of solanaceous crops (tomatoes, potatoes) for multiple seasons.',
+      airflowAndSpacing: 'Open ridge vents and run heaters in early morning to clear condensation.',
+      scoutingCadence: 'Inspect leaf undersides every morning during cool, overcast weather.',
+      quarantineAction: 'Quarantine the affected greenhouse section and restrict workers from moving spores to healthy bays.',
+    },
   },
 
-  // Tomato Bacterial Spot
+  // 3. Tomato Bacterial Spot
   'Tomato___Bacterial_spot': {
     name: 'Tomato___Bacterial_spot',
-    displayName: 'Tomato Bacterial Spot (Xanthomonas perforans)',
+    displayName: 'Tomato Bacterial Spot',
+    scientificName: 'Xanthomonas perforans',
     crop: 'Tomato',
     category: 'Bacterial',
     severity: 'High',
-    description: 'Bacterial spot produces numerous small black specks on tomato leaves and stem tissue. Lesions dry out, causing leaves to appear shot through with small holes.',
-    symptoms: [
-      'Numerous small (1-3mm) dark brown or black angular spots on leaves',
-      'Yellowing of foliage surrounding heavy spot clusters',
-      'Blister-like spots on green fruit that turn scabbed and sunken',
-    ],
-    causes: ['Infected seeds, warm wet weather, and mechanical transmission during pruning'],
-    organicTreatments: ['Copper Soap spray mixed with Neem oil extract'],
-    chemicalTreatments: ['Copper Hydroxide combined with Mancozeb'],
-    prevention: ['Use disease-resistant varieties and avoid working in wet fields'],
-    recommendedProducts: [
-      { name: 'CeyBio CopperShield Liquid', type: 'Organic Bactericide', dosage: '2.5 ml / Litre' },
-    ],
+    description: 'Bacterial Spot causes hundreds of tiny black specks across leaves and stems. The spots dry out and fall out, giving leaves a "shot-hole" appearance, causing severe leaf drop and exposing fruit to sunscald.',
+    etiology: {
+      pathogenType: 'Bacterial Plant Infection',
+      incubationPeriod: '4 to 7 days',
+      transmissionVectors: ['Overhead water splash', 'Handling wet plants', 'Contaminated seeds'],
+      inoculumSource: 'Infected seeds, plant debris, and greenhouse bench surfaces.',
+      hostInvasionMechanism: 'Bacteria enter through natural leaf breathing pores (stomata) and tiny pruning cuts.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Numerous tiny (1–3 mm) dark brown or black angular spots on leaves.',
+        'Centers of old spots fall out, leaving small holes in the leaf blades.',
+        'Yellowing of foliage around heavy clusters of spots.',
+      ],
+      canopyProgression: 'Spreads rapidly across the canopy after watering or working with wet plants.',
+      stemAndFruitSigns: [
+        'Dark elongated streaks on stems.',
+        'Small raised rough brown scabby spots on green tomatoes.',
+      ],
+      lookAlikes: ['Bacterial Speck (smaller pinpoint specks)', 'Target Spot (larger round fungal rings)'],
+    },
+    microclimate: {
+      temperatureRange: '25°C – 32°C (Warm, tropical weather)',
+      criticalHumidity: '> 75% Relative Humidity',
+      leafWetnessHours: '1–2 hours of surface water',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Use certified disease-free treated seeds.',
+        'Never work in the crop, prune, or harvest while leaves are wet.',
+        'Disinfect greenhouse trays and tools with sanitizing wash.',
+      ],
+      cropRotation: 'Rotate with non-host crops like sweet corn or cabbage.',
+      airflowAndSpacing: 'Use drip irrigation only to keep plant leaves completely dry.',
+      scoutingCadence: 'Check young leaves twice a week for tiny black dots.',
+      quarantineAction: 'Mark infected plants; sanitize hands and tools before touching healthy plants.',
+    },
   },
 
-  // Potato Late Blight
+  // 4. Tomato Leaf Mold
+  'Tomato___Leaf_Mold': {
+    name: 'Tomato___Leaf_Mold',
+    displayName: 'Tomato Leaf Mold',
+    scientificName: 'Passalora fulva',
+    crop: 'Tomato',
+    category: 'Fungal',
+    severity: 'Moderate',
+    description: 'Leaf Mold is a common greenhouse fungus that causes pale yellow patches on top of leaves with olive-green velvety mold underneath. It thrives in humid, shaded greenhouse areas with poor air movement.',
+    etiology: {
+      pathogenType: 'Greenhouse Foliar Fungus',
+      incubationPeriod: '10 to 14 days',
+      transmissionVectors: ['Air currents inside the greenhouse', 'Worker clothing', 'Equipment'],
+      inoculumSource: 'Old crop residues and greenhouse structural walls.',
+      hostInvasionMechanism: 'Spores germinate and enter pores on the underside of leaves.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Pale yellow patches on the upper surface of leaves.',
+        'Olive-green to velvety brown mold growing directly beneath the yellow patches.',
+        'Infected leaves curl up, wither, and die prematurely.',
+      ],
+      canopyProgression: 'Starts in dense, shaded lower branches and moves up the plant.',
+      stemAndFruitSigns: ['Flowers may wither and drop off, reducing fruit count.'],
+      lookAlikes: ['Powdery Mildew (white powder on both top and bottom of leaves)'],
+    },
+    microclimate: {
+      temperatureRange: '21°C – 25°C',
+      criticalHumidity: '> 85% Relative Humidity',
+      leafWetnessHours: 'High humidity is enough; does not require standing water',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: ['Keep greenhouse exhaust fans on to lower humidity below 80%.'],
+      cropRotation: 'Plant resistant tomato varieties suited for greenhouse production.',
+      airflowAndSpacing: 'Prune dense lower leaves to let fresh air and sunlight reach inside.',
+      scoutingCadence: 'Inspect lower leaf undersides once a week in dense areas.',
+      quarantineAction: 'Increase ventilation immediately and remove heavily infected leaves.',
+    },
+  },
+
+  // 5. Potato Late Blight
   'Potato___Late_blight': {
     name: 'Potato___Late_blight',
-    displayName: 'Potato Late Blight (Phytophthora infestans)',
+    displayName: 'Potato Late Blight',
+    scientificName: 'Phytophthora infestans',
     crop: 'Potato',
     category: 'Fungal',
     severity: 'Critical',
-    description: 'Potato late blight causes rapid foliage decay and tuber rot. It can wipe out potato canopy within 7 to 10 days if unchecked under humid conditions.',
-    symptoms: [
-      'Dark water-soaked lesions on leaf tips and margins',
-      'White downy growth on the undersides of leaves in wet morning conditions',
-      'Reddish-brown dry rot extending into potato tubers',
-    ],
-    causes: ['Infected seed tubers, cool wet weather (13°C–21°C)'],
-    organicTreatments: ['Copper Sulfate / Bordeaux Mixture spray'],
-    chemicalTreatments: ['Mancozeb 85% WP, Propamocarb Hydrochloride'],
-    prevention: ['Plant certified seed tubers and mound soil well around base of plants'],
-    recommendedProducts: [
-      { name: 'CeyCure Metalaxyl-M Systemic', type: 'Fungicide', dosage: '1.5 g / Litre' },
-    ],
+    description: 'Late blight attacks potato leaves, stems, and underground tubers. It causes rapid blackening and rotting of leaves with white mold underneath, and can rot entire potato harvests in storage.',
+    etiology: {
+      pathogenType: 'Water-Mold Pathogen',
+      incubationPeriod: '3 to 5 days',
+      transmissionVectors: ['Airborne spores', 'Infected seed potatoes', 'Water splash'],
+      inoculumSource: 'Infected seed tubers, discard piles, and volunteer potato sprouts.',
+      hostInvasionMechanism: 'Spores land on wet leaves, enter skin, and grow through plant veins.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Water-soaked dark brown to black patches on leaf edges.',
+        'White downy mold on the underside of leaves in wet morning air.',
+        'Rapid rotting of leaves with a bad smell.',
+      ],
+      canopyProgression: 'Whole field canopy can turn black within 5 to 7 days.',
+      stemAndFruitSigns: [
+        'Dark brown rotting streaks on stems causing plant collapse.',
+        'Reddish-brown dry rot spreading inside potato tubers.',
+      ],
+      lookAlikes: ['Potato Early Blight (dry concentric target spots, no white downy mold)'],
+    },
+    microclimate: {
+      temperatureRange: '13°C – 21°C (Cool, wet weather)',
+      criticalHumidity: '> 85% Relative Humidity',
+      leafWetnessHours: '5–8 hours of wet leaves',
+      vpdRiskLevel: 'Extreme',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Plant only certified clean disease-free seed potatoes.',
+        'Build high soil mounds over growing tubers to shield them from spores.',
+        'Cut and destroy dead vines 2 weeks before harvesting tubers.',
+      ],
+      cropRotation: 'Wait 3 years before planting potatoes or tomatoes in the same plot.',
+      airflowAndSpacing: 'Leave plenty of space between potato rows for good sun exposure.',
+      scoutingCadence: 'Daily morning checks during cool, rainy periods.',
+      quarantineAction: 'Remove and destroy entire infected potato plants including tubers.',
+    },
   },
 
-  // Potato Early Blight
+  // 6. Potato Early Blight
   'Potato___Early_blight': {
     name: 'Potato___Early_blight',
-    displayName: 'Potato Early Blight (Alternaria solani)',
+    displayName: 'Potato Early Blight',
+    scientificName: 'Alternaria solani',
     crop: 'Potato',
     category: 'Fungal',
     severity: 'Moderate',
-    description: 'Fungal leaf disease causing brown ring-shaped lesions on older foliage, reducing photosynthetic area and tuber yield.',
-    symptoms: ['Dark brown spots with yellow halos on lower leaves', 'Concentric rings inside leaf spots'],
-    causes: ['High humidity, alternating wet and dry weather'],
-    organicTreatments: ['Copper octanoate or Sulfur dust'],
-    chemicalTreatments: ['Azoxystrobin or Difenoconazole spray'],
-    prevention: ['Adequate nitrogen fertilization and drip irrigation'],
-    recommendedProducts: [
-      { name: 'CeyFungi Chlorothalonil 75', type: 'Fungicide', dosage: '2 g / Litre' },
-    ],
+    description: 'Early Blight causes brown circular spots with concentric rings on older potato leaves, reducing plant strength and lowering tuber yields as crops mature.',
+    etiology: {
+      pathogenType: 'Foliar Fungus',
+      incubationPeriod: '4 to 6 days',
+      transmissionVectors: ['Wind-blown spores', 'Soil splash', 'Tractors/Tools'],
+      inoculumSource: 'Old crop leaves in soil and nearby infected fields.',
+      hostInvasionMechanism: 'Enters leaf pores on stressed or older potato foliage.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Dark brown spots with target-like rings on lower leaves.',
+        'Yellowing of leaves around the dark spots.',
+        'Lower leaves drying and curling up.',
+      ],
+      canopyProgression: 'Slowly spreads upward as potato plants grow larger.',
+      stemAndFruitSigns: ['Brown to black corky sunken marks on tuber skin.'],
+      lookAlikes: ['Brown Spot (smaller spots without distinct target rings)'],
+    },
+    microclimate: {
+      temperatureRange: '22°C – 28°C',
+      criticalHumidity: '> 75% RH',
+      leafWetnessHours: '2–4 hours',
+      vpdRiskLevel: 'Moderate',
+    },
+    preventionAndQuarantine: {
+      sanitation: ['Maintain good fertilizer feeding (nitrogen and potassium) to keep plants strong.'],
+      cropRotation: '3-year rotation away from potatoes and tomatoes.',
+      airflowAndSpacing: 'Drip irrigation to keep leaves dry.',
+      scoutingCadence: 'Weekly crop checks starting when plants begin flowering.',
+      quarantineAction: 'Prune affected bottom leaves and monitor nearby rows.',
+    },
   },
 
-  // Grape Black Rot
+  // 7. Pepper Bacterial Spot
+  'Pepper,_bell___Bacterial_spot': {
+    name: 'Pepper,_bell___Bacterial_spot',
+    displayName: 'Bell Pepper Bacterial Spot',
+    scientificName: 'Xanthomonas campestris',
+    crop: 'Bell Pepper',
+    category: 'Bacterial',
+    severity: 'High',
+    description: 'Bacterial spot causes small water-soaked spots on pepper leaves that turn into brown scabs, leading to heavy leaf drop and exposing peppers to sun damage.',
+    etiology: {
+      pathogenType: 'Bacterial Disease',
+      incubationPeriod: '4 to 7 days',
+      transmissionVectors: ['Water splash', 'Tools', 'Infected seeds'],
+      inoculumSource: 'Infected seeds, old pepper stalks, and weed hosts.',
+      hostInvasionMechanism: 'Enters leaf pores and tiny cuts during wet weather.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Small (1–3 mm) water-soaked spots turning dark brown.',
+        'Spots have a light yellow-green halo.',
+        'Leaves drop quickly, leaving bare stems.',
+      ],
+      canopyProgression: 'Spreads rapidly after heavy rains or overhead sprinkling.',
+      stemAndFruitSigns: [
+        'Rough scabby brown spots on pepper stems.',
+        'Raised warty spots on green and red bell peppers.',
+      ],
+      lookAlikes: ['Bacterial Canker (causes wilted leaf margins)'],
+    },
+    microclimate: {
+      temperatureRange: '24°C – 30°C',
+      criticalHumidity: '> 80% RH',
+      leafWetnessHours: '1–3 hours',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: ['Use certified disease-free pepper seeds and resistant hybrids.'],
+      cropRotation: '2-year rotation with corn, beans, or cabbage.',
+      airflowAndSpacing: 'Avoid overhead sprinklers; sanitize harvesting crates.',
+      scoutingCadence: 'Twice-weekly checks on young growing shoots.',
+      quarantineAction: 'Remove severely diseased plants; wash hands and shears.',
+    },
+  },
+
+  // 8. Grape Black Rot
   'Grape___Black_rot': {
     name: 'Grape___Black_rot',
-    displayName: 'Grape Black Rot (Guignardia bidwellii)',
+    displayName: 'Grapevine Black Rot',
+    scientificName: 'Guignardia bidwellii',
     crop: 'Grape',
     category: 'Fungal',
     severity: 'High',
-    description: 'Black rot affects all green parts of the grapevine. Infected berries shrivel into hard, black, wrinkled mummies that cling to the vine cluster.',
-    symptoms: [
-      'Small reddish-brown circular spots on leaves',
-      'Berries turning brown then black and shriveling into hard mummies',
-    ],
-    causes: ['Overwintering mummified berries on vines, warm wet spring weather'],
-    organicTreatments: ['Liquid Copper or Lime Sulfur dormant spray'],
-    chemicalTreatments: ['Myclobutanil or Tebeconazole systemic fungicides'],
-    prevention: ['Prune vines to allow maximum sunlight and airflow through canopy'],
-    recommendedProducts: [
-      { name: 'GrapeShield Sulfur 80', type: 'Bio-Fungicide', dosage: '3 g / Litre' },
-    ],
+    description: 'Black rot attacks grape leaves, shoots, and fruit bunches. Infected grapes turn brown, shrivel up into hard, black wrinkled "mummies", and ruin the grape cluster.',
+    etiology: {
+      pathogenType: 'Foliar & Fruit Fungus',
+      incubationPeriod: '7 to 14 days',
+      transmissionVectors: ['Rain-splashed spores', 'Wind currents'],
+      inoculumSource: 'Old dried mummified grapes left on the vine from last season.',
+      hostInvasionMechanism: 'Spores penetrate young tender leaves and baby grapes.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Small reddish-brown circular spots with dark borders on leaves.',
+        'Tiny black dots (spore sacs) inside the leaf spots.',
+        'Brown dead patches near leaf veins.',
+      ],
+      canopyProgression: 'Starts on spring leaves and moves to grape bunches after blooming.',
+      stemAndFruitSigns: [
+        'Black oval sores on young vine shoots.',
+        'Grapes turn brown, soften, rapidly turn black, and shrivel into hard mummies.',
+      ],
+      lookAlikes: ['Anthracnose (Bird’s eye rot with sunken grey centers and purple rims)'],
+    },
+    microclimate: {
+      temperatureRange: '20°C – 27°C',
+      criticalHumidity: '> 75% RH',
+      leafWetnessHours: '6–10 hours of moisture',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Prune off and destroy all old shriveled black grape mummies in winter.',
+        'Tie and train vines so bunches get plenty of sunlight and wind.',
+        'Burn or deeply bury all pruned grape wood.',
+      ],
+      cropRotation: 'Permanent vineyard — maintain open canopy and winter pruning.',
+      airflowAndSpacing: 'Thin out extra leafy shoots around grape bunches.',
+      scoutingCadence: 'Weekly checks from flowering until harvest.',
+      quarantineAction: 'Cut out infected vine shoots and remove fallen grape mummies.',
+    },
   },
 
-  // Healthy Default Strategy
+  // 9. Strawberry Leaf Scorch
+  'Strawberry___Leaf_scorch': {
+    name: 'Strawberry___Leaf_scorch',
+    displayName: 'Strawberry Leaf Scorch',
+    scientificName: 'Diplocarpon earlianum',
+    crop: 'Strawberry',
+    category: 'Fungal',
+    severity: 'Moderate',
+    description: 'Leaf Scorch produces small purple spots that spread across strawberry leaves, making them look scorched or burnt. This weakens the plants and reduces strawberry harvests.',
+    etiology: {
+      pathogenType: 'Foliar Fungus',
+      incubationPeriod: '6 to 10 days',
+      transmissionVectors: ['Splashing water', 'Wind-blown spores', 'Handling runners'],
+      inoculumSource: 'Lives on old green strawberry leaves and plant crowns.',
+      hostInvasionMechanism: 'Spores land on wet leaves and penetrate leaf skin directly.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Numerous small purple to dark brown spots across leaves.',
+        'Spots do NOT have white centers (unlike common leaf spot).',
+        'Leaf edges curl up and look scorched or burnt by fire.',
+      ],
+      canopyProgression: 'Spreads across the strawberry bed, slowing plant growth.',
+      stemAndFruitSigns: ['Purple streaks on strawberry fruit stems making berries dry up.'],
+      lookAlikes: ['Common Leaf Spot (has distinctive white centers inside spots)'],
+    },
+    microclimate: {
+      temperatureRange: '18°C – 25°C',
+      criticalHumidity: '> 80% RH',
+      leafWetnessHours: '8–12 hours of leaf wetness',
+      vpdRiskLevel: 'Moderate',
+    },
+    preventionAndQuarantine: {
+      sanitation: ['Cut away and discard scorched leaves when cleaning strawberry beds.'],
+      cropRotation: 'Plant certified clean runner plants.',
+      airflowAndSpacing: 'Use raised beds or table-top gutters so water drains quickly.',
+      scoutingCadence: 'Check new strawberry leaves every 2 weeks.',
+      quarantineAction: 'Trim off heavily scorched leaves and clean bed gutters.',
+    },
+  },
+
+  // 10. Healthy Crop
   'Healthy': {
     name: 'Healthy',
-    displayName: 'Healthy Crop (No Pathogen Detected)',
+    displayName: 'Healthy Crop (No Disease Detected)',
+    scientificName: 'Vibrant, Normal Foliage',
     crop: 'Greenhouse Crop',
     category: 'Healthy',
     severity: 'Healthy',
-    description: 'Your crop leaf displays vibrant green pigmentation, uniform cell structure, and no visible sign of fungal, bacterial, or viral plant disease.',
-    symptoms: ['Vibrant, unblemished green leaves', 'Strong stem and leaf structural integrity'],
-    causes: ['Optimal greenhouse environmental management and good nutrition'],
-    organicTreatments: ['Maintain regular liquid seaweed organic fertilizer feeding'],
-    chemicalTreatments: ['No chemical intervention required'],
-    prevention: [
-      'Continue routine soil testing and IPM monitoring',
-      'Keep greenhouse temperature between 20°C–26°C',
-    ],
-    recommendedProducts: [
-      { name: 'CeyGreen Organic Seaweed Liquid', type: 'Bio-Stimulant', dosage: '2 ml / Litre' },
-    ],
+    description: 'Your crop leaf is completely healthy! It has vibrant green color, strong leaf structure, and no signs of disease or pests. Keep up the great greenhouse care!',
+    etiology: {
+      pathogenType: 'None (Healthy Crop)',
+      incubationPeriod: 'N/A',
+      transmissionVectors: ['None'],
+      inoculumSource: 'None (Clean greenhouse management)',
+      hostInvasionMechanism: 'Natural plant immunity is strong and active.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Vibrant, deep green leaf color with clean smooth surface.',
+        'No brown spots, yellow halos, or white mold.',
+        'Strong leaf stems and healthy normal veins.',
+      ],
+      canopyProgression: 'Even, steady growth throughout the greenhouse.',
+      stemAndFruitSigns: ['Healthy firm green stems and clean developing fruit.'],
+      lookAlikes: ['None'],
+    },
+    microclimate: {
+      temperatureRange: '20°C – 26°C (Ideal Greenhouse Climate)',
+      criticalHumidity: '60% – 70% RH (Safe Green Zone)',
+      leafWetnessHours: '0 hours (Dry Leaves)',
+      vpdRiskLevel: 'Low',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Continue regular clean greenhouse habits and shoe footbaths.',
+        'Keep up balanced fertilizer feeding and watering.',
+        'Maintain daily temperature and humidity checks.',
+      ],
+      cropRotation: 'Follow standard seasonal crop plans.',
+      airflowAndSpacing: 'Keep fans running to maintain steady gentle air movement.',
+      scoutingCadence: 'Do routine weekly walk-throughs across all greenhouse bays.',
+      quarantineAction: 'No quarantine needed; your crop is in great health!',
+    },
   },
 };
 
 export const getDiseaseDetail = (diseaseName: string): DiseaseDetail => {
   if (!diseaseName) return DISEASE_KNOWLEDGE['Healthy'];
 
-  // Match exact key
   if (DISEASE_KNOWLEDGE[diseaseName]) {
     return DISEASE_KNOWLEDGE[diseaseName];
   }
 
-  // Check if healthy
   if (diseaseName.toLowerCase().includes('healthy')) {
     return DISEASE_KNOWLEDGE['Healthy'];
   }
 
-  // Case-insensitive / partial match
-  const matchKey = Object.keys(DISEASE_KNOWLEDGE).find((key) =>
-    key.toLowerCase().includes(diseaseName.toLowerCase()) || diseaseName.toLowerCase().includes(key.toLowerCase())
+  const matchKey = Object.keys(DISEASE_KNOWLEDGE).find(
+    (key) =>
+      key.toLowerCase().includes(diseaseName.toLowerCase()) ||
+      diseaseName.toLowerCase().includes(key.toLowerCase())
   );
 
   if (matchKey && DISEASE_KNOWLEDGE[matchKey]) {
     return DISEASE_KNOWLEDGE[matchKey];
   }
 
-  // Fallback generic detail for unmatched disease labels
   const cleanName = diseaseName.replace(/___/g, ' - ').replace(/_/g, ' ');
   const isBacterial = diseaseName.toLowerCase().includes('bacteri');
   const isViral = diseaseName.toLowerCase().includes('virus');
+  const isPest = diseaseName.toLowerCase().includes('mite') || diseaseName.toLowerCase().includes('pest');
 
   return {
     name: diseaseName,
     displayName: cleanName,
+    scientificName: isBacterial ? 'Bacterial Crop Infection' : isViral ? 'Plant Virus' : isPest ? 'Pest Vector' : 'Fungal Leaf Spot',
     crop: 'Greenhouse Crop',
-    category: isBacterial ? 'Bacterial' : isViral ? 'Viral' : 'Fungal',
+    category: isBacterial ? 'Bacterial' : isViral ? 'Viral' : isPest ? 'Pest' : 'Fungal',
     severity: isViral || isBacterial ? 'High' : 'Moderate',
-    description: `AI plant pathology analysis detected ${cleanName}. Prompt agronomist intervention is recommended to prevent spread in greenhouse crops.`,
-    symptoms: ['Foliar discoloration and localized tissue necrosis', 'Leaf spots or viral mottling on leaves'],
-    causes: ['Favorable humidity, air movement, or vector transmission'],
-    organicTreatments: ['Apply Neem oil 70% EC or Copper-based organic protectant spray'],
-    chemicalTreatments: ['Consult local agricultural extensión agent for targeted systemic treatment'],
-    prevention: ['Sanitize tools between handling plants', 'Maintain adequate plant spacing for airflow'],
-    recommendedProducts: [
-      { name: 'CeyBio CopperShield Liquid', type: 'Bactericide / Fungicide', dosage: '2 ml / Litre' },
-    ],
+    description: `AI disease scan identified markers of ${cleanName}. Early action is recommended to protect surrounding plants.`,
+    etiology: {
+      pathogenType: isBacterial ? 'Bacterial Infection' : isViral ? 'Plant Virus' : 'Foliar Fungus',
+      incubationPeriod: '4 to 8 days',
+      transmissionVectors: ['Water splash', 'Air currents', 'Dirty tools'],
+      inoculumSource: 'Old crop leaves and greenhouse soil.',
+      hostInvasionMechanism: 'Enters leaf pores or small cuts during humid weather.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Discolored leaves with brown spots or yellowing.',
+        'Irregular patches or curled leaf margins.',
+      ],
+      canopyProgression: 'Spreads to nearby plants under humid greenhouse conditions.',
+      stemAndFruitSigns: ['Possible marks on stems or fruit.'],
+      lookAlikes: ['Nutrient deficiency or dry weather stress'],
+    },
+    microclimate: {
+      temperatureRange: '20°C – 28°C',
+      criticalHumidity: '> 75% RH',
+      leafWetnessHours: '2–4 hours',
+      vpdRiskLevel: 'Moderate',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Prune affected leaves with clean shears.',
+        'Keep greenhouse clean and sweep up fallen leaves.',
+        'Avoid handling plants when leaves are wet.',
+      ],
+      cropRotation: 'Rotate with different crop varieties each season.',
+      airflowAndSpacing: 'Ensure good plant spacing and run ventilation fans.',
+      scoutingCadence: 'Inspect crops twice a week.',
+      quarantineAction: 'Isolate affected plants and check neighboring rows.',
+    },
   };
 };

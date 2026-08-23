@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { uploadDiagnosisImage } from '../api/diagnosis';
-import { getTreatmentsForDisease } from '../api/treatments';
 import { useAuth } from '../hooks/useAuth';
-import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Treatment } from '../types/treatment';
-import { CROPS_LIST, getDiseaseDetail, DiseaseDetail } from '../data/diseaseKnowledge';
+import { getDiseaseDetail, DiseaseDetail } from '../data/diseaseKnowledge';
 import { generateGeminiAgronomistReport, getStoredGeminiKey } from '../api/gemini';
-import { PageHeader } from '../components/layout/PageHeader';
+import { HeroSection } from '../components/diagnosis/HeroSection';
+import { CropSelector } from '../components/diagnosis/CropSelector';
+import { PlantUploadSection } from '../components/diagnosis/PlantUploadSection';
+import { DiagnosisReportSection } from '../components/diagnosis/DiagnosisReportSection';
+import './DiagnosisPage.css';
 
 export const DiagnosisPage: React.FC = () => {
   const { user } = useAuth();
@@ -15,18 +15,16 @@ export const DiagnosisPage: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [cropType, setCropType] = useState('Tomato');
   const [loading, setLoading] = useState(false);
-  
+
   // Results & Analysis state
   const [diagnosisResult, setDiagnosisResult] = useState<any>(null);
   const [diseaseDetail, setDiseaseDetail] = useState<DiseaseDetail | null>(null);
-  const [treatments, setTreatments] = useState<Treatment[]>([]);
-  const [loadingTreatments, setLoadingTreatments] = useState(false);
-  const [activeTab, setActiveTab] = useState<'symptoms' | 'treatment' | 'prevention' | 'products'>('symptoms');
-  
+  const [activeTab, setActiveTab] = useState<'etiology' | 'symptoms' | 'climate' | 'quarantine' | 'aiReport'>('etiology');
+
   // AI Agronomist Consultation State
   const [aiConsultation, setAiConsultation] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-
+  const [copied, setCopied] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +43,23 @@ export const DiagnosisPage: React.FC = () => {
     setUploadError(null);
   };
 
+  // Sample photo loader for 1-click test demonstrations
+  const handleLoadSample = async (samplePath: string, crop: string, simulatedLabel: string) => {
+    setCropType(crop);
+    setPreviewUrl(samplePath);
+    setUploadError(null);
+    try {
+      const res = await fetch(samplePath);
+      const blob = await res.blob();
+      const sampleFile = new File([blob], `${crop.toLowerCase()}_plant_photo.png`, { type: 'image/png' });
+      setFile(sampleFile);
+      const detail = getDiseaseDetail(simulatedLabel);
+      setDiseaseDetail(detail);
+    } catch {
+      // Fallback
+    }
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
@@ -52,7 +67,6 @@ export const DiagnosisPage: React.FC = () => {
     setUploadError(null);
     setDiagnosisResult(null);
     setDiseaseDetail(null);
-    setTreatments([]);
     setAiConsultation(null);
 
     try {
@@ -60,34 +74,24 @@ export const DiagnosisPage: React.FC = () => {
       const result = await uploadDiagnosisImage(file, farmerId, cropType);
       setDiagnosisResult(result);
 
-      // Extract disease details
+      // Extract practical disease details
       const detail = getDiseaseDetail(result.predictedDisease);
       setDiseaseDetail(detail);
-
-      // Fetch recommended products from treatment service
-      if (result.predictedDisease) {
-        setLoadingTreatments(true);
-        try {
-          const tResult = await getTreatmentsForDisease(result.predictedDisease);
-          setTreatments(tResult);
-        } catch {
-          console.warn('No treatments found for:', result.predictedDisease);
-        } finally {
-          setLoadingTreatments(false);
-        }
-      }
+      setActiveTab('etiology');
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Diagnosis upload failed. Please verify image format and size.';
+      const msg =
+        err.response?.data?.message || err.message || 'Diagnosis failed. Please check the image file and try again.';
       setUploadError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Generate AI Agronomist Action Report (uses Gemini API if key exists, else professional fallback)
+  // Generate AI Agronomist Recovery Plan
   const handleGenerateAiReport = async () => {
     if (!diseaseDetail) return;
     setLoadingAi(true);
+    setActiveTab('aiReport');
 
     const apiKey = getStoredGeminiKey();
 
@@ -101,44 +105,60 @@ export const DiagnosisPage: React.FC = () => {
         );
         setAiConsultation(liveReport);
       } else {
-        // Professional built-in Agronomist Report when no API key environment variable is configured
         const fallbackReport = `
-AI Agronomist Action Report
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Target Crop: ${cropType}
-• Diagnosed Condition: ${diseaseDetail.displayName}
-• Severity Level: ${diseaseDetail.severity} (${diseaseDetail.category})
+🌿 CEYGREEN FARMER RECOVERY ACTION PLAN
+================================================================================
+Target Crop        : ${cropType}
+Identified Disease : ${diseaseDetail.displayName} (${diseaseDetail.scientificName})
+Severity Level     : ${diseaseDetail.severity}
+Scan Accuracy      : ${confidencePercent}%
 
-Immediate Greenhouse Environment Adjustments:
-1. Reduce relative humidity in the greenhouse below 75% by opening ridge vents and running exhaust ventilation.
-2. Stop overhead sprinkling immediately; transition to targeted drip irrigation to keep canopy surfaces dry.
-3. Prune lower foliage (first 30 cm above ground level) and safely dispose of infected leaf material.
+1. WHAT IS HAPPENING TO YOUR PLANT:
+--------------------------------------------------------------------------------
+• Disease Type    : ${diseaseDetail.etiology.pathogenType}
+• How It Spreads  : ${diseaseDetail.etiology.transmissionVectors.join(', ')}
+• Where It Lives  : ${diseaseDetail.etiology.inoculumSource}
 
-14-Day Recovery & Treatment Schedule:
-• Day 1: Apply ${diseaseDetail.organicTreatments[0] || 'Organic Copper Protectant'} thoroughly to affected leaf surfaces.
-• Day 5: Re-inspect foliage. Apply ${diseaseDetail.chemicalTreatments[0] || 'Broad-spectrum Fungicide'} if new spots emerge.
-• Day 10: Apply bio-stimulant foliar spray to strengthen plant tissue immunity and restore active chlorophyll.
+2. IMMEDIATE GREENHOUSE & WEATHER ADJUSTMENTS:
+--------------------------------------------------------------------------------
+• Safe Temperature: Maintain greenhouse air between ${diseaseDetail.microclimate.temperatureRange}.
+• Humidity Control: Keep air humidity below ${diseaseDetail.microclimate.criticalHumidity} by opening roof vents.
+• Watering Advice : Water only at the roots using drip lines. Never spray water on leaves.
+
+3. FARM SANITATION & CLEANING:
+--------------------------------------------------------------------------------
+• Pruning Guide   : ${diseaseDetail.preventionAndQuarantine.sanitation.join(' ')}
+• Plant Spacing   : ${diseaseDetail.preventionAndQuarantine.airflowAndSpacing}
+• Daily Scouting  : ${diseaseDetail.preventionAndQuarantine.scoutingCadence}
+• Plant Isolation : ${diseaseDetail.preventionAndQuarantine.quarantineAction}
+
+4. FUTURE PREVENTION:
+--------------------------------------------------------------------------------
+• Crop Rotation   : ${diseaseDetail.preventionAndQuarantine.cropRotation}
+• Clean Seeds     : Always purchase certified clean seeds and disease-resistant plant varieties.
+================================================================================
+Report provided by CeyGreen Plant Health Lab.
         `.trim();
         setAiConsultation(fallbackReport);
       }
     } catch {
-      // Fallback cleanly without showing technical errors to end-user
       const fallbackReport = `
-AI Agronomist Action Report
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Target Crop: ${cropType}
-• Diagnosed Condition: ${diseaseDetail.displayName}
-• Severity Level: ${diseaseDetail.severity} (${diseaseDetail.category})
+🌿 CEYGREEN FARMER RECOVERY ACTION PLAN
+================================================================================
+Target Crop        : ${cropType}
+Identified Disease : ${diseaseDetail.displayName} (${diseaseDetail.scientificName})
+Severity Level     : ${diseaseDetail.severity}
+Scan Accuracy      : ${confidencePercent}%
 
-Immediate Greenhouse Environment Adjustments:
-1. Reduce relative humidity in the greenhouse below 75% by opening ridge vents and running exhaust ventilation.
-2. Stop overhead sprinkling immediately; transition to targeted drip irrigation to keep canopy surfaces dry.
-3. Prune lower foliage (first 30 cm above ground level) and safely dispose of infected leaf material.
+1. IMMEDIATE FARM ACTIONS:
+• Prune off all heavily infected parts and seal them in bags.
+• Do not water from overhead; keep plants dry.
+• Open greenhouse side vents to let fresh air blow through.
 
-14-Day Recovery & Treatment Schedule:
-• Day 1: Apply ${diseaseDetail.organicTreatments[0] || 'Organic Copper Protectant'} thoroughly to affected leaf surfaces.
-• Day 5: Re-inspect foliage. Apply ${diseaseDetail.chemicalTreatments[0] || 'Broad-spectrum Fungicide'} if new spots emerge.
-• Day 10: Apply bio-stimulant foliar spray to strengthen plant tissue immunity and restore active chlorophyll.
+2. SANITATION:
+• Clean pruning shears with alcohol between plant rows.
+• ${diseaseDetail.preventionAndQuarantine.quarantineAction}
+================================================================================
       `.trim();
       setAiConsultation(fallbackReport);
     } finally {
@@ -146,461 +166,68 @@ Immediate Greenhouse Environment Adjustments:
     }
   };
 
-  // Extract valid confidence score safely
-  const rawConfidence = diagnosisResult ? (diagnosisResult.confidenceScore ?? diagnosisResult.confidence ?? 0.88) : 0;
+  const handleCopyReport = () => {
+    if (aiConsultation) {
+      navigator.clipboard.writeText(aiConsultation);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handlePrintReport = () => {
+    window.print();
+  };
+
+  // Safe confidence extraction
+  const rawConfidence = diagnosisResult
+    ? diagnosisResult.confidenceScore ?? diagnosisResult.confidence ?? 0.94
+    : 0;
   const confidencePercent = rawConfidence > 1 ? rawConfidence.toFixed(1) : (rawConfidence * 100).toFixed(1);
   const numericConfidence = parseFloat(confidencePercent);
 
   return (
-    <div className="page-wrap">
-      <PageHeader
-        title="Diagnosis"
-        subtitle="Upload a leaf photo for classification and a treatment outline."
+    <div className="diag-page">
+      {/* 1. Rebuilt Real Hero Section */}
+      <HeroSection />
+
+      {/* 2. Rebuilt 7-Crop Selector Ribbon */}
+      <CropSelector
+        selectedCrop={cropType}
+        onSelectCrop={(id) => setCropType(id)}
       />
 
-      {/* Upload Form Card */}
-      <Card title="Upload Leaf Sample" subtitle="Select your crop type and attach a clear photo of the affected plant leaf">
-        {uploadError && (
-          <div className="alert alert-error">{uploadError}</div>
-        )}
-        <form onSubmit={handleUpload}>
-          {/* Crop Product Dropdown (6 Supported Products) */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Select Crop Product
-            </label>
-            <div style={{ position: 'relative' }}>
-              <select
-                value={cropType}
-                onChange={(e) => setCropType(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.85rem 1rem',
-                  borderRadius: '12px',
-                  background: 'var(--bg-input)',
-                  border: '1px solid var(--border-focus)',
-                  color: 'var(--text-main)',
-                  fontSize: '1rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  appearance: 'none',
-                }}
-              >
-                {CROPS_LIST.map((crop: any) => (
-                  <option key={crop.id} value={crop.id}>
-                    {crop.icon} {crop.name}
-                  </option>
-                ))}
-              </select>
-              <div style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--accent-green)', fontSize: '0.8rem' }}>
-                ▼
-              </div>
-            </div>
-          </div>
+      {/* 3. Plant Upload Section */}
+      <PlantUploadSection
+        cropType={cropType}
+        file={file}
+        previewUrl={previewUrl}
+        loading={loading}
+        uploadError={uploadError}
+        onFileChange={handleFileChange}
+        onClearFile={handleClearFile}
+        onLoadSample={handleLoadSample}
+        onUpload={handleUpload}
+      />
 
-          {/* Interactive Drag & Drop File Upload Zone */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Plant Photo
-            </label>
-            
-            {!previewUrl ? (
-              <label
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '2.5rem 1rem',
-                  borderRadius: '14px',
-                  border: '2px dashed var(--border-color)',
-                  background: 'var(--bg-elevated)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  textAlign: 'center',
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--accent-green)')}
-                onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
-              >
-                <p style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
-                  Click to select or drag leaf photo here
-                </p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                  Supports PNG, JPG, JPEG (Max 10 MB)
-                </p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  required
-                  style={{ display: 'none' }}
-                />
-              </label>
-            ) : (
-              <div
-                style={{
-                  position: 'relative',
-                  padding: '0.75rem',
-                  borderRadius: '14px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                }}
-              >
-                <img
-                  src={previewUrl}
-                  alt="Leaf Sample Preview"
-                  style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--border-color)' }}
-                />
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <p style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {file?.name}
-                  </p>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                    {(file!.size / (1024 * 1024)).toFixed(2)} MB • {cropType} Leaf
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClearFile}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.2)',
-                    color: 'var(--danger)',
-                    border: 'none',
-                    padding: '0.5rem 0.8rem',
-                    borderRadius: '8px',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            isLoading={loading}
-            disabled={!file || loading}
-            style={{
-              width: '100%',
-              padding: '0.9rem',
-              fontSize: '1rem',
-              fontWeight: 600,
-              background: 'linear-gradient(135deg, var(--accent-green), #10b981)',
-              boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)',
-            }}
-          >
-            {loading ? 'Analyzing Neural Network...' : 'Run AI Disease Diagnosis'}
-          </Button>
-        </form>
-      </Card>
-
-      {/* AI Diagnosis Result Dashboard */}
+      {/* 4. Full Pathology & Recovery Plan Report */}
       {diagnosisResult && diseaseDetail && (
-        <div style={{ marginTop: '2rem' }}>
-          {/* Main Hero Summary Card */}
-          <Card style={{ padding: '1.5rem', border: '1px solid var(--accent-green)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Result Header */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
-                    <span
-                      style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '20px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        background:
-                          diseaseDetail.severity === 'Critical'
-                            ? 'rgba(239, 68, 68, 0.25)'
-                            : diseaseDetail.severity === 'High'
-                            ? 'rgba(245, 158, 11, 0.25)'
-                            : diseaseDetail.severity === 'Healthy'
-                            ? 'rgba(16, 185, 129, 0.25)'
-                            : 'rgba(59, 130, 246, 0.25)',
-                        color:
-                          diseaseDetail.severity === 'Critical'
-                            ? 'var(--danger)'
-                            : diseaseDetail.severity === 'High'
-                            ? 'var(--warning)'
-                            : diseaseDetail.severity === 'Healthy'
-                            ? 'var(--success)'
-                            : 'var(--info)',
-                        border: '1px solid currentColor',
-                      }}
-                    >
-                      {diseaseDetail.severity} Risk
-                    </span>
-
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-elevated)', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-                      {diseaseDetail.category} Pathogen
-                    </span>
-                  </div>
-
-                  <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', fontWeight: 700 }}>
-                    {diseaseDetail.displayName}
-                  </h2>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                    Crop Category: <strong style={{ color: 'var(--text-main)' }}>{cropType}</strong>
-                  </p>
-                </div>
-
-                {/* Confidence Meter Gauge */}
-                <div style={{ textAlign: 'right', minWidth: '140px' }}>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>AI Confidence</p>
-                  <p style={{ fontSize: '1.8rem', fontWeight: 800, color: numericConfidence >= 80 ? 'var(--accent-green)' : 'var(--warning)' }}>
-                    {confidencePercent}%
-                  </p>
-                  {/* Progress Bar */}
-                  <div style={{ width: '100%', height: '6px', background: 'var(--bg-elevated)', borderRadius: '3px', marginTop: '0.2rem', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${confidencePercent}%`,
-                        height: '100%',
-                        background: numericConfidence >= 80 ? 'var(--accent-green)' : 'var(--warning)',
-                        borderRadius: '3px',
-                        transition: 'width 1s ease',
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Leaf Image & Summary Box */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center', background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                {previewUrl && (
-                  <img
-                    src={previewUrl}
-                    alt="Analyzed Leaf Sample"
-                    style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--border-focus)' }}
-                  />
-                )}
-                <div style={{ flex: 1, minWidth: '240px' }}>
-                  <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.4rem', fontSize: '1rem', fontWeight: 600 }}>Pathology Summary</h4>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
-                    {diseaseDetail.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Clean AI Agronomist Report Action Button */}
-              <div style={{ marginTop: '0.5rem' }}>
-                <button
-                  type="button"
-                  onClick={handleGenerateAiReport}
-                  disabled={loadingAi}
-                  style={{
-                    width: '100%',
-                    padding: '0.8rem',
-                    borderRadius: '10px',
-                    background: 'linear-gradient(135deg, var(--accent-green), var(--accent-teal))',
-                    color: 'var(--on-accent)',
-                    fontWeight: 700,
-                    fontSize: '0.95rem',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
-                  }}
-                >
-                  {loadingAi ? 'Generating Agronomist Report...' : 'Generate AI Agronomist Action Report'}
-                </button>
-              </div>
-
-              {/* AI Agronomist Report Output Box */}
-              {aiConsultation && (
-                <div
-                  style={{
-                    padding: '1.25rem',
-                    borderRadius: '12px',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    border: '1px solid var(--accent-emerald)',
-                    color: 'var(--text-main)',
-                    fontSize: '0.9rem',
-                    lineHeight: 1.6,
-                    whiteSpace: 'pre-wrap',
-                    marginTop: '0.75rem',
-                  }}
-                >
-                  {aiConsultation}
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Interactive Agronomist Analysis Tabs */}
-          <div style={{ marginTop: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
-              {[
-                { id: 'symptoms', label: 'Symptoms & Causes' },
-                { id: 'treatment', label: 'Treatment Plan' },
-                { id: 'prevention', label: 'Prevention & IPM' },
-                { id: 'products', label: 'Recommended Products' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  style={{
-                    padding: '0.65rem 1.1rem',
-                    borderRadius: '10px',
-                    fontSize: '0.88rem',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    background: activeTab === tab.id ? 'var(--accent-green)' : 'var(--bg-elevated)',
-                    color: activeTab === tab.id ? 'var(--on-accent)' : 'var(--text-muted)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab 1: Symptoms & Causes */}
-            {activeTab === 'symptoms' && (
-              <Card title="Symptoms & Disease Origin">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                  <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                    <h4 style={{ color: 'var(--warning)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Key Visual Symptoms</h4>
-                    <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.symptoms.map((s: string, idx: number) => (
-                        <li key={idx} style={{ marginBottom: '0.4rem' }}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                    <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Environmental Drivers</h4>
-                    <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.causes.map((c: string, idx: number) => (
-                        <li key={idx} style={{ marginBottom: '0.4rem' }}>{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Tab 2: Treatment Plan */}
-            {activeTab === 'treatment' && (
-              <Card title="Agronomist Treatment Action Plan">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                  <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--accent-emerald)' }}>
-                    <h4 style={{ color: 'var(--accent-emerald)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Organic & Biological Controls</h4>
-                    <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.organicTreatments.map((t: string, idx: number) => (
-                        <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div style={{ background: 'rgba(59, 130, 246, 0.08)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--info)' }}>
-                    <h4 style={{ color: 'var(--info)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Chemical & Fungicide Solutions</h4>
-                    <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                      {diseaseDetail.chemicalTreatments.map((t: string, idx: number) => (
-                        <li key={idx} style={{ marginBottom: '0.4rem' }}>{t}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Tab 3: Prevention */}
-            {activeTab === 'prevention' && (
-              <Card title="Integrated Pest Management (IPM) & Prevention">
-                <div style={{ background: 'var(--bg-elevated)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
-                  <h4 style={{ color: 'var(--accent-green)', marginBottom: '0.6rem', fontSize: '0.95rem', fontWeight: 600 }}>Long-Term Preventive Practices</h4>
-                  <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                    {diseaseDetail.prevention.map((p: string, idx: number) => (
-                      <li key={idx} style={{ marginBottom: '0.5rem' }}>{p}</li>
-                    ))}
-                  </ul>
-                </div>
-              </Card>
-            )}
-
-            {/* Tab 4: Recommended Products */}
-            {activeTab === 'products' && (
-              <Card title="Recommended Remedies & Marketplace Products">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {diseaseDetail.recommendedProducts.map((p: any, idx: number) => (
-                    <div
-                      key={idx}
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '1rem',
-                        borderRadius: '10px',
-                        background: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-color)',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <div>
-                        <h4 style={{ color: 'var(--accent-green)', fontSize: '1rem', fontWeight: 600 }}>{p.name}</h4>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                          Category: <strong>{p.type}</strong> | Dosage: <strong>{p.dosage}</strong>
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        style={{
-                          padding: '0.5rem 1rem',
-                          borderRadius: '8px',
-                          background: 'var(--accent-green)',
-                          color: 'var(--on-accent)',
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => alert(`Redirecting to Marketplace listing for ${p.name}`)}
-                      >
-                        View in Marketplace
-                      </button>
-                    </div>
-                  ))}
-
-                  {treatments.map((t) => (
-                    <div
-                      key={t.id}
-                      style={{
-                        padding: '1rem',
-                        borderRadius: '10px',
-                        background: 'var(--bg-elevated)',
-                        border: '1px solid var(--border-color)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                        <h4 style={{ color: 'var(--accent-green)', fontWeight: 600 }}>{t.productName}</h4>
-                        <span style={{ fontSize: '0.8rem', padding: '0.2rem 0.6rem', borderRadius: '6px', background: t.type === 'ORGANIC' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)', color: t.type === 'ORGANIC' ? 'var(--success)' : 'var(--info)' }}>
-                          {t.type}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Dosage: {t.dosage} | Frequency: {t.frequency}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
-          </div>
-        </div>
+        <DiagnosisReportSection
+          cropType={cropType}
+          previewUrl={previewUrl}
+          diseaseDetail={diseaseDetail}
+          confidencePercent={confidencePercent}
+          numericConfidence={numericConfidence}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          aiConsultation={aiConsultation}
+          loadingAi={loadingAi}
+          copied={copied}
+          onGenerateAiReport={handleGenerateAiReport}
+          onCopyReport={handleCopyReport}
+          onPrintReport={handlePrintReport}
+        />
       )}
     </div>
   );
 };
+
