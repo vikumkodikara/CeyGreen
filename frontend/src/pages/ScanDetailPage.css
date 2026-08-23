@@ -440,15 +440,132 @@
 
 /* Responsive */
 @media (max-width: 960px) {
+  .scan-detail-page {
+    gap: 1.15rem;
+  }
+
   .detail-layout {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 
   .detail-img-wrap {
-    height: 280px;
+    height: 300px;
   }
 
   .detail-card-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .scan-detail-page {
+    gap: 1rem;
+  }
+
+  .detail-breadcrumb {
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .breadcrumb-back {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .breadcrumb-current {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .detail-media-card {
+    border-radius: 18px;
+  }
+
+  .detail-img-wrap {
+    height: 230px;
+  }
+
+  .detail-media-meta {
+    padding: 1rem;
+    gap: 0.6rem;
+  }
+
+  .meta-row {
+    font-size: 0.8rem;
+  }
+
+  .detail-header-card {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+  }
+
+  .detail-disease-title {
+    font-size: 1.45rem;
+    line-height: 1.2;
+  }
+
+  .detail-scientific-name {
+    font-size: 0.84rem;
+    margin-bottom: 1rem;
+  }
+
+  .detail-tabs-bar {
+    gap: 0.35rem;
+    padding: 0.3rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .detail-tab {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+    border-radius: 8px;
+  }
+
+  .detail-tab-content {
+    padding: 1.25rem 1rem;
+    border-radius: 18px;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .subhead-title {
+    font-size: 0.9rem;
+  }
+
+  .symptom-item {
+    font-size: 0.84rem;
+    gap: 0.5rem;
+  }
+
+  .ai-plan-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .ai-actions {
+    width: 100%;
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 38px;
+    font-size: 0.78rem;
+  }
+
+  .ai-report-text {
+    padding: 1rem;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    word-break: break-word;
   }
 }

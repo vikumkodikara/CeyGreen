@@ -301,29 +301,31 @@ export const DiagnosisReportSection: React.FC<DiagnosisReportSectionProps> = ({
             <h4 style={{ color: '#b45309' }}>
               <IconAlertSign size={16} /> How to Distinguish from Similar Problems
             </h4>
-            <table className="lookalike-table">
-              <thead>
-                <tr>
-                  <th>Condition</th>
-                  <th>Symptoms</th>
-                  <th>How to Tell the Difference</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>{diseaseDetail.displayName}</strong></td>
-                  <td>{diseaseDetail.symptoms.leafMarkers[0]}</td>
-                  <td>Specific fungal rings or dark spots with halos</td>
-                </tr>
-                {diseaseDetail.symptoms.lookAlikes.map((l, i) => (
-                  <tr key={i}>
-                    <td>Similar Issue #{i + 1}</td>
-                    <td>{l}</td>
-                    <td>Caused by nutrient shortages or weather stress</td>
+            <div className="lookalike-table-wrap">
+              <table className="lookalike-table">
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>Symptoms</th>
+                    <th>How to Tell the Difference</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>{diseaseDetail.displayName}</strong></td>
+                    <td>{diseaseDetail.symptoms.leafMarkers[0]}</td>
+                    <td>Specific fungal rings or dark spots with halos</td>
+                  </tr>
+                  {diseaseDetail.symptoms.lookAlikes.map((l, i) => (
+                    <tr key={i}>
+                      <td>Similar Issue #{i + 1}</td>
+                      <td>{l}</td>
+                      <td>Compare spot patterns, leaf curling &amp; spore halos</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
