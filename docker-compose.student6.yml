@@ -39,7 +39,9 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - ceygreen-student6-net
+      ceygreen-student6-net:
+        aliases:
+          - sales-analytics-service
 
   # 3. Frontend Web Application (React + Vite/Nginx on port 3000)
   frontend:
