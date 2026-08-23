@@ -144,13 +144,8 @@ export const GreenhousePage: React.FC = () => {
       setLive(idleReading(res.id));
       setLiveError('Waiting for the ESP32 to send a reading…');
     } catch (err: any) {
-      const status = err.response?.status;
       const msg = err.response?.data?.message || 'Greenhouse registration failed';
-      if (status === 409 || String(msg).toLowerCase().includes('another farmer')) {
-        alert('That greenhouse ID is already registered to another farmer. Choose a different ID.');
-      } else {
-        alert(msg);
-      }
+      alert(msg);
     } finally {
       setLoading(false);
     }
@@ -214,7 +209,6 @@ export const GreenhousePage: React.FC = () => {
           clearSavedGreenhouse(ownerId);
           setLive(idleReading());
           setLiveError('');
-          alert('That greenhouse belongs to another farmer.');
           return;
         }
         setLiveError(err.response?.data?.message || 'Could not load live data');
