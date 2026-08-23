@@ -154,7 +154,6 @@ spring:
               predicates:
                 - Path=/api/analytics/**
               filters:
-                - StripPrefix=1
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@clientIpKeyResolver}"
@@ -168,7 +167,6 @@ spring:
               predicates:
                 - Path=/api/notify/**
               filters:
-                - StripPrefix=1
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@clientIpKeyResolver}"
