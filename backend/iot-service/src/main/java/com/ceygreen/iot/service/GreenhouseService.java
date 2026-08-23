@@ -39,14 +39,11 @@ public class GreenhouseService {
         Optional<Greenhouse> existing = telemetryRepository.findGreenhouse(greenhouseId);
         if (existing.isPresent()) {
             Greenhouse found = existing.get();
-            String farmerId = request.getFarmerId().trim();
-            if (found.getFarmerId() == null || !found.getFarmerId().equals(farmerId)) {
-                found.setFarmerId(farmerId);
+            String owner = found.getFarmerId();
+            if (owner != null && owner.equals(request.getFarmerId().trim())) {
+                return GreenhouseResponse.from(found);
             }
-            if (request.getName() != null && !request.getName().isBlank()) {
-                found.setName(request.getName().trim());
-            }
-            return GreenhouseResponse.from(telemetryRepository.saveGreenhouse(found));
+            throw ApiException.conflict("Greenhouse ID already registered to another farmer");
         }
 
         Greenhouse greenhouse = new Greenhouse(
