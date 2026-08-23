@@ -39,15 +39,6 @@ export const HeroSection: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Right Visual Image */}
-      <div className="hero-right-visual">
-        <img
-          src="/images/hero/plant-disease-scanner.jpg"
-          alt="AI Plant Disease Diagnosis Scanner in Greenhouse"
-          className="hero-scanner-img"
-        />
-      </div>
     </section>
   );
 };
