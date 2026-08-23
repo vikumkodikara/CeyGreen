@@ -2,6 +2,7 @@ package com.ceygreen.diagnosis.diagnosis;
 
 import com.ceygreen.diagnosis.common.ApiError;
 import com.ceygreen.diagnosis.diagnosis.dto.DiagnosisResponse;
+import com.ceygreen.diagnosis.diagnosis.dto.DiagnosisSummaryDto;
 import com.ceygreen.diagnosis.security.CallerIdentity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +14,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -72,6 +77,15 @@ public class DiagnosisController {
     @Operation(summary = "List a farmer's past diagnoses")
     public List<DiagnosisResponse> history(@PathVariable UUID farmerId, Authentication authentication) {
         return diagnosisService.history(farmerId, CallerIdentity.of(authentication));
+    }
+
+    @GetMapping("/history/{farmerId}/paged")
+    @Operation(summary = "List a farmer's past diagnoses with pagination")
+    public Page<DiagnosisSummaryDto> historyPaged(
+            @PathVariable UUID farmerId,
+            @PageableDefault(size = 12, sort = "timestamp", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication) {
+        return diagnosisService.historyPaged(farmerId, CallerIdentity.of(authentication), pageable);
     }
 
     @DeleteMapping("/{id}")
