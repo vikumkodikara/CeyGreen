@@ -1,0 +1,114 @@
+/* ==========================================================================
+   TREATMENTS PAGE HERO BANNER & LAYOUT STYLES
+   ========================================================================== */
+
+.treatments-page-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hero-container,
+.treatment-hero-container {
+  position: relative;
+  border-radius: 24px;
+  background-color: #032b18;
+  background-image: url('/images/hero/scan-history-banner.webp'), url('/images/hero/diagnosis-hero-banner.webp'), url('/images/hero/diagnosis-hero-banner.jpg');
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: 0 16px 40px rgba(3, 43, 24, 0.25);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  padding: 2.8rem 3.2rem 3.5rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  min-height: 330px;
+}
+
+.hero-container::before,
+.treatment-hero-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(3, 43, 24, 0.95) 0%, rgba(3, 43, 24, 0.88) 38%, rgba(3, 43, 24, 0.3) 65%, rgba(3, 43, 24, 0) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-left-content,
+.treatment-hero-left-content {
+  position: relative;
+  z-index: 2;
+  max-width: 37rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.35rem 0.95rem;
+  border-radius: 999px;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.hero-title {
+  font-size: 2.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.65rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.hero-highlight {
+  color: #4ade80;
+}
+
+.hero-description {
+  color: #d1fae5;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+  opacity: 0.95;
+  max-width: 32rem;
+}
+
+.hero-pills-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.hero-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(3, 43, 24, 0.75);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
