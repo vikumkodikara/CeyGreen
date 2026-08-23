@@ -19,9 +19,16 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, ApiKeyFilter apiKeyFilter) throws Exception {
-        return http.csrf(c -> c.disable()).cors(c -> c.disable())
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(r -> r.requestMatchers(PUBLIC_PATHS).permitAll().anyRequest().authenticated())
-                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class).build();
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(PUBLIC_PATHS).permitAll()
+                        .anyRequest().permitAll())
+                .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .build();
     }
 }

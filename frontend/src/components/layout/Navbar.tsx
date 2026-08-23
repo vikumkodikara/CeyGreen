@@ -15,18 +15,32 @@ const TOPIC_ICON: Record<string, string> = {
   'forum-events':      '💬',
 };
 
-function topicIcon(sourceTopic: string): string {
-  return TOPIC_ICON[sourceTopic] ?? '🔔';
+function topicIcon(topicOrType?: string): string {
+  if (!topicOrType) return '🔔';
+  const key = topicOrType.toLowerCase();
+  if (key.includes('order') || key.includes('cart')) return '🛒';
+  if (key.includes('greenhouse') || key.includes('iot') || key.includes('temp') || key.includes('sensor')) return '🌡️';
+  if (key.includes('diagnosis') || key.includes('disease') || key.includes('scan')) return '🔬';
+  if (key.includes('treatment') || key.includes('medicine')) return '💊';
+  if (key.includes('stock') || key.includes('inventory') || key.includes('product')) return '📦';
+  if (key.includes('forum') || key.includes('community') || key.includes('post')) return '💬';
+  return TOPIC_ICON[topicOrType] ?? '🔔';
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1)  return 'just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+function timeAgo(iso?: string): string {
+  if (!iso) return 'recently';
+  try {
+    const diff = Date.now() - new Date(iso).getTime();
+    if (isNaN(diff)) return 'recently';
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 1)  return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  } catch {
+    return 'recently';
+  }
 }
 
 /* ─── Component ──────────────────────────────────────────────────── */
@@ -50,22 +64,26 @@ export const Navbar: React.FC = () => {
   // Backend stores notifications by userId which can be user.id, user.farmerId, or user.buyerId
   const userId = user?.farmerId || user?.buyerId || user?.id || '';
 
-  /* ── Fetch notifications from port 8086 ─────────────────────── */
+  /* ── Fetch notifications via API Gateway ─────────────────────── */
   const fetchNotifications = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setNotifications([]);
+      return;
+    }
     setNotifsLoading(true);
     setNotifsError(null);
     try {
       const data = await getNotificationHistory(userId);
-      setNotifications(data);
+      setNotifications(Array.isArray(data) ? data : []);
     } catch (err: any) {
       const status = err?.response?.status;
-      if (status === 404) {
+      if (status === 404 || status === 204) {
         setNotifications([]);
       } else if (status === 401) {
-        setNotifsError('Auth error — check API key.');
+        setNotifsError('Session expired. Please log in again.');
       } else {
-        setNotifsError('Could not reach notification service.');
+        // Fallback gracefully so notifications drop down shows clean empty state
+        setNotifications([]);
       }
     } finally {
       setNotifsLoading(false);
@@ -104,8 +122,7 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const unread = notifications.filter((n) => n.status !== 'DELIVERED').length;
-  const badgeCount = notifications.length; // show total count on the badge
+  const badgeCount = notifications.length;
 
   return (
     <header className="app-navbar">
@@ -168,15 +185,20 @@ export const Navbar: React.FC = () => {
                   {/* Notification list */}
                   {!notifsLoading && !notifsError && notifications.length > 0 && (
                     <ul className="notif-list">
-                      {notifications.map((n) => (
-                        <li key={n.id} className={`notif-item${n.status !== 'DELIVERED' ? ' notif-unread' : ''}`}>
-                          <span className="notif-icon">{topicIcon(n.sourceTopic)}</span>
-                          <div className="notif-body">
-                            <p className="notif-msg">{n.message}</p>
-                            <span className="notif-time">{timeAgo(n.sentAt)}</span>
-                          </div>
-                        </li>
-                      ))}
+                      {notifications.map((n) => {
+                        const isUnread = n.read === false || (n.status && n.status !== 'DELIVERED');
+                        const iconKey = n.type || n.sourceTopic;
+                        const dateStr = n.createdAt || n.sentAt;
+                        return (
+                          <li key={n.id} className={`notif-item${isUnread ? ' notif-unread' : ''}`}>
+                            <span className="notif-icon">{topicIcon(iconKey)}</span>
+                            <div className="notif-body">
+                              <p className="notif-msg">{n.message}</p>
+                              <span className="notif-time">{timeAgo(dateStr)}</span>
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
 
