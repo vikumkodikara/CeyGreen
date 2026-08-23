@@ -154,6 +154,7 @@ spring:
               predicates:
                 - Path=/api/analytics/**
               filters:
+                - StripPrefix=1
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@clientIpKeyResolver}"
@@ -167,6 +168,7 @@ spring:
               predicates:
                 - Path=/api/notify/**
               filters:
+                - StripPrefix=1
                 - name: RequestRateLimiter
                   args:
                     key-resolver: "#{@clientIpKeyResolver}"
@@ -190,6 +192,8 @@ ceygreen:
       - /api/users/login
       - /api/iot/**
       - /api/diagnosis/images/**
+      - /api/analytics/**
+      - /api/notify/**
       - /docs
       - /actuator/health
       - /actuator/health/**
