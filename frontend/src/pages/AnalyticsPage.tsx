@@ -10,9 +10,7 @@ const getGrafanaBaseUrl = (): string => {
   if (import.meta.env.VITE_GRAFANA_URL) {
     return import.meta.env.VITE_GRAFANA_URL;
   }
-  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
-  return `${protocol}//${hostname}:3001`;
+  return '/grafana';
 };
 
 const GRAFANA_DASHBOARD_UID = 'ceygreen-sales-analytics';

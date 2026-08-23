@@ -5,11 +5,11 @@ datasources:
     uid: ceygreen-analytics-pg
     type: postgres
     url: postgres:5432
-    user: ceygreen_user
+    user: ceygreen
     secureJsonData:
-      password: ceygreen_pass
+      password: ceygreen
     jsonData:
-      database: ceygreen_sales_db
+      database: ceygreen_analytics
       sslmode: disable
       maxOpenConns: 10
       maxIdleConns: 2

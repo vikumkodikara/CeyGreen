@@ -17,6 +17,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: iotOnly ? (path) => path.replace(/^\/api/, '') : undefined,
         },
+        '/grafana': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+          ws: true,
+        },
       },
     },
   }
