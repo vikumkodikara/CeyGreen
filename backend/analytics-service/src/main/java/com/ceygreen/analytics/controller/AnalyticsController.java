@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@RequestMapping("/analytics")
+@RequestMapping({"/api/analytics", "/analytics", ""})
 @Tag(name = "Analytics")
 @SecurityRequirement(name = "apiKey")
 public class AnalyticsController {

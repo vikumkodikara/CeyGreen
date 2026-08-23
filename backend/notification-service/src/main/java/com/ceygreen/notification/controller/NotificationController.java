@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notify")
+@RequestMapping({"/api/notify", "/notify", ""})
 @Tag(name = "Notifications")
 @SecurityRequirement(name = "apiKey")
 public class NotificationController {

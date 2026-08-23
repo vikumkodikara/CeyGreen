@@ -21,10 +21,10 @@ public class AnalyticsService {
     }
 
     public SalesSummaryResponse getSalesSummary(String farmerId) {
-        SalesSummary summary = salesSummaryRepository.findByFarmerId(farmerId)
-                .orElseThrow(() -> ApiException.notFound("No sales data found for farmer: " + farmerId));
-        return new SalesSummaryResponse(summary.getFarmerId(), summary.getTotalRevenue(),
-                summary.getTotalOrders(), summary.getLastUpdated());
+        return salesSummaryRepository.findByFarmerId(farmerId)
+                .map(summary -> new SalesSummaryResponse(summary.getFarmerId(), summary.getTotalRevenue(),
+                        summary.getTotalOrders(), summary.getLastUpdated()))
+                .orElseGet(() -> new SalesSummaryResponse(farmerId, java.math.BigDecimal.ZERO, 0, java.time.Instant.now()));
     }
 
     public SalesTrendResponse getSalesTrend(String farmerId) {
