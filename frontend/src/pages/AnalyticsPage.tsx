@@ -5,7 +5,15 @@ import { useAuth } from '../hooks/useAuth';
 import { LeaderboardResponse, SalesSummary, SalesTrend } from '../types/analytics';
 
 // ─── Grafana base URL ──────────────────────────────────────────────────────────
-const GRAFANA_BASE = import.meta.env.VITE_GRAFANA_URL || 'http://localhost:3001';
+const getGrafanaBaseUrl = (): string => {
+  if (import.meta.env.VITE_GRAFANA_URL) {
+    return import.meta.env.VITE_GRAFANA_URL;
+  }
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+  return `${protocol}//${hostname}:3001`;
+};
+
 const GRAFANA_DASHBOARD_UID = 'ceygreen-sales-analytics';
 
 // Use /d-solo/ so Grafana renders only that one panel — no full-dashboard scroll
@@ -19,7 +27,7 @@ function grafanaPanelUrl(panelId: number, farmerId: string) {
     theme: 'dark',
     refresh: '30s',
   });
-  return `${GRAFANA_BASE}/d-solo/${GRAFANA_DASHBOARD_UID}/sales-analytics?${params}`;
+  return `${getGrafanaBaseUrl()}/d-solo/${GRAFANA_DASHBOARD_UID}/sales-analytics?${params}`;
 }
 
 // ─── Static styles ─────────────────────────────────────────────────────────────
@@ -390,7 +398,7 @@ export const AnalyticsPage: React.FC = () => {
           </p>
         </div>
         <a
-          href={`${GRAFANA_BASE}/d/${GRAFANA_DASHBOARD_UID}`}
+          href={`${getGrafanaBaseUrl()}/d/${GRAFANA_DASHBOARD_UID}`}
           target="_blank" rel="noopener noreferrer"
           style={S.grafanaLink}
         >
