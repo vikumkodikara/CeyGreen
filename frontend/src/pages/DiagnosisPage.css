@@ -1,238 +1,247 @@
 .diag-page {
-  position: absolute;
-  top: 0.5rem;
-  bottom: 2.4rem;
-  left: 1.5rem;
-  right: 1.5rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
-  gap: 1.25rem;
-  max-width: 1260px;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
-  align-items: start;
-  height: 100%;
-}
-
-.diag-center {
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.diag-rail {
+  padding-bottom: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  min-height: 0;
-  height: 100%;
-  overflow-y: auto;
-  padding-right: 0.5rem;
+  gap: 1.5rem;
 }
 
 /* ==========================================================================
-   1. DEDICATED BIOTECH HERO BANNER (Distinct from Dashboard)
+   1. HERO SECTION (Real HTML + Dedicated Right Visual Asset)
    ========================================================================== */
-.diag-biotech-hero {
+.hero-container {
   position: relative;
-  min-height: 220px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #051a10 0%, #0d3824 50%, #072919 100%);
-  border: 1px solid rgba(46, 204, 113, 0.25);
-  box-shadow: 0 16px 36px rgba(5, 26, 16, 0.25);
+  background: linear-gradient(135deg, #032b18 0%, #064e2b 50%, #0b3d2e 100%);
+  box-shadow: 0 16px 40px rgba(3, 43, 24, 0.25);
   overflow: hidden;
-  margin-bottom: 1.25rem;
-  padding: 1.6rem 1.8rem;
+  margin-bottom: 0;
+  padding: 2.4rem 2.8rem 3.8rem;
   color: #fff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 0;
+  min-height: 320px;
 }
 
-/* Futuristic background grid lines */
-.diag-biotech-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(to right, rgba(46, 204, 113, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(46, 204, 113, 0.07) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-}
-
-/* Subtle glow orb */
-.diag-biotech-hero::after {
-  content: '';
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(34, 197, 94, 0.25) 0%, rgba(13, 148, 136, 0.12) 50%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(20px);
-}
-
-.diag-hero-main {
+.hero-left-content {
   position: relative;
   z-index: 2;
-  max-width: 38rem;
+  max-width: 36rem;
 }
 
-.diag-hud-badge {
+.hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: rgba(34, 197, 94, 0.14);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  color: #6ee7b7;
-  padding: 0.3rem 0.8rem;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.35rem 0.95rem;
   border-radius: 999px;
-  margin-bottom: 0.6rem;
-  backdrop-filter: blur(8px);
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-.diag-hud-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #34d399;
-  box-shadow: 0 0 10px #34d399;
-  animation: pulseDot 1.8s infinite ease-in-out;
-}
-
-@keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
-}
-
-.diag-biotech-hero h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
+.hero-title {
+  font-size: 2.35rem;
+  font-weight: 800;
   color: #ffffff;
-  margin-bottom: 0.4rem;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  margin-bottom: 0.65rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
 }
 
-.diag-biotech-hero p {
-  color: #bbf7d0;
-  font-size: 0.88rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
+.hero-highlight {
+  color: #4ade80;
+}
+
+.hero-description {
+  color: #d1fae5;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
   opacity: 0.95;
+  max-width: 32rem;
 }
 
-/* Telemetry Pills Bar */
-.diag-telemetry-bar {
+/* Feature Pills Row */
+.hero-pills-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.hero-pills-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-  position: relative;
-  z-index: 2;
 }
 
-.telemetry-item {
+.feature-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.28rem 0.65rem;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  color: #d1fae5;
+  gap: 0.45rem;
+  background: rgba(3, 43, 24, 0.75);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.telemetry-item strong {
-  color: #ffffff;
+/* Right Side Visual Area — spreads across the full right half */
+.hero-right-visual {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.hero-right-visual::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #032b18 0%, rgba(3, 43, 24, 0.7) 25%, transparent 55%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero-scanner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.hero-scanner-img:hover {
+  transform: scale(1.03);
 }
 
 /* ==========================================================================
-   2. CROP SELECTOR SPECTRUM (Vector Icons & Card Tiles)
+   2. CROP SELECTOR RIBBON (Elevated Component with 7 Real Crop Cards)
    ========================================================================== */
-.crop-spectrum-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
-  gap: 0.6rem;
-  margin-bottom: 1.2rem;
+.crop-selector-ribbon {
+  position: relative;
+  margin-top: -32px;
+  z-index: 10;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 1.15rem;
+  box-shadow: 0 12px 36px rgba(11, 61, 46, 0.08);
+  border: 1px solid #e7eee9;
+  margin-bottom: 1.35rem;
 }
 
-.crop-card-btn {
+.crop-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+}
+
+.crop-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 0.5rem;
-  border-radius: 14px;
+  text-align: center;
+  padding: 0.85rem 0.5rem 0.75rem;
+  border-radius: 16px;
   background: #ffffff;
-  border: 1.5px solid #e2eee6;
-  color: var(--jade);
-  font-size: 0.8rem;
-  font-weight: 600;
+  border: 1.5px solid #e5e7eb;
+  color: #1f2937;
   cursor: pointer;
   transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  text-align: center;
-  min-height: 76px;
-  box-shadow: 0 2px 8px rgba(11, 61, 46, 0.03);
+  min-height: 105px;
+  width: 100%;
+  gap: 0.4rem;
 }
 
-.crop-card-btn:hover {
-  background: #f0faf4;
+.crop-card:hover {
   border-color: #22c55e;
+  background: #f9fdfa;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(34, 197, 94, 0.12);
 }
 
-.crop-card-btn.active {
-  background: linear-gradient(135deg, #0b3d2e 0%, #155e42 100%);
-  border-color: #0b3d2e;
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(11, 61, 46, 0.25);
+.crop-card.active {
+  border: 2.5px solid #16a34a;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15), 0 8px 22px rgba(22, 163, 74, 0.18);
   transform: translateY(-2px);
 }
 
-.crop-vector-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #eef8f2;
-  color: #1f8a54;
-  display: grid;
-  place-items: center;
-  margin-bottom: 0.35rem;
-  transition: all 0.2s ease;
+.crop-card-img-wrap {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  flex-shrink: 0;
 }
 
-.crop-card-btn.active .crop-vector-icon {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+.crop-card-img {
+  width: 100%;
+  height: 100%;
+  max-width: 52px;
+  max-height: 52px;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.08));
+}
+
+.crop-card-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #374151;
+  line-height: 1.2;
+  text-align: center;
+  width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+
+.crop-card.active .crop-card-name {
+  color: #16a34a;
 }
 
 /* ==========================================================================
-   3. UPLOAD DROPZONE & LASER SCANNER ANIMATION
+   3. UPLOAD SECTION & LIVE SCANNER
    ========================================================================== */
-.diag-card {
+.upload-card {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 22px;
   box-shadow: 0 8px 24px rgba(20, 50, 32, 0.06);
   border: 1px solid #e7eee9;
   padding: 1.35rem;
   margin-bottom: 1.25rem;
 }
 
-.diag-card-head {
+.upload-card-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.diag-card-head h2 {
+.upload-card-head h2 {
   font-size: 1.05rem;
   color: var(--jade);
   margin: 0;
@@ -241,7 +250,34 @@
   gap: 0.5rem;
 }
 
-.diag-dropzone {
+.upload-card-head p {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  margin-top: 0.2rem;
+}
+
+.live-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #166534;
+  background: #e8f5e9;
+  border: 1px solid #86efac;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.live-status-pill i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.upload-dropzone {
   border: 2px dashed #b7dcc6;
   background: #f8fcf9;
   border-radius: 16px;
@@ -253,17 +289,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   margin-bottom: 1rem;
 }
 
-.diag-dropzone:hover {
+.upload-dropzone:hover {
   border-color: #1f8a54;
   background: #effaf3;
   box-shadow: 0 0 0 4px rgba(31, 138, 84, 0.08);
 }
 
-.diag-dropzone-icon {
+.dropzone-icon-box {
   width: 52px;
   height: 52px;
   border-radius: 14px;
@@ -274,37 +310,46 @@
   margin-bottom: 0.25rem;
 }
 
-/* Scanner Frame with Laser Sweep */
-.scanner-frame {
+.dropzone-title {
+  color: var(--jade);
+  font-size: 0.96rem;
+}
+
+.dropzone-subtitle {
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+
+.upload-preview-frame {
   position: relative;
   display: flex;
   align-items: center;
   gap: 1.15rem;
   padding: 1rem;
   background: #f4faf6;
-  border: 1px solid #cce8d6;
+  border: 1.5px solid #cce8d6;
   border-radius: 16px;
   margin-bottom: 1.15rem;
   overflow: hidden;
 }
 
-.scanner-image-wrap {
+.preview-image-box {
   position: relative;
   width: 90px;
   height: 90px;
   border-radius: 12px;
   overflow: hidden;
-  border: 1.5px solid #22c55e;
+  border: 2px solid #22c55e;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.2);
 }
 
-.scanner-image-wrap img {
+.preview-image-box img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Laser sweep bar */
 .laser-sweep-line {
   position: absolute;
   top: 0;
@@ -323,31 +368,80 @@
   100% { top: 0%; opacity: 0.8; }
 }
 
-.scanner-meta {
+.preview-meta-info {
   flex: 1;
   min-width: 0;
 }
 
-.scanner-meta-title {
-  font-size: 0.92rem;
+.preview-meta-title {
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--jade);
 }
 
-.scanner-meta-sub {
-  font-size: 0.78rem;
+.preview-meta-desc {
+  font-size: 0.8rem;
   color: var(--ink-3);
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
-/* Action Scan CTA */
-.btn-scan-action {
+.btn-remove-photo {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-remove-photo:hover {
+  background: #fecaca;
+}
+
+.sample-photos-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--ink-3);
+}
+
+.sample-label {
+  font-weight: 600;
+}
+
+.sample-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #eef7f1;
+  border: 1px solid #d2e8db;
+  color: #1f5c32;
+  padding: 0.35rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sample-btn:hover {
+  background: #1f5c32;
+  color: #fff;
+  border-color: #1f5c32;
+}
+
+.btn-diagnose-action {
   width: 100%;
   padding: 0.9rem;
   border-radius: 14px;
   background: linear-gradient(135deg, #0b3d2e 0%, #155e42 100%);
   color: #ffffff !important;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -360,20 +454,24 @@
   cursor: pointer;
 }
 
-.btn-scan-action:hover:not(:disabled) {
+.btn-diagnose-action:hover:not(:disabled) {
   background: linear-gradient(135deg, #072919 0%, #0d3e2b 100%);
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(11, 61, 46, 0.32);
 }
 
-.btn-scan-action:disabled {
+.btn-diagnose-action:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 /* ==========================================================================
-   4. DIAGNOSTIC RESULTS DOSSIER & CIRCULAR CONFIDENCE GAUGE
+   4. DIAGNOSIS REPORT & RECOVERY PLAN
    ========================================================================== */
+.report-container {
+  margin-top: 1.25rem;
+}
+
 .dossier-hero-card {
   background: #ffffff;
   border-radius: 24px;
@@ -399,22 +497,40 @@
   margin-bottom: 0.4rem;
 }
 
+.condition-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  background: #f0f6f2;
+  padding: 0.22rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #d7e4db;
+}
+
+.crop-pill {
+  font-size: 0.75rem;
+  color: #1f8a54;
+  font-weight: 700;
+  background: #eef8f2;
+  padding: 0.22rem 0.65rem;
+  border-radius: 8px;
+}
+
 .dossier-title {
-  font-size: 1.5rem;
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--jade);
   line-height: 1.2;
 }
 
 .dossier-latin {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-style: italic;
   color: #1f8a54;
   font-weight: 600;
   margin-top: 0.2rem;
 }
 
-/* Circular SVG Precision Gauge */
 .svg-gauge-box {
   display: flex;
   align-items: center;
@@ -461,7 +577,6 @@
   color: var(--jade);
 }
 
-/* Hazard Progression Scale */
 .hazard-scale-box {
   background: #f8faf8;
   border: 1px solid #e2ede5;
@@ -473,10 +588,10 @@
 .hazard-scale-head {
   display: flex;
   justify-content: space-between;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--ink-3);
   font-weight: 600;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.45rem;
 }
 
 .hazard-segments {
@@ -486,7 +601,7 @@
 }
 
 .hazard-bar {
-  height: 7px;
+  height: 8px;
   border-radius: 4px;
   background: #e2ede5;
 }
@@ -496,7 +611,60 @@
 .hazard-bar.active.level-3 { background: #f59e0b; }
 .hazard-bar.active.level-4 { background: #ef4444; }
 
-/* Clinical Analysis Tabs */
+.result-leaf-box {
+  display: grid;
+  grid-template-columns: 105px 1fr;
+  gap: 1.15rem;
+  background: #f6faf7;
+  border: 1px solid #e2ede5;
+  border-radius: 16px;
+  padding: 1rem;
+  align-items: center;
+  margin-bottom: 1.15rem;
+}
+
+.result-leaf-img {
+  width: 105px;
+  height: 105px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #d7e4db;
+}
+
+.result-summary-text h4 {
+  font-size: 0.95rem;
+  color: var(--jade);
+  margin-bottom: 0.3rem;
+}
+
+.result-summary-text p {
+  font-size: 0.86rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.btn-gemini-report {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1f8a54 0%, #166534 100%);
+  color: #fff !important;
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  box-shadow: 0 4px 14px rgba(22, 101, 52, 0.2);
+  border: none;
+  cursor: pointer;
+}
+
+.btn-gemini-report:hover {
+  background: #14532d;
+}
+
 .dossier-tabs {
   display: flex;
   gap: 0.5rem;
@@ -509,9 +677,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.6rem 1.05rem;
+  padding: 0.65rem 1.1rem;
   border-radius: 12px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
   white-space: nowrap;
   background: #ffffff;
@@ -535,7 +703,6 @@
   box-shadow: 0 4px 12px rgba(11, 61, 46, 0.2);
 }
 
-/* Full Report Cards */
 .report-card {
   background: #ffffff;
   border-radius: 20px;
@@ -565,7 +732,7 @@
 }
 
 .report-box h4 {
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   color: var(--jade);
   margin-bottom: 0.6rem;
   display: flex;
@@ -578,7 +745,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--ink-2);
 }
 
@@ -596,7 +763,6 @@
   font-weight: bold;
 }
 
-/* Microclimate Dial Tile */
 .climate-dial-tile {
   background: #ffffff;
   border: 1px solid #dceee0;
@@ -607,7 +773,7 @@
 }
 
 .climate-dial-tile span {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: var(--ink-3);
   font-weight: 600;
   display: block;
@@ -621,11 +787,10 @@
 }
 
 .climate-dial-tile small {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--ink-3);
 }
 
-/* Look-Alikes Table */
 .lookalike-table {
   width: 100%;
   border-collapse: collapse;
@@ -645,7 +810,6 @@
   font-weight: 700;
 }
 
-/* AI Clinical Terminal Box */
 .ai-terminal-box {
   background: #082116;
   border: 1px solid rgba(46, 204, 113, 0.3);
@@ -668,7 +832,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #6ee7b7;
 }
@@ -690,7 +854,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .btn-terminal-action:hover {
@@ -706,81 +869,6 @@
   color: #ecfdf5;
 }
 
-/* ==========================================================================
-   5. RIGHT-RAIL STUDIO PANELS
-   ========================================================================== */
-.rail-card {
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 8px 24px rgba(20, 50, 32, 0.06);
-  border: 1px solid #e7eee9;
-  padding: 1.1rem;
-}
-
-.rail-card h3 {
-  font-size: 0.9rem;
-  color: var(--jade);
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.spec-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  font-size: 0.78rem;
-}
-
-.spec-row {
-  display: flex;
-  justify-content: space-between;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid #f0f6f2;
-}
-
-.spec-row span {
-  color: var(--ink-3);
-}
-
-.spec-row strong {
-  color: var(--jade);
-}
-
-/* Scouting checklist */
-.task-checklist {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-}
-
-.task-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid #f0f6f2;
-  cursor: pointer;
-}
-
-.task-item.checked {
-  color: var(--ink-3);
-  text-decoration: line-through;
-}
-
-.task-item input {
-  width: 16px;
-  height: 16px;
-  min-height: 0;
-  accent-color: #1f8a54;
-  margin-top: 0.15rem;
-  cursor: pointer;
-}
-
-/* Risk Badges */
 .pill-badge {
   font-size: 0.7rem;
   font-weight: 700;
@@ -795,7 +883,60 @@
 .pill-badge.moderate { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
 .pill-badge.healthy { background: #e8f5e9; color: #166534; border: 1px solid #86efac; }
 
+/* ==========================================================================
+   5. RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
 @media (max-width: 1120px) {
-  .diag-page { grid-template-columns: 1fr; }
-  .report-grid-2, .report-grid-4 { grid-template-columns: 1fr; }
+  .crop-cards-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.75rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .crop-card {
+    flex: 0 0 120px;
+  }
+
+  .report-grid-2, .report-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    padding: 2rem 1.8rem 3.5rem;
+    min-height: 260px;
+  }
+
+  .hero-right-visual {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.25;
+  }
+
+  .hero-right-visual::before {
+    background: linear-gradient(180deg, rgba(3, 43, 24, 0.6) 0%, rgba(3, 43, 24, 0.85) 100%);
+  }
+
+  .hero-title {
+    font-size: 1.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-container {
+    padding: 1.5rem 1.2rem 3rem;
+  }
+
+  .hero-title {
+    font-size: 1.65rem;
+  }
+
+  .crop-selector-ribbon {
+    margin-top: -24px;
+    padding: 0.85rem;
+  }
 }
