@@ -7,7 +7,7 @@ import { ScanCard } from '../components/diagnosis/ScanCard';
 import { IconSearch, IconScan, IconLeaf } from '../components/icons/Icons';
 import './ScanHistoryPage.css';
 
-const CROPS = ['All Crops', 'Tomato', 'Potato', 'Bell Pepper', 'Grape', 'Strawberry', 'Apple', 'Corn'];
+const CROPS = ['All Crops', 'Tomato', 'Potato', 'Bell Pepper', 'Grape', 'Strawberry', 'Chillie', 'Corn'];
 
 export const ScanHistoryPage: React.FC = () => {
   const { user } = useAuth();

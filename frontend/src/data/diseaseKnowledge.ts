@@ -49,7 +49,7 @@ export const CROPS_LIST: CropInfo[] = [
   { id: 'Pepper', name: 'Bell Pepper', image: '/images/crops/bell-pepper.webp', diseases: ['Pepper,_bell___Bacterial_spot', 'Pepper,_bell___healthy'] },
   { id: 'Grape', name: 'Grape', image: '/images/crops/grape.webp', diseases: ['Grape___Black_rot', 'Grape___Esca_(Black_Measles)', 'Grape___healthy'] },
   { id: 'Strawberry', name: 'Strawberry', image: '/images/crops/strawberry.webp', diseases: ['Strawberry___Leaf_scorch', 'Strawberry___healthy'] },
-  { id: 'Apple', name: 'Apple', image: '/images/crops/apple.webp', diseases: ['Apple___Black_rot', 'Apple___healthy'] },
+  { id: 'Chillie', name: 'Chillie', image: '/images/crops/chillie.png', diseases: ['Chilli___Leaf_curl', 'Chilli___Anthracnose', 'Chilli___Bacterial_leaf_spot', 'Chilli___healthy'] },
   { id: 'Corn', name: 'Corn (Maize)', image: '/images/crops/corn.webp', diseases: ['Corn___Common_rust', 'Corn___healthy'] },
 ];
 
@@ -461,7 +461,102 @@ export const DISEASE_KNOWLEDGE: Record<string, DiseaseDetail> = {
     },
   },
 
-  // 10. Healthy Crop
+  // 10. Chilli Leaf Curl
+  'Chilli___Leaf_curl': {
+    name: 'Chilli___Leaf_curl',
+    displayName: 'Chilli Leaf Curl Virus',
+    scientificName: 'Chilli leaf curl virus (ChiLCV)',
+    crop: 'Chillie',
+    category: 'Viral',
+    severity: 'High',
+    description: 'Chilli Leaf Curl is a destructive viral disease transmitted by whiteflies. It causes upward curling, puckering, reduced leaf size, shortening of internodes, and severe stunting with poor fruit set.',
+    etiology: {
+      pathogenType: 'Begomovirus (Viral Disease)',
+      incubationPeriod: '10 to 15 days following whitefly transmission',
+      transmissionVectors: ['Whiteflies (Bemisia tabaci)', 'Infected nursery seedlings'],
+      inoculumSource: 'Alternative weed hosts and infected nearby Solanaceae crops.',
+      hostInvasionMechanism: 'Whiteflies feed on plant sap and introduce viral particles into phloem tissue.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Upward curling and severe puckering / crinkling of young foliage.',
+        'Thickened veins with reduced leaf lamina size.',
+        'Yellowing between veins on curled leaves.',
+      ],
+      canopyProgression: 'Begins on apical growing points and produces bushy, stunted dwarf plants.',
+      stemAndFruitSigns: [
+        'Shortened internodes causing crowded cluster appearance.',
+        'Deformed, small, curled chilli pods with low market value.',
+      ],
+      lookAlikes: ['Thrips or broad mite feeding injury', 'Hormone herbicide drift damage'],
+    },
+    microclimate: {
+      temperatureRange: '26°C – 35°C (Warm conditions promoting whitefly populations)',
+      criticalHumidity: '< 65% RH (Dry, hot greenhouse conditions)',
+      leafWetnessHours: '0–2 hours',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Install 50-mesh insect exclusion netting on all greenhouse vents and doorways.',
+        'Hang yellow sticky traps (1 trap per 20–25 m²) to monitor and capture whiteflies.',
+        'Immediately uproot and incinerate severely stunted virus-infected plants.',
+      ],
+      cropRotation: 'Avoid continuous planting of chillies, capsicums, or tomatoes in adjacent bays.',
+      airflowAndSpacing: 'Maintain good weed management around greenhouse perimeters.',
+      scoutingCadence: 'Inspect undersides of apical leaves twice weekly for whitefly nymphs.',
+      quarantineAction: 'Bag and remove infected plants from the greenhouse immediately.',
+    },
+  },
+
+  // 11. Chilli Anthracnose
+  'Chilli___Anthracnose': {
+    name: 'Chilli___Anthracnose',
+    displayName: 'Chilli Anthracnose (Fruit Rot / Dieback)',
+    scientificName: 'Colletotrichum capsici',
+    crop: 'Chillie',
+    category: 'Fungal',
+    severity: 'High',
+    description: 'Anthracnose attacks both foliage and ripening chilli pods. It causes circular sunken water-soaked lesions with concentric rings of dark acervuli, leading to fruit rotting and twig dieback.',
+    etiology: {
+      pathogenType: 'Necrotrophic Foliar & Fruit Fungus',
+      incubationPeriod: '3 to 7 days in warm humid conditions',
+      transmissionVectors: ['Splashing water', 'Contaminated seeds', 'Wind-driven rain'],
+      inoculumSource: 'Infected plant debris, seed-borne mycelium, and alternate hosts.',
+      hostInvasionMechanism: 'Spores germinate on wet surfaces, producing appressoria to pierce cuticle.',
+    },
+    symptoms: {
+      leafMarkers: [
+        'Small, circular brown spots that dry out and form shot-holes.',
+        'Dieback of apical twigs turning straw-colored from top down.',
+      ],
+      canopyProgression: 'Spreads rapidly during overhead irrigation or high humidity periods.',
+      stemAndFruitSigns: [
+        'Sunken circular or elliptical spots on ripening green and red chilli fruits.',
+        'Concentric rings of salmon-pink to black fungal spore masses on fruit lesions.',
+      ],
+      lookAlikes: ['Sunscald on exposed fruit', 'Bacterial spot fruit lesions'],
+    },
+    microclimate: {
+      temperatureRange: '25°C – 30°C',
+      criticalHumidity: '> 85% RH',
+      leafWetnessHours: '4–8 hours of fruit wetness',
+      vpdRiskLevel: 'High',
+    },
+    preventionAndQuarantine: {
+      sanitation: [
+        'Collect and destroy all diseased chilli fruits and fallen twigs.',
+        'Use certified disease-free seeds and apply bio-fungicide seed treatments.',
+        'Switch from overhead spray to drip irrigation to keep pods dry.',
+      ],
+      cropRotation: 'Rotate with non-solanaceous crops such as maize, beans, or brassicas for 2 years.',
+      airflowAndSpacing: 'Ensure proper plant spacing (45–60 cm) to allow sunlight penetration.',
+      scoutingCadence: 'Scout developing pods weekly, especially as fruits start color turning.',
+      quarantineAction: 'Discard all blemished pods before harvest packaging.',
+    },
+  },
+
+  // 12. Healthy Crop
   'Healthy': {
     name: 'Healthy',
     displayName: 'Healthy Crop (No Disease Detected)',

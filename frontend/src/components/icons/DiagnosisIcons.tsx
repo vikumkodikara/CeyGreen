@@ -146,6 +146,16 @@ export const CropIcons: Record<string, React.FC<IconProps>> = {
       <circle cx="12" cy="15" r="0.8" fill="currentColor" />
     </svg>
   ),
+  Chillie: ({ size = 20, className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden>
+      <path {...stroke} d="M16 3c-1 2-2 3-4 3M12 6c-2 0-4 1-5 3-2 3-2 7 1 10 3 3 8 3 10-1 2-4 1-8-2-10-1-1-3-2-4-2Z" />
+    </svg>
+  ),
+  Chilli: ({ size = 20, className }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden>
+      <path {...stroke} d="M16 3c-1 2-2 3-4 3M12 6c-2 0-4 1-5 3-2 3-2 7 1 10 3 3 8 3 10-1 2-4 1-8-2-10-1-1-3-2-4-2Z" />
+    </svg>
+  ),
   Apple: ({ size = 20, className }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden>
       <path {...stroke} d="M12 2c1 2 1 4-1 6M12 6c-2-2-5-1-6 2-2 5 0 12 6 12s8-7 6-12c-1-3-4-4-6-2Z" />
