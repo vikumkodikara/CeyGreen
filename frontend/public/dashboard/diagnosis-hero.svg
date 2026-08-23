@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#052414"/>
+      <stop offset="45%" stop-color="#0d4227"/>
+      <stop offset="85%" stop-color="#145a38"/>
+      <stop offset="100%" stop-color="#1a6e45"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="80%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#fef08a" stop-opacity="0.35"/>
+      <stop offset="40%" stop-color="#86efac" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#052414" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glassBeam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.01"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Lush Base Background -->
+  <rect width="1200" height="400" fill="url(#bgGrad)"/>
+  
+  <!-- Sunlight Bloom -->
+  <rect width="1200" height="400" fill="url(#sunGlow)"/>
+
+  <!-- Modern Greenhouse Glass Beams Structure -->
+  <g stroke="rgba(255,255,255,0.06)" stroke-width="2" fill="none">
+    <line x1="150" y1="0" x2="300" y2="400"/>
+    <line x1="400" y1="0" x2="550" y2="400"/>
+    <line x1="650" y1="0" x2="800" y2="400"/>
+    <line x1="900" y1="0" x2="1050" y2="400"/>
+    <line x1="0" y1="120" x2="1200" y2="280"/>
+    <line x1="0" y1="240" x2="1200" y2="380"/>
+  </g>
+
+  <!-- Sunbeam angle highlights -->
+  <polygon points="650,0 850,0 1150,400 900,400" fill="url(#glassBeam)"/>
+  <polygon points="850,0 1000,0 1200,400 1100,400" fill="url(#glassBeam)"/>
+
+  <!-- Organic Botanical Leaf Silhouettes in background -->
+  <g fill="#0b3821" opacity="0.45">
+    <path d="M1000,400 C980,320 1020,240 1120,210 C1140,290 1100,370 1000,400 Z"/>
+    <path d="M1080,400 C1060,300 1140,220 1200,200 C1220,300 1180,380 1080,400 Z"/>
+    <path d="M880,400 C860,340 900,280 980,260 C990,320 950,380 880,400 Z"/>
+  </g>
+  
+  <!-- Glowing Plant health particles -->
+  <g fill="#4ade80" opacity="0.6">
+    <circle cx="820" cy="140" r="3" filter="drop-shadow(0 0 6px #4ade80)"/>
+    <circle cx="950" cy="90" r="4" filter="drop-shadow(0 0 8px #4ade80)"/>
+    <circle cx="1060" cy="160" r="2.5" filter="drop-shadow(0 0 5px #4ade80)"/>
+    <circle cx="740" cy="220" r="2" filter="drop-shadow(0 0 4px #4ade80)"/>
+    <circle cx="1120" cy="110" r="3.5" filter="drop-shadow(0 0 7px #4ade80)"/>
+  </g>
+</svg>
