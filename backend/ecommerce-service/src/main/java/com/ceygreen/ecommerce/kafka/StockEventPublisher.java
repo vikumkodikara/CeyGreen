@@ -37,11 +37,18 @@ public class StockEventPublisher {
         payload.put("occurredAt", event.occurredAt().toString());
 
         try {
-            kafkaTemplate.send(topic, event.productId().toString(), payload).get(5, TimeUnit.SECONDS);
+            kafkaTemplate.send(topic, event.productId().toString(), payload)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.warn("Failed to publish stock event for productId={}: {}",
+                                    event.productId(), ex.getMessage());
+                        } else {
+                            log.info("Published {} event: productId={}, quantity={}->{}",
+                                    event.eventType(), event.productId(), event.previousQuantity(), event.currentQuantity());
+                        }
+                    });
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to publish stock event", ex);
+            log.warn("Failed to publish stock event for productId={}: {}", event.productId(), ex.getMessage());
         }
-        log.info("Published {} event: productId={}, quantity={}->{}",
-                event.eventType(), event.productId(), event.previousQuantity(), event.currentQuantity());
     }
 }

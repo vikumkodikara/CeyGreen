@@ -47,8 +47,18 @@ public class OrderEventPublisher {
     }
 
     private void publishPayload(Long orderId, Map<String, Object> payload) {
-        kafkaTemplate.send(topic, orderId.toString(), payload);
-        log.info("Published order event: orderId={}, eventType={}", orderId, payload.get("eventType"));
+        try {
+            kafkaTemplate.send(topic, orderId.toString(), payload)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.warn("Failed to publish order event for orderId={}: {}", orderId, ex.getMessage());
+                        } else {
+                            log.info("Published order event: orderId={}, eventType={}", orderId, payload.get("eventType"));
+                        }
+                    });
+        } catch (Exception ex) {
+            log.warn("Failed to publish order event for orderId={}: {}", orderId, ex.getMessage());
+        }
     }
 
     private static Map<String, Object> toPayload(OrderEvent event) {

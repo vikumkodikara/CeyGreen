@@ -31,7 +31,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex, HttpServletRequest req) {
         log.error("Unhandled exception for {} {}", req.getMethod(), req.getRequestURI(), ex);
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank()) ? ex.getMessage() : "Unexpected error occurred";
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiError.of(500, "Internal Server Error", "Unexpected error", req.getRequestURI()));
+                .body(ApiError.of(500, "Internal Server Error", message, req.getRequestURI()));
     }
 }
