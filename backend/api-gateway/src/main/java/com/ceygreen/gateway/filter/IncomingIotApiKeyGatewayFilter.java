@@ -32,7 +32,7 @@ public class IncomingIotApiKeyGatewayFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
         String path = exchange.getRequest().getURI().getPath();
-        if (!isIotPath(path)) {
+        if (!isIotPath(path) || isDocsPath(path)) {
             return chain.filter(exchange);
         }
         String provided = exchange.getRequest().getHeaders().getFirst(IdentityHeaderGatewayFilter.HEADER_API_KEY);
@@ -47,6 +47,10 @@ public class IncomingIotApiKeyGatewayFilter implements GlobalFilter, Ordered {
                 """.getBytes(StandardCharsets.UTF_8);
         DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(body);
         return exchange.getResponse().writeWith(Mono.just(buffer));
+    }
+
+    static boolean isDocsPath(String path) {
+        return path != null && (path.equals("/docs") || path.startsWith("/docs/"));
     }
 
     static boolean isIotPath(String path) {

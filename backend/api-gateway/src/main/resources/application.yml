@@ -43,6 +43,57 @@ spring:
           # The routing table: public path -> owning microservice. Every base URL is an env var,
           # so this gateway builds and runs without any teammate's service existing.
           routes:
+            # One Swagger UI at /docs. These paths are proxied to each service's /v3/api-docs.
+            # SetPath runs after default StripPrefix=1 (/docs/openapi/users -> /openapi/users).
+            - id: openapi-users
+              uri: ${USER_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/docs/openapi/users
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-iot
+              uri: ${IOT_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/docs/openapi/iot-telemetry
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-treatment
+              uri: ${TREATMENT_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/docs/openapi/treatment
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-ecommerce
+              uri: ${ECOMMERCE_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/docs/openapi/ecommerce
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-forum
+              uri: ${FORUM_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/docs/openapi/forum
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-analytics
+              uri: ${ANALYTICS_SERVICE_URL:http://localhost:8086}
+              predicates:
+                - Path=/docs/openapi/analytics
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-diagnosis
+              uri: ${DIAGNOSIS_SERVICE_URL:http://localhost:8087}
+              predicates:
+                - Path=/docs/openapi/diagnosis
+              filters:
+                - SetPath=/v3/api-docs
+            - id: openapi-notifications
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8088}
+              predicates:
+                - Path=/docs/openapi/notifications
+              filters:
+                - SetPath=/v3/api-docs
+
             # ---- Student 2 (this repo): User Management ----
             # Also the token issuer -- it owns the private half of the keypair above.
             - id: user-management
@@ -72,14 +123,14 @@ spring:
 
             # ---- Student 1: IoT Telemetry & Control (no IP rate limit — ESP32 + live UI) ----
             - id: iot-telemetry
-              uri: ${IOT_SERVICE_URL:http://iot-service:8082}
+              uri: ${IOT_SERVICE_URL:http://localhost:8082}
               predicates:
                 - Path=/api/iot/**
 
             # ---- Student 3: Treatment & Suggestion ----
             # Reached by the client directly. This service's own diagnosis flow never calls it.
             - id: treatment-suggestion
-              uri: ${TREATMENT_SERVICE_URL:http://treatment-service:8083}
+              uri: ${TREATMENT_SERVICE_URL:http://localhost:8083}
               predicates:
                 - Path=/api/treatments/**
               filters:
@@ -92,7 +143,7 @@ spring:
 
             # ---- Student 4: E-Commerce Marketplace ----
             - id: ecommerce-products
-              uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
+              uri: ${ECOMMERCE_SERVICE_URL:http://localhost:8084}
               predicates:
                 - Path=/api/products/**
               filters:
@@ -103,7 +154,7 @@ spring:
                     redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
                     redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
             - id: ecommerce-orders
-              uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
+              uri: ${ECOMMERCE_SERVICE_URL:http://localhost:8084}
               predicates:
                 - Path=/api/orders/**
               filters:
@@ -114,7 +165,7 @@ spring:
                     redis-rate-limiter.burstCapacity: ${ceygreen.rate-limit.burst-capacity}
                     redis-rate-limiter.requestedTokens: ${ceygreen.rate-limit.requested-tokens}
             - id: ecommerce-dashboard
-              uri: ${ECOMMERCE_SERVICE_URL:http://ecommerce-service:8084}
+              uri: ${ECOMMERCE_SERVICE_URL:http://localhost:8084}
               predicates:
                 - Path=/api/dashboard/**
               filters:
@@ -135,7 +186,7 @@ spring:
                 
             # ---- Student 5: Community Forum Service ----
             - id: community-forum
-              uri: ${FORUM_SERVICE_URL:http://forum-service:8085}
+              uri: ${FORUM_SERVICE_URL:http://localhost:8085}
               predicates:
                 - Path=/api/forum/**
               filters:
@@ -150,7 +201,7 @@ spring:
 
             # ---- Student 6: Sales Analytics ----
             - id: sales-analytics
-              uri: ${ANALYTICS_SERVICE_URL:http://analytics-service:8086}
+              uri: ${ANALYTICS_SERVICE_URL:http://localhost:8086}
               predicates:
                 - Path=/api/analytics/**
               filters:
@@ -163,7 +214,7 @@ spring:
 
             # ---- Student 6: Notifications ----
             - id: notifications
-              uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8088}
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8088}
               predicates:
                 - Path=/api/notify/**
               filters:
@@ -190,6 +241,9 @@ ceygreen:
       - /api/users/login
       - /api/iot/**
       - /docs
+      - /docs/**
+      - /swagger-ui.html
+      - /swagger-ui/**
       - /actuator/health
       - /actuator/health/**
       - /actuator/info
