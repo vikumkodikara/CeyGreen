@@ -1,14 +1,14 @@
 package com.ceygreen.diagnosis.diagnosis;
 
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Publishes a diagnosis-events message and moves on. A broker outage must not fail the
- * client response — Student 6 consumes whenever ready; the producer has no availability
- * dependency on the consumer.
+ * Publishes a diagnosis-events message and moves on asynchronously. A broker outage must not
+ * block or fail the client response — the producer has no availability dependency on Kafka.
  */
 @Component
 public class DiagnosisEventPublisher {
@@ -31,18 +31,21 @@ public class DiagnosisEventPublisher {
                 diagnosis.getPredictedDisease(),
                 diagnosis.getConfidenceScore(),
                 diagnosis.getTimestamp());
-        try {
-            kafkaTemplate.send(properties.getDiagnosisTopic(), diagnosis.getId(), (Object) event)
-                    .whenComplete((result, ex) -> {
-                        if (ex != null) {
-                            log.warn("Failed to publish diagnosis-events for {}: {}",
-                                    diagnosis.getId(), ex.getMessage());
-                        } else {
-                            log.info("Published diagnosis-events for {}", diagnosis.getId());
-                        }
-                    });
-        } catch (Exception ex) {
-            log.warn("Failed to publish diagnosis-events for {}: {}", diagnosis.getId(), ex.getMessage());
-        }
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                kafkaTemplate.send(properties.getDiagnosisTopic(), diagnosis.getId(), (Object) event)
+                        .whenComplete((result, ex) -> {
+                            if (ex != null) {
+                                log.warn("Failed to publish diagnosis-events for {}: {}",
+                                        diagnosis.getId(), ex.getMessage());
+                            } else {
+                                log.info("Published diagnosis-events for {}", diagnosis.getId());
+                            }
+                        });
+            } catch (Exception ex) {
+                log.warn("Failed to dispatch diagnosis-events for {}: {}", diagnosis.getId(), ex.getMessage());
+            }
+        });
     }
 }
