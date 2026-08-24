@@ -17,9 +17,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -53,9 +56,6 @@ public class OnnxDiseaseClassifier implements DiseaseClassifier, DisposableBean 
     private OrtSession session;
     private List<String> labels;
 
-    /** Temp file reference so we can clean it up on shutdown. */
-    private Path tempModelFile;
-
     public OnnxDiseaseClassifier(ResourceLoader resourceLoader,
                                   DiseaseClassifierProperties properties) {
         this.resourceLoader = resourceLoader;
@@ -66,16 +66,17 @@ public class OnnxDiseaseClassifier implements DiseaseClassifier, DisposableBean 
     void init() throws OrtException, IOException {
         log.info("Loading ONNX disease model from {}", properties.getModelPath());
 
-        // OrtSession requires a file path — classpath resources inside JARs are not directly
-        // addressable, so we copy to a temp file that is cleaned up on shutdown.
-        tempModelFile = Files.createTempFile("disease_model_", ".onnx");
+        // Ensure all bundled ImageIO plugins (like TwelveMonkeys WebP) are discovered
+        ImageIO.scanForPlugins();
+
+        byte[] modelBytes;
         try (InputStream modelStream = resourceLoader.getResource(properties.getModelPath())
                 .getInputStream()) {
-            Files.copy(modelStream, tempModelFile, StandardCopyOption.REPLACE_EXISTING);
+            modelBytes = modelStream.readAllBytes();
         }
 
         environment = OrtEnvironment.getEnvironment();
-        session = environment.createSession(tempModelFile.toString());
+        session = environment.createSession(modelBytes);
         log.info("ONNX session created — input(s): {}, output(s): {}",
                 session.getInputNames(), session.getOutputNames());
 
@@ -112,13 +113,6 @@ public class OnnxDiseaseClassifier implements DiseaseClassifier, DisposableBean 
                 log.warn("Error closing ONNX session", ex);
             }
         }
-        if (tempModelFile != null) {
-            try {
-                Files.deleteIfExists(tempModelFile);
-            } catch (IOException ex) {
-                log.warn("Failed to delete temp model file {}", tempModelFile, ex);
-            }
-        }
     }
 
     // ---- internals ----
@@ -128,7 +122,34 @@ public class OnnxDiseaseClassifier implements DiseaseClassifier, DisposableBean 
      * with raw 0–255 pixel values (the ONNX graph contains its own preprocessing).
      */
     private float[][][][] preprocessImage(byte[] imageBytes) throws IOException {
-        BufferedImage original = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        BufferedImage original = null;
+        try {
+            original = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        } catch (Exception ex) {
+            log.warn("Standard ImageIO.read failed: {}", ex.getMessage());
+        }
+
+        if (original == null) {
+            try (ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
+                if (iis != null) {
+                    Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+                    while (readers.hasNext() && original == null) {
+                        ImageReader reader = readers.next();
+                        try {
+                            reader.setInput(iis);
+                            original = reader.read(0);
+                        } catch (Exception e) {
+                            log.warn("ImageReader {} failed to decode: {}", reader.getClass().getSimpleName(), e.getMessage());
+                        } finally {
+                            reader.dispose();
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                log.warn("Fallback ImageInputStream decoding failed: {}", ex.getMessage());
+            }
+        }
+
         if (original == null) {
             throw new IOException("ImageIO could not decode the uploaded image — "
                     + "the file may be corrupt or an unsupported format");

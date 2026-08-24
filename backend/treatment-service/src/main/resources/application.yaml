@@ -21,6 +21,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        max.block.ms: 2000
 
 service:
   api-key: ${SERVICE_API_KEY:ceygreen-dev-api-key}
