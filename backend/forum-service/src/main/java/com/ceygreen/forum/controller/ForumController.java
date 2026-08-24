@@ -77,6 +77,23 @@ public class ForumController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    /** Edit a post. Only the thread owner (or an admin) may update title, body, tags, cropType. */
+    @PutMapping("/posts/{id}")
+    public ResponseEntity<PostResponse> updatePost(@PathVariable String id,
+                                                   @Valid @RequestBody PostRequest request,
+                                                   @AuthenticationPrincipal CurrentUser currentUser) {
+        return ResponseEntity.ok(forumService.updatePost(id, request, currentUser));
+    }
+
+    /** Edit a reply. Only the person who wrote that reply (or an admin) may update its body. */
+    @PutMapping("/posts/{id}/replies/{replyId}")
+    public ResponseEntity<PostResponse> updateReply(@PathVariable String id,
+                                                    @PathVariable String replyId,
+                                                    @Valid @RequestBody ReplyRequest request,
+                                                    @AuthenticationPrincipal CurrentUser currentUser) {
+        return ResponseEntity.ok(forumService.updateReply(id, replyId, request, currentUser));
+    }
+
     /** Delete a post (author or admin). */
     @DeleteMapping("/posts/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable String id,

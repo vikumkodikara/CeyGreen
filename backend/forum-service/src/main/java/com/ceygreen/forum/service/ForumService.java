@@ -217,6 +217,43 @@ public class ForumService {
         return reply;
     }
 
+    /** Edit a post. Allowed for the thread owner, or for an admin. */
+    public PostResponse updatePost(String id, PostRequest request, CurrentUser user) {
+        Post post = requirePost(id);
+        user.requireUserId();
+        if (!user.canActOnBehalfOf(post.getAuthorId())) {
+            throw ApiException.forbidden("Only the post author or an admin may edit this post");
+        }
+        post.setTitle(request.title());
+        post.setBody(request.body());
+        if (request.tags() != null) {
+            post.setTags(request.tags());
+        }
+        post.setCropType(request.cropType());
+        post.setUpdatedAt(Instant.now());
+        Post saved = postRepository.save(post);
+        log.info("Updated post id={} by user={}", id, user.userId());
+        return toResponse(saved);
+    }
+
+    /** Edit a reply. Allowed for the reply author, or for an admin. */
+    public PostResponse updateReply(String postId, String replyId, ReplyRequest request, CurrentUser user) {
+        if (request.body() == null || request.body().isBlank()) {
+            throw ApiException.badRequest("Reply body is required");
+        }
+        Post post = requirePost(postId);
+        Reply reply = requireReply(post, replyId);
+        user.requireUserId();
+        if (!user.canActOnBehalfOf(reply.getAuthorId())) {
+            throw ApiException.forbidden("Only the reply author or an admin may edit this reply");
+        }
+        reply.setBody(request.body());
+        post.setUpdatedAt(Instant.now());
+        Post saved = postRepository.save(post);
+        log.info("Updated reply id={} on post={} by user={}", replyId, postId, user.userId());
+        return toResponse(saved);
+    }
+
     /** Delete a post. Allowed for the post's author, or for an admin. */
     public void deletePost(String id, CurrentUser user) {
         Post post = requirePost(id);
