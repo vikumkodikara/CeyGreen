@@ -1,0 +1,11 @@
+.git
+.github
+.gemini
+.agents
+.vscode
+.idea
+*.log
+**/target
+**/node_modules
+**/dist
+**/data

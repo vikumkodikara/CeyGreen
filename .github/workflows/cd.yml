@@ -126,8 +126,21 @@ jobs:
 
             echo "${{ secrets.DEPLOY_ENV_FILE }}" > .env
 
+            echo "Cleaning up dangling images and containers before deployment..."
+            docker container prune -f || true
+            docker image prune -af || true
+            docker builder prune -af || true
+
+            echo "Pulling latest images..."
             docker compose pull
             docker compose up -d --remove-orphans
+
+            echo "Cleaning up orphaned images and build cache after deployment..."
+            docker image prune -af || true
+            docker builder prune -af || true
+
+            echo "Current disk usage:"
+            df -h /
 
             echo "Waiting for services to be healthy..."
             sleep 60

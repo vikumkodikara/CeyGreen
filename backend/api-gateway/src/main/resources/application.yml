@@ -29,8 +29,8 @@ spring:
         webflux:
           httpclient:
             # Fail fast when a teammate's service is not running, rather than hanging the client.
-            connect-timeout: ${DOWNSTREAM_CONNECT_TIMEOUT_MS:2000}
-            response-timeout: ${DOWNSTREAM_RESPONSE_TIMEOUT:20s}
+            connect-timeout: ${DOWNSTREAM_CONNECT_TIMEOUT_MS:5000}
+            response-timeout: ${DOWNSTREAM_RESPONSE_TIMEOUT:30s}
 
           # CORS is owned by Spring Security (see GatewaySecurityConfig) so browser
           # preflights are answered before the JWT filter, from one allowlist:

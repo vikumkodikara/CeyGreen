@@ -36,8 +36,18 @@ public class ForumEventPublisher {
                 reply.getAuthorId(),
                 reply.isAiGenerated(),
                 Instant.now());
-        kafkaTemplate.send(topic, post.getId(), event);
-        log.info("Published forum event: NEW_REPLY on post={} reply={} ai={}",
-                post.getId(), reply.getId(), reply.isAiGenerated());
+        try {
+            kafkaTemplate.send(topic, post.getId(), event)
+                    .whenComplete((result, ex) -> {
+                        if (ex != null) {
+                            log.warn("Failed to publish forum event for post={}: {}", post.getId(), ex.getMessage());
+                        } else {
+                            log.info("Published forum event: NEW_REPLY on post={} reply={} ai={}",
+                                    post.getId(), reply.getId(), reply.isAiGenerated());
+                        }
+                    });
+        } catch (Exception ex) {
+            log.warn("Failed to publish forum event for post={}: {}", post.getId(), ex.getMessage());
+        }
     }
 }
