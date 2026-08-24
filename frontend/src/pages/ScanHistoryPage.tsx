@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { getDiagnosisHistoryPaged } from '../api/diagnosis';
+import { useToast } from '../context/ToastContext';
+import { getDiagnosisHistoryPaged, deleteDiagnosis } from '../api/diagnosis';
 import { DiagnosisSummary, PaginatedResponse } from '../types/diagnosis';
 import { ScanCard } from '../components/diagnosis/ScanCard';
-import { IconSearch, IconScan, IconLeaf } from '../components/icons/Icons';
+import { IconSearch, IconScan, IconLeaf, IconTrash, IconAlertTriangle } from '../components/icons/Icons';
 import './ScanHistoryPage.css';
 
 const CROPS = ['All Crops', 'Tomato', 'Potato', 'Bell Pepper', 'Grape', 'Strawberry', 'Chillie', 'Corn'];
 
 export const ScanHistoryPage: React.FC = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const farmerId = user?.farmerId || user?.id || 'farmer-1';
 
   const [pageData, setPageData] = useState<PaginatedResponse<DiagnosisSummary> | null>(null);
@@ -23,6 +25,10 @@ export const ScanHistoryPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCrop, setSelectedCrop] = useState('All Crops');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'disease' | 'healthy'>('all');
+
+  // Deletion modal & loading states
+  const [scanToDelete, setScanToDelete] = useState<DiagnosisSummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchScans = useCallback(async (page: number) => {
     setLoading(true);
@@ -46,6 +52,63 @@ export const ScanHistoryPage: React.FC = () => {
   useEffect(() => {
     fetchScans(0);
   }, [fetchScans]);
+
+  const handleDeleteRequest = (scan: DiagnosisSummary) => {
+    setScanToDelete(scan);
+  };
+
+  const handleCancelDelete = () => {
+    if (!isDeleting) {
+      setScanToDelete(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!scanToDelete) return;
+    setIsDeleting(true);
+
+    try {
+      await deleteDiagnosis(scanToDelete.diagnosisId);
+      showToast(
+        `Deleted scan for ${scanToDelete.cropType} (${scanToDelete.predictedDisease})`,
+        'success'
+      );
+
+      // Optimistically / immediately update page data
+      setPageData((prev) => {
+        if (!prev) return prev;
+        const updatedContent = prev.content.filter(
+          (item) => item.diagnosisId !== scanToDelete.diagnosisId
+        );
+        const updatedTotalElements = Math.max(0, prev.totalElements - 1);
+        const updatedTotalPages = Math.ceil(updatedTotalElements / pageSize);
+
+        return {
+          ...prev,
+          content: updatedContent,
+          totalElements: updatedTotalElements,
+          totalPages: updatedTotalPages,
+        };
+      });
+
+      // If this was the last item on a page > 0, navigate to previous page
+      if (pageData && pageData.content.length === 1 && currentPage > 0) {
+        fetchScans(currentPage - 1);
+      }
+
+      setScanToDelete(null);
+    } catch (err: any) {
+      console.error('Failed to delete scan record:', err);
+      showToast(
+        err.response?.data?.message ||
+          err.message ||
+          'Failed to delete scan record from database. Please try again.',
+        'error'
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Client-side filtering across the current page items or search
   const scans = pageData?.content || [];
@@ -255,7 +318,12 @@ export const ScanHistoryPage: React.FC = () => {
 
             <div className="history-grid">
               {filteredScans.map((scan) => (
-                <ScanCard key={scan.diagnosisId} scan={scan} />
+                <ScanCard
+                  key={scan.diagnosisId}
+                  scan={scan}
+                  onDelete={handleDeleteRequest}
+                  isDeleting={isDeleting && scanToDelete?.diagnosisId === scan.diagnosisId}
+                />
               ))}
             </div>
 
@@ -297,6 +365,60 @@ export const ScanHistoryPage: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {scanToDelete && (
+        <div className="delete-modal-overlay" onClick={handleCancelDelete} role="dialog" aria-modal="true">
+          <div className="delete-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <div className="delete-warning-icon">
+                <IconAlertTriangle size={24} />
+              </div>
+              <h3 className="delete-modal-title">Delete Scan Record?</h3>
+            </div>
+
+            <div className="delete-modal-body">
+              <p>
+                Are you sure you want to permanently remove the scan for{' '}
+                <strong>{scanToDelete.cropType}</strong> ({scanToDelete.predictedDisease}) from your archive?
+              </p>
+              <p className="delete-modal-subtext">
+                This action will delete the diagnosis and associated image data from the database.
+              </p>
+            </div>
+
+            <div className="delete-modal-actions">
+              <button
+                type="button"
+                className="delete-modal-cancel-btn"
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="delete-modal-confirm-btn"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="scan-card-delete-spinner" aria-hidden />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <IconTrash size={16} />
+                    <span>Delete Record</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

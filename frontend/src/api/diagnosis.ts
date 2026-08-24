@@ -49,6 +49,10 @@ export const getDiagnosisHistoryPaged = async (
   return res.data;
 };
 
+export const deleteDiagnosis = async (id: string): Promise<void> => {
+  await apiClient.delete(`/diagnosis/${id}`);
+};
+
 export const resolveDiagnosisImageUrl = (imageUrl: string | undefined): string => {
   if (!imageUrl) return '/dashboard/greenhouse.jpg';
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('data:')) {
@@ -62,4 +66,5 @@ export const resolveDiagnosisImageUrl = (imageUrl: string | undefined): string =
   const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
   return `${base}${cleanPath}`;
 };
+
 

@@ -163,4 +163,19 @@ export const IconClock: React.FC<IconProps> = ({ size = 18 }) => (
   </svg>
 );
 
+export const IconTrash: React.FC<IconProps> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden>
+    <path {...stroke} d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />
+  </svg>
+);
+
+export const IconAlertTriangle: React.FC<IconProps> = ({ size = 20, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden>
+    <path {...stroke} d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+    <line {...stroke} x1="12" y1="9" x2="12" y2="13" />
+    <line {...stroke} x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+
 

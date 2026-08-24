@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { DiagnosisSummary } from '../../types/diagnosis';
 import { resolveDiagnosisImageUrl } from '../../api/diagnosis';
 import { getDiseaseDetail } from '../../data/diseaseKnowledge';
+import { IconTrash } from '../icons/Icons';
 
 interface ScanCardProps {
   scan: DiagnosisSummary;
+  onDelete?: (scan: DiagnosisSummary) => void;
+  isDeleting?: boolean;
 }
 
-export const ScanCard: React.FC<ScanCardProps> = ({ scan }) => {
+export const ScanCard: React.FC<ScanCardProps> = ({ scan, onDelete, isDeleting = false }) => {
   const detail = getDiseaseDetail(scan.predictedDisease);
   const isHealthy = scan.predictedDisease?.toLowerCase().includes('healthy');
   
@@ -102,8 +105,29 @@ export const ScanCard: React.FC<ScanCardProps> = ({ scan }) => {
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>
+          {onDelete && (
+            <button
+              type="button"
+              className="scan-card-delete-btn"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete(scan);
+              }}
+              disabled={isDeleting}
+              title="Delete scan history record"
+              aria-label={`Delete ${scan.cropType} scan history`}
+            >
+              {isDeleting ? (
+                <span className="scan-card-delete-spinner" aria-hidden />
+              ) : (
+                <IconTrash size={16} />
+              )}
+            </button>
+          )}
         </div>
       </div>
     </article>
   );
 };
+

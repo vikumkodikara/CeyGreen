@@ -88,7 +88,7 @@ public class DiagnosisController {
         return diagnosisService.historyPaged(farmerId, CallerIdentity.of(authentication), pageable);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping({"/{id}", "/history/{id}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Remove a diagnosis record")
     public void delete(@PathVariable String id, Authentication authentication) {
