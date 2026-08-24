@@ -17,14 +17,11 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
-      # Distinct from notification-service's group -- sharing one group id would make the two
-      # services compete for order-events partitions instead of each seeing every event.
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
       group-id: analytics-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 ceygreen:
   security:
