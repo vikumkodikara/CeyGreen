@@ -10,8 +10,13 @@ export interface OrderLogEntry {
   farmerId: string;
   orderId: string;
   amount: number;
+  totalAmount?: number;
   product: string;
+  cropName?: string;
+  quantity?: number;
+  unitPrice?: number;
   recordedAt: string;
+  receivedAt?: string;
 }
 
 export interface TrendPoint {
@@ -39,4 +44,3 @@ export interface LeaderboardEntry {
 
 // The backend returns a plain LeaderboardEntry[] array (not a wrapped object)
 export type LeaderboardResponse = LeaderboardEntry[];
-

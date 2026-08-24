@@ -332,7 +332,8 @@ const fmtDate = (iso?: string) => {
 // ─── Component ─────────────────────────────────────────────────────────────────
 export const AnalyticsPage: React.FC = () => {
   const { user } = useAuth();
-  const [farmerId,    setFarmerId]    = useState(user?.farmerId || 'FARMER-101');
+  const initialFarmerId = user?.farmerId || user?.id || '4396b888-0aa1-4aa8-aa16-43bf7aebefc7';
+  const [farmerId,    setFarmerId]    = useState(initialFarmerId);
   const [activeFid,   setActiveFid]   = useState<string | null>(null);
   const [summary,     setSummary]     = useState<SalesSummary | null>(null);
   const [trend,       setTrend]       = useState<SalesTrend | null>(null);
@@ -342,8 +343,8 @@ export const AnalyticsPage: React.FC = () => {
   const [isMock,      setIsMock]      = useState(false);
   const [notice,      setNotice]      = useState<string | null>(null);
 
-  const fetchAnalytics = async () => {
-    const fid = farmerId.trim() || 'FARMER-101';
+  const fetchAnalytics = async (targetId?: string) => {
+    const fid = (targetId ?? farmerId).trim() || '4396b888-0aa1-4aa8-aa16-43bf7aebefc7';
     setLoading(true); setNotice(null); setIsMock(false);
     setSummary(null); setTrend(null); setLogs([]); setLeaderboard(null); setActiveFid(null);
 
@@ -360,12 +361,12 @@ export const AnalyticsPage: React.FC = () => {
         if (trendData?.orderHistory?.length) {
           setLogs(trendData.orderHistory.map((h) => ({
             id:          String(h.orderId ?? h.id ?? '—'),
-            cropName:    h.product ?? 'Fresh Produce',
-            quantity:    10,
-            totalAmount: Number(h.amount) || 0,
+            cropName:    h.product ?? h.cropName ?? 'Fresh Produce',
+            quantity:    h.quantity || 1,
+            totalAmount: Number(h.amount ?? h.totalAmount) || 0,
             buyerName:   'Direct Buyer',
             status:      'COMPLETED',
-            date:        h.recordedAt,
+            date:        h.recordedAt ?? h.receivedAt,
           })));
         }
       } catch { /* optional */ }
@@ -386,6 +387,18 @@ export const AnalyticsPage: React.FC = () => {
     setLeaderboard(boardData);
     setActiveFid(fid);
     setLoading(false);
+  };
+
+  // Auto-fetch analytics on component mount or when user changes
+  React.useEffect(() => {
+    const fid = user?.farmerId || user?.id || '4396b888-0aa1-4aa8-aa16-43bf7aebefc7';
+    setFarmerId(fid);
+    fetchAnalytics(fid);
+  }, [user]);
+
+  const selectFarmer = (id: string) => {
+    setFarmerId(id);
+    fetchAnalytics(id);
   };
 
   const avgOrderValue = summary && summary.totalOrders > 0
@@ -430,10 +443,65 @@ export const AnalyticsPage: React.FC = () => {
             />
             <button
               style={{ ...S.fetchBtn, opacity: loading ? 0.65 : 1 }}
-              onClick={fetchAnalytics}
+              onClick={() => fetchAnalytics()}
               disabled={loading}
             >
               {loading ? <Spinner /> : '⚡'} Fetch
+            </button>
+          </div>
+          
+          {/* Quick Switch Chips */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Quick Select:</span>
+            {user?.id && (
+              <button
+                type="button"
+                onClick={() => selectFarmer(user.farmerId || user.id)}
+                style={{
+                  padding: '0.2rem 0.6rem',
+                  fontSize: '0.75rem',
+                  borderRadius: '9999px',
+                  border: farmerId === (user.farmerId || user.id) ? '1px solid #16a34a' : '1px solid #cbd5e1',
+                  background: farmerId === (user.farmerId || user.id) ? '#dcfce7' : '#ffffff',
+                  color: farmerId === (user.farmerId || user.id) ? '#15803d' : '#475569',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                👤 My Account ({user.name || 'Farmer'})
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => selectFarmer('4396b888-0aa1-4aa8-aa16-43bf7aebefc7')}
+              style={{
+                padding: '0.2rem 0.6rem',
+                fontSize: '0.75rem',
+                borderRadius: '9999px',
+                border: farmerId === '4396b888-0aa1-4aa8-aa16-43bf7aebefc7' ? '1px solid #16a34a' : '1px solid #cbd5e1',
+                background: farmerId === '4396b888-0aa1-4aa8-aa16-43bf7aebefc7' ? '#dcfce7' : '#ffffff',
+                color: farmerId === '4396b888-0aa1-4aa8-aa16-43bf7aebefc7' ? '#15803d' : '#475569',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              🌱 nethmina (Active Farm)
+            </button>
+            <button
+              type="button"
+              onClick={() => selectFarmer('FARMER-101')}
+              style={{
+                padding: '0.2rem 0.6rem',
+                fontSize: '0.75rem',
+                borderRadius: '9999px',
+                border: farmerId === 'FARMER-101' ? '1px solid #16a34a' : '1px solid #cbd5e1',
+                background: farmerId === 'FARMER-101' ? '#dcfce7' : '#ffffff',
+                color: farmerId === 'FARMER-101' ? '#15803d' : '#475569',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              🏷️ FARMER-101
             </button>
           </div>
         </div>
