@@ -58,7 +58,8 @@ public class DiagnosisService {
             throw ApiException.badRequest("cropType is required");
         }
 
-        byte[] bytes = readAndValidate(image);
+        ValidatedImage validated = readAndValidate(image);
+        byte[] bytes = validated.bytes();
         String imageHash = sha256(bytes);
 
         if (uploadProperties.isCacheIdenticalUploads()) {
@@ -77,7 +78,7 @@ public class DiagnosisService {
             predicted = UNCERTAIN_LABEL;
         }
 
-        ImageStorageService.StoredImage stored = imageStorageService.store(bytes, image.getContentType());
+        ImageStorageService.StoredImage stored = imageStorageService.store(bytes, validated.contentType());
 
         Diagnosis diagnosis = new Diagnosis();
         diagnosis.setFarmerId(farmerId);
@@ -125,11 +126,27 @@ public class DiagnosisService {
         return imageStorageService.load(filename);
     }
 
-    private byte[] readAndValidate(MultipartFile image) {
+    private record ValidatedImage(byte[] bytes, String contentType) {}
+
+    private ValidatedImage readAndValidate(MultipartFile image) {
         if (image == null || image.isEmpty()) {
             throw ApiException.badRequest("An image file is required");
         }
         String contentType = image.getContentType();
+        if (contentType == null || "application/octet-stream".equalsIgnoreCase(contentType)
+                || !uploadProperties.getAllowedContentTypes().contains(contentType.toLowerCase(Locale.ROOT))) {
+            String filename = image.getOriginalFilename();
+            if (filename != null) {
+                String lower = filename.toLowerCase(Locale.ROOT);
+                if (lower.endsWith(".png")) {
+                    contentType = "image/png";
+                } else if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+                    contentType = "image/jpeg";
+                } else if (lower.endsWith(".webp")) {
+                    contentType = "image/webp";
+                }
+            }
+        }
         if (contentType == null
                 || !uploadProperties.getAllowedContentTypes().contains(contentType.toLowerCase(Locale.ROOT))) {
             throw ApiException.unsupportedMediaType(
@@ -147,7 +164,7 @@ public class DiagnosisService {
             if (bytes.length > uploadProperties.getMaxFileSizeBytes()) {
                 throw ApiException.payloadTooLarge("Uploaded image exceeds the maximum permitted size");
             }
-            return bytes;
+            return new ValidatedImage(bytes, contentType);
         } catch (ApiException ex) {
             throw ex;
         } catch (Exception ex) {
