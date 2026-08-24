@@ -83,6 +83,9 @@ public class GatewayProperties {
                 "/api/users/login",
                 "/api/iot/**",
                 "/docs",
+                "/docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
                 "/actuator/health",
                 "/actuator/health/**",
                 "/actuator/info"));

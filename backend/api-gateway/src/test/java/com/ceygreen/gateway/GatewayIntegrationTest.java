@@ -160,6 +160,38 @@ class GatewayIntegrationTest {
     }
 
     @Test
+    void docsHubListsEveryMicroservice() {
+        webTestClient.mutate().responseTimeout(Duration.ofSeconds(20)).build()
+                .get()
+                .uri("/docs")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(html -> {
+                    assertThat(html).contains("User Management (8081)");
+                    assertThat(html).contains("IoT Telemetry (8082)");
+                    assertThat(html).contains("Treatment (8083)");
+                    assertThat(html).contains("E-Commerce (8084)");
+                    assertThat(html).contains("Forum (8085)");
+                    assertThat(html).contains("Analytics (8086)");
+                    assertThat(html).contains("Disease Detection (8087)");
+                    assertThat(html).contains("Notifications (8088)");
+                    assertThat(html).contains("/docs/openapi/users");
+                    assertThat(html).contains("/docs/openapi/iot-telemetry");
+                });
+    }
+
+    @Test
+    void swaggerUiRedirectsToDocsHub() {
+        webTestClient.mutate().responseTimeout(Duration.ofSeconds(20)).build()
+                .get()
+                .uri("/swagger-ui.html")
+                .exchange()
+                .expectStatus().isFound()
+                .expectHeader().location("/docs");
+    }
+
+    @Test
     void rejectsIotRoutesWithoutAnApiKey() {
         webTestClient.mutate().responseTimeout(Duration.ofSeconds(20)).build()
                 .get()
