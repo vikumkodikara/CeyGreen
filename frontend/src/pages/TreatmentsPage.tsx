@@ -6,6 +6,7 @@ import { Button } from '../components/ui/Button';
 import { Treatment } from '../types/treatment';
 import { useAuth } from '../hooks/useAuth';
 import { PageHeader } from '../components/layout/PageHeader';
+import './TreatmentsPage.css';
 
 const CROP_DISEASES: Record<string, string[]> = {
   'Tomato': ['Tomato Bacterial Spot', 'Tomato Early Blight', 'Tomato Late Blight', 'Tomato Leaf Mold', 'Tomato Septoria Leaf Spot', 'Tomato Spider Mites', 'Tomato Target Spot', 'Tomato Yellow Leaf Curl Virus', 'Tomato Mosaic Virus'],
@@ -222,8 +223,126 @@ export const TreatmentsPage: React.FC = () => {
   };
 
   return (
-    <div className="page-wrap" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+    <div className="treatments-page-container">
+      {/* Treatments Hero Banner (Unique Custom Treatment Styling & Image) */}
+      <section style={{
+        position: 'relative',
+        borderRadius: '24px',
+        backgroundColor: '#032b18',
+        backgroundImage: `linear-gradient(90deg, rgba(3, 43, 24, 0.96) 0%, rgba(3, 43, 24, 0.88) 42%, rgba(3, 43, 24, 0.3) 72%, rgba(3, 43, 24, 0) 100%), url('/images/hero/treatment-hero-banner.png')`,
+        backgroundPosition: 'right center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        boxShadow: '0 16px 40px rgba(3, 43, 24, 0.25)',
+        overflow: 'hidden',
+        marginBottom: '1.5rem',
+        padding: '2.8rem 3.2rem 3.2rem',
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        minHeight: '330px'
+      }}>
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: '38rem' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            fontSize: '0.75rem',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            background: '#d1fae5',
+            color: '#065f46',
+            padding: '0.35rem 0.95rem',
+            borderRadius: '999px',
+            marginBottom: '0.9rem',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)'
+          }}>
+            <span>🌿</span>
+            <span>ORGANIC &amp; CHEMICAL CROP REMEDIES</span>
+          </div>
+
+          <h1 style={{
+            fontSize: '2.35rem',
+            fontWeight: 800,
+            color: '#ffffff',
+            marginBottom: '0.75rem',
+            lineHeight: 1.15,
+            letterSpacing: '-0.03em'
+          }}>
+            Heal Crops &amp; Prevent Disease<br />
+            with <span style={{ color: '#4ade80' }}>Targeted Remedies</span>
+          </h1>
+
+          <p style={{
+            color: '#d1fae5',
+            fontSize: '0.95rem',
+            lineHeight: 1.55,
+            marginBottom: '1.4rem',
+            opacity: 0.95,
+            maxWidth: '33rem'
+          }}>
+            Access 100+ verified organic remedies, bio-fungicides, chemical dosage instructions, and farmer-reviewed treatment plans with safe Pre-Harvest Intervals (PHI).
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                background: 'rgba(3, 43, 24, 0.85)',
+                border: '1px solid rgba(74, 222, 128, 0.45)',
+                backdropFilter: 'blur(8px)',
+                padding: '0.42rem 1rem',
+                borderRadius: '999px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: '#ffffff'
+              }}>
+                <span>🧪</span>
+                <span>Precise Application &amp; Dosage</span>
+              </div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                background: 'rgba(3, 43, 24, 0.85)',
+                border: '1px solid rgba(74, 222, 128, 0.45)',
+                backdropFilter: 'blur(8px)',
+                padding: '0.42rem 1rem',
+                borderRadius: '999px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: '#ffffff'
+              }}>
+                <span>⏱️</span>
+                <span>Pre-Harvest Interval (PHI) Safety</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                background: 'rgba(3, 43, 24, 0.85)',
+                border: '1px solid rgba(74, 222, 128, 0.45)',
+                backdropFilter: 'blur(8px)',
+                padding: '0.42rem 1rem',
+                borderRadius: '999px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: '#ffffff'
+              }}>
+                <span>🌿</span>
+                <span>100% Verified Organic &amp; Bio Alternatives</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <PageHeader
           title="Treatment & Suggestion Catalog"
           subtitle="Search remedies by disease or crop name."
