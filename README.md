@@ -8,17 +8,17 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green.svg)](https://www.mongodb.com/)
 [![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
-[![AWS EC2](https://img.shields.io/badge/AWS-EC2%20Live-orange.svg)](http://13.48.196.207:3000)
+[![Azure VM](https://img.shields.io/badge/Azure-VM%20Live-0078D4.svg)](http://172.198.138.134:3000)
 
 **CeyGreen** is an end-to-end, distributed microservices platform engineered to revolutionize precision greenhouse agriculture. It combines real-time IoT environmental telemetry, machine-learning-powered plant disease diagnostics, automated treatment advisors, an e-commerce agricultural marketplace, a community agronomist forum, and centralized sales analytics & notification engines into a resilient, scalable ecosystem.
 
 ---
 
-## 🚀 Live AWS Deployment & Infrastructure
+## 🚀 Live Azure Deployment & Infrastructure
 
-- **Live Web Application**: **[http://13.48.196.207:3000](http://13.48.196.207:3000)** (Hosted on AWS EC2 `eu-north-1`, Ubuntu 24.04 LTS).
+- **Live Web Application**: **[http://172.198.138.134:3000](http://172.198.138.134:3000)** (Hosted on Azure VM `Standard_B2s`, India South Central, Ubuntu 24.04 LTS).
 - **Reverse Proxy**: Nginx SPA reverse proxy routing `/api/**` traffic internally to `api-gateway:8080`.
-- **Automated CI/CD**: GitHub Actions workflow (`.github/workflows/cd.yml`) compiles, tests, builds Docker container images, and deploys directly to the live AWS EC2 instance on branch merges.
+- **Automated CI/CD**: GitHub Actions workflows (`.github/workflows/cd.yml` for GHCR publish, `.github/workflows/cd-azure.yml` for Azure VM deployment) compile, test, build Docker container images, and deploy directly to the live Azure VM instance on branch merges.
 
 ---
 
@@ -194,18 +194,18 @@ docker compose ps
 
 ## 🌐 Service URL Directory
 
-| Resource / Service | Local URL | Live AWS Production URL |
+| Resource / Service | Local URL | Live Azure Production URL |
 |---|---|---|
-| **React Web Client** | `http://localhost:3000` | **`http://13.48.196.207:3000`** |
-| **API Gateway Health** | `http://localhost:8080/actuator/health` | `http://13.48.196.207:8080/actuator/health` |
-| **User Service Health** | `http://localhost:8081/actuator/health` | `http://13.48.196.207:8081/actuator/health` |
-| **Diagnosis Service Health** | `http://localhost:8087/actuator/health` | `http://13.48.196.207:8087/actuator/health` |
-| **IoT Service Health** | `http://localhost:8082/actuator/health` | `http://13.48.196.207:8082/actuator/health` |
-| **Treatment Service Health** | `http://localhost:8083/actuator/health` | `http://13.48.196.207:8083/actuator/health` |
-| **E-Commerce Service Health** | `http://localhost:8084/actuator/health` | `http://13.48.196.207:8084/actuator/health` |
-| **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://13.48.196.207:8085/actuator/health` |
-| **Sales Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://13.48.196.207:8086/actuator/health` |
-| **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://13.48.196.207:8088/actuator/health` |
+| **React Web Client** | `http://localhost:3000` | **`http://172.198.138.134:3000`** |
+| **API Gateway Health** | `http://localhost:8080/actuator/health` | `http://172.198.138.134:8080/actuator/health` |
+| **User Service Health** | `http://localhost:8081/actuator/health` | `http://172.198.138.134:8081/actuator/health` |
+| **Diagnosis Service Health** | `http://localhost:8087/actuator/health` | `http://172.198.138.134:8087/actuator/health` |
+| **IoT Service Health** | `http://localhost:8082/actuator/health` | `http://172.198.138.134:8082/actuator/health` |
+| **Treatment Service Health** | `http://localhost:8083/actuator/health` | `http://172.198.138.134:8083/actuator/health` |
+| **E-Commerce Service Health** | `http://localhost:8084/actuator/health` | `http://172.198.138.134:8084/actuator/health` |
+| **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://172.198.138.134:8085/actuator/health` |
+| **Sales Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://172.198.138.134:8086/actuator/health` |
+| **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://172.198.138.134:8088/actuator/health` |
 
 ---
 
