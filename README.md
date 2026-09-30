@@ -1,15 +1,5 @@
 # CeyGreen — Cloud-Native Greenhouse Management Ecosystem
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18%20%2B%20Vite%20%2B%20TS-blue.svg)](https://react.dev/)
-[![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-Java%201.19.2-blueviolet.svg)](https://onnxruntime.ai/)
-[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-3.9%20(KRaft)-black.svg)](https://kafka.apache.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green.svg)](https://www.mongodb.com/)
-[![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
-[![Azure VM](https://img.shields.io/badge/Azure-VM%20Live-0078D4.svg)](http://172.198.138.134:3000)
-
 **CeyGreen** is an end-to-end, distributed microservices platform engineered to revolutionize precision greenhouse agriculture. It combines real-time IoT environmental telemetry, machine-learning-powered plant disease diagnostics, automated treatment advisors, an e-commerce agricultural marketplace, a community agronomist forum, and centralized sales analytics & notification engines into a resilient, scalable ecosystem.
 
 ---
@@ -238,9 +228,3 @@ docker compose ps
 | **Sales Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://172.198.138.134:8086/actuator/health` |
 | **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://172.198.138.134:8088/actuator/health` |
 
----
-
-## Author & Contribution
-
-Developed as part of the **CeyGreen Smart Greenhouse Management System**.  
-Core ownership: **User Management & Authentication Service (`user-service`)** and **AI Plant Disease Diagnosis Service (`diagnosis-service`)**, including ResNet50V2 ONNX Runtime inference, MongoDB storage, and Kafka event streaming.
