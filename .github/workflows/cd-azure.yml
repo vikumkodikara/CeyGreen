@@ -1,0 +1,162 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CeyGreen CD Pipeline — Docker Publish & Deploy to Azure VM
+#  Builds Docker images and pushes to GitHub Container Registry (GHCR)
+#  on every push to main. Deploys to Azure VM via SSH.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: CD — Publish & Deploy (Azure)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-deploy-azure
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  #  Build & Push Docker Images to GHCR
+  # ─────────────────────────────────────────────────────────────────────────
+  publish:
+    name: Publish — ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api-gateway
+            context: ./backend/api-gateway
+            image_name: ghcr.io/vikumkodikara/ceygreen-api-gateway
+          - service: user-service
+            context: ./backend/user-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-user-service
+          - service: diagnosis-service
+            context: ./backend/diagnosis-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-diagnosis-service
+          - service: iot-service
+            context: ./backend/iot-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-iot-service
+          - service: treatment-service
+            context: ./backend/treatment-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-treatment-service
+          - service: ecommerce-service
+            context: ./backend/ecommerce-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-ecommerce-service
+          - service: forum-service
+            context: ./backend/forum-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-forum-service
+          - service: analytics-service
+            context: ./backend/analytics-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-analytics-service
+          - service: notification-service
+            context: ./backend/notification-service
+            image_name: ghcr.io/vikumkodikara/ceygreen-notification-service
+          - service: client
+            context: ./frontend
+            image_name: ghcr.io/vikumkodikara/ceygreen-client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image_name }}
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─────────────────────────────────────────────────────────────────────────
+  #  Deploy to Azure VM (runs when AZURE_VM_HOST secret is configured)
+  # ─────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Azure VM
+    runs-on: ubuntu-latest
+    needs: publish
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET != 'disabled'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/CeyGreen 2>/dev/null || cd ~/ceygreen
+
+            git pull origin main
+
+            echo "${{ secrets.DEPLOY_ENV_FILE }}" > .env
+
+            echo "Cleaning up dangling images and containers before deployment..."
+            docker container prune -f || true
+            docker image prune -af || true
+            docker builder prune -af || true
+
+            echo "Pulling latest images..."
+            docker compose pull
+            docker compose up -d --remove-orphans
+
+            echo "Cleaning up orphaned images and build cache after deployment..."
+            docker image prune -af || true
+            docker builder prune -af || true
+
+            echo "Current disk usage:"
+            df -h /
+
+            echo "Current memory usage:"
+            free -h
+
+            echo "Waiting for services to be healthy..."
+            sleep 90
+            echo "--- Service Health Status ---"
+            curl -sf http://localhost:8080/actuator/health && echo " ✔ API Gateway (8080)" || echo " ✖ API Gateway (8080)"
+            curl -sf http://localhost:8081/actuator/health && echo " ✔ User Service (8081)" || echo " ✖ User Service (8081)"
+            curl -sf http://localhost:8087/actuator/health && echo " ✔ Diagnosis Service (8087)" || echo " ✖ Diagnosis Service (8087)"
+            curl -sf http://localhost:8082/actuator/health && echo " ✔ IoT Service (8082)" || echo " ✖ IoT Service (8082)"
+            curl -sf http://localhost:8083/actuator/health && echo " ✔ Treatment Service (8083)" || echo " ✖ Treatment Service (8083)"
+            curl -sf http://localhost:8084/actuator/health && echo " ✔ E-Commerce Service (8084)" || echo " ✖ E-Commerce Service (8084)"
+            curl -sf http://localhost:8085/actuator/health && echo " ✔ Forum Service (8085)" || echo " ✖ Forum Service (8085)"
+            curl -sf http://localhost:8086/actuator/health && echo " ✔ Analytics Service (8086)" || echo " ✖ Analytics Service (8086)"
+            curl -sf http://localhost:8088/actuator/health && echo " ✔ Notification Service (8088)" || echo " ✖ Notification Service (8088)"
+            curl -sf http://localhost:3000 > /dev/null && echo " ✔ Client Frontend (3000)" || echo " ✖ Client Frontend (3000)"
+
+            echo "Azure VM deployment complete! 🎉"

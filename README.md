@@ -1,195 +1,215 @@
-# CeyGreen — Microservices-Based Greenhouse Management System
+# 🌿 CeyGreen — Cloud-Native Greenhouse Management Ecosystem
 
-CeyGreen is an end-to-end, distributed microservices platform that modernizes greenhouse farming by combining IoT sensing, machine-learning-assisted plant diagnostics, e-commerce marketplace, treatment recommendations, community forum, and sales analytics & notifications into a unified ecosystem.
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18%20%2B%20Vite%20%2B%20TS-blue.svg)](https://react.dev/)
+[![ONNX Runtime](https://img.shields.io/badge/ONNX%20Runtime-Java%201.19.2-blueviolet.svg)](https://onnxruntime.ai/)
+[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-3.9%20(KRaft)-black.svg)](https://kafka.apache.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green.svg)](https://www.mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
+[![Azure VM](https://img.shields.io/badge/Azure-VM%20Live-0078D4.svg)](http://172.198.138.134:3000)
 
-All synchronous, user-facing traffic is securely routed through a central **Spring Cloud API Gateway** with Redis rate limiting and JWT verification, while an **Apache Kafka (KRaft)** event backbone enables asynchronous, resilient inter-service communication. The entire stack is containerized with **Docker Compose**, continuously integrated and deployed via **GitHub Actions**, and hosted live on **AWS EC2**.
-
----
-
-## Live Deployment & Architecture Highlights
-
-### Live AWS Deployment
-- **Live Server**: **[http://13.48.196.207:3000](http://13.48.196.207:3000)** (Hosted on AWS EC2 `eu-north-1`, Ubuntu 24.04 LTS).
-- **Reverse Proxy**: Nginx container routing `/api/**` traffic directly to `api-gateway:8080` internally.
-- **Automated CI/CD**: GitHub Actions workflow (`.github/workflows/cd.yml`) automatically builds pre-built container images and updates the live EC2 host on `main` branch merges.
-
-### Pretrained ONNX ML Plant Disease Classification
-- **Deep Learning Model**: ResNet50V2-based ONNX model (`backend/diagnosis-service/src/main/resources/models/disease_model.onnx`, ~94 MB) executed using Java ONNX Runtime.
-- **25 Disease Classes**: Detects 25 pathology labels across Tomato, Potato, Pepper, Grape, Apple, and Corn crops.
-- **Native Image Decoding**: Integrated TwelveMonkeys ImageIO (`imageio-webp:3.12.0`) supporting `.webp`, `.png`, `.jpg`, and `.jpeg` leaf image uploads.
-- **Google Gemini 1.5 Flash AI**: Integrated for instant 14-day agronomic recovery plans and foliar spray schedules.
-
-### Modern Mobile-First React Client (`frontend/`)
-- **Interactive Crop Selector**: Dedicated detection views for 6 major greenhouse crop categories.
-- **Agronomist Diagnostic Dashboard**: Visual confidence gauge, drag-and-drop image preview, and 4-tab clinical report (Key Symptoms, Environmental Drivers, Action Plan, Marketplace Products).
-- **Comprehensive Teammate Modules**: Marketplace store, shopping cart, IoT greenhouse live telemetry, community discussion forum, treatment advisor, and sales analytics.
+**CeyGreen** is an end-to-end, distributed microservices platform engineered to revolutionize precision greenhouse agriculture. It combines real-time IoT environmental telemetry, machine-learning-powered plant disease diagnostics, automated treatment advisors, an e-commerce agricultural marketplace, a community agronomist forum, and centralized sales analytics & notification engines into a resilient, scalable ecosystem.
 
 ---
 
-## System Architecture
+## 🚀 Live Azure Deployment & Infrastructure
+
+- **Live Web Application**: **[http://172.198.138.134:3000](http://172.198.138.134:3000)** (Hosted on Azure VM `Standard_B2s`, India South Central, Ubuntu 24.04 LTS).
+- **Reverse Proxy**: Nginx SPA reverse proxy routing `/api/**` traffic internally to `api-gateway:8080`.
+- **Automated CI/CD**: GitHub Actions workflows (`.github/workflows/cd.yml` for GHCR publish, `.github/workflows/cd-azure.yml` for Azure VM deployment) compile, test, build Docker container images, and deploy directly to the live Azure VM instance on branch merges.
+
+---
+
+## 🏛️ System Architecture
 
 ```mermaid
 graph TD
-    Client["Client Web App (:3000)<br/>React + Vite + TypeScript"] --> GW["API Gateway (:8080)<br/>Spring Cloud Gateway + Redis"]
-    GW -->|"Token Bucket (60/min)"| Redis[("Redis 7<br/>(Rate Limiting & Revocation)")]
+    Client["Client Web Application (:3000)<br/>React 18 + Vite + TypeScript"] --> GW["Spring Cloud API Gateway (:8080)<br/>WebFlux + Redis 7 Token Bucket"]
+    GW -->|"Rate Limit Check (60 req/min/IP)"| Redis[("Redis 7<br/>Rate Limiting & Token Revocation")]
 
-    GW --> S2_User["User Management (:8081)<br/>OAuth 2.0 Token Issuer"]
-    GW --> S2_Diag["Disease Detection (:8087)<br/>ONNX ML Classifier"]
-    GW --> S1["IoT Telemetry & Control (:8082)"]
-    GW --> S3["Treatment & Suggestion (:8083)"]
-    GW --> S4["E-Commerce Marketplace (:8084)"]
-    GW --> S5["Community Forum (:8085)"]
-    GW --> S6_Analytics["Sales Analytics (:8086)"]
-    GW --> S6_Notify["Notification Service (:8088)"]
+    subgraph "Core Authentication & Diagnostic Engine"
+        GW --> S2_User["User Management Service (:8081)<br/>OAuth 2.0 / RS256 JWT Authority"]
+        GW --> S2_Diag["Disease Diagnosis Service (:8087)<br/>ResNet50V2 ONNX Classifier"]
+        S2_User --> DB_User[("PostgreSQL 16<br/>ceygreen_users")]
+        S2_Diag --> DB_Diag[("MongoDB 7.0<br/>ceygreen_diagnoses")]
+    end
 
-    S1 -.-> DB1[("Firebase Realtime DB<br/>(hourly readings & suggestions)")]
-    S2_User -.-> DB2_PG[("PostgreSQL<br/>ceygreen_users")]
-    S2_Diag -.-> DB2_MG[("MongoDB<br/>ceygreen_diagnoses")]
+    subgraph "Agricultural & Marketplace Services"
+        GW --> S1["IoT Telemetry & Control (:8082)"]
+        GW --> S3["Treatment & Suggestion (:8083)"]
+        GW --> S4["E-Commerce Marketplace (:8084)"]
+        GW --> S5["Community Forum (:8085)"]
+        GW --> S6_Analytics["Sales Analytics (:8086)"]
+        GW --> S6_Notify["Notification Service (:8088)"]
+    end
+
+    S1 -.-> DB1[("Firebase Realtime DB")]
     S3 -.-> DB3[("PostgreSQL<br/>ceygreen_treatments")]
     S4 -.-> DB4[("PostgreSQL<br/>ceygreen_ecommerce")]
     S5 -.-> DB5[("MongoDB<br/>ceygreen_forum")]
-    S6_Analytics -.-> DB6_PG[("PostgreSQL<br/>ceygreen_analytics")]
-    S6_Notify -.-> DB7_PG[("PostgreSQL<br/>ceygreen_notifications")]
+    S6_Analytics -.-> DB6[("PostgreSQL<br/>ceygreen_analytics")]
+    S6_Notify -.-> DB7[("PostgreSQL<br/>ceygreen_notifications")]
 
-    S1 -->|"greenhouse-alerts"| Kafka
+    S1 -->|"greenhouse-alerts"| Kafka[("Apache Kafka 3.9 (KRaft)<br/>Event Backbone")]
     S2_Diag -->|"diagnosis-events"| Kafka
     S3 -->|"treatment-events"| Kafka
     S4 -->|"order-events & stock-events"| Kafka
     S5 -->|"forum-events"| Kafka
 
-    Kafka["Apache Kafka 3.9 (KRaft)<br/>Event Backbone"] --> S6_Analytics
+    Kafka --> S6_Analytics
     Kafka --> S6_Notify
 ```
 
 ---
 
-## Team & Microservice Ownership
+## 📦 Microservices Breakdown
 
-| Service Name | Port | Database / Storage | Tech Stack | Status |
+| Service | Port | Primary Datastore | Key Technologies | Description |
 |---|---|---|---|---|
-| **API Gateway** | `8080` | Redis 7 | Spring Cloud Gateway, WebFlux | Live |
-| **User Service** | `8081` | PostgreSQL (`ceygreen_users`) | Spring Boot 3, JPA, RSA JWT Issuer | Live |
-| **Disease Detection Service** | `8087` | MongoDB (`ceygreen_diagnoses`) | Spring Boot 3, ONNX Runtime, TwelveMonkeys | Live |
-| **IoT Telemetry & Control Service** | `8082` | Firebase Realtime DB | Spring Boot 3, Firebase Admin SDK, Kafka | Live |
-| **Treatment & Suggestion Service** | `8083` | PostgreSQL (`ceygreen_treatments`) | Spring Boot 3, JPA, Kafka Producer | Live |
-| **E-Commerce Marketplace Service** | `8084` | PostgreSQL (`ceygreen_ecommerce`) | Spring Boot 3, JPA, Kafka Producer | Live |
-| **Community Forum Service** | `8085` | MongoDB (`ceygreen_forum`) | Spring Boot 3, Spring Data Mongo, Gemini AI | Live |
-| **Sales Analytics Service** | `8086` | PostgreSQL (`ceygreen_analytics`) | Spring Boot 3, JPA, Kafka Consumer | Live |
-| **Notification Service** | `8088` | PostgreSQL (`ceygreen_notifications`) | Spring Boot 3, JPA, Kafka Consumer | Live |
-| **Frontend Web Application** | `3000` | Nginx SPA | React 18, Vite, TypeScript, TailwindCSS | Live |
+| **API Gateway** | `8080` | Redis 7 | Spring Cloud Gateway, WebFlux, OAuth2 Resource Server | Central entry point, path routing, rate limiting, and CORS handling. |
+| **User Service** | `8081` | PostgreSQL (`ceygreen_users`) | Spring Boot 3, JPA, BCrypt, RSA JWT Issuer | User registration, login, profile management, and RS256 token minting. |
+| **Disease Diagnosis Service** | `8087` | MongoDB (`ceygreen_diagnoses`) | Spring Boot 3, ONNX Runtime, TwelveMonkeys ImageIO | In-process ResNet50V2 ML disease classification, scan history, image storage. |
+| **IoT Telemetry Service** | `8082` | Firebase Realtime DB | Spring Boot 3, Firebase Admin SDK, Kafka Producer | Greenhouse sensor telemetry (temperature, humidity, NPK) and actuator controls. |
+| **Treatment Service** | `8083` | PostgreSQL (`ceygreen_treatments`) | Spring Boot 3, Spring Data JPA, Kafka Producer | Crop disease treatments, chemical/organic remedies, dosage, and safety info. |
+| **E-Commerce Service** | `8084` | PostgreSQL (`ceygreen_ecommerce`) | Spring Boot 3, Spring Data JPA, Kafka Producer | Marketplace products catalog, inventory control, and shopping cart/orders. |
+| **Community Forum Service** | `8085` | MongoDB (`ceygreen_forum`) | Spring Boot 3, Spring Data Mongo, Gemini AI | Farmer discussion boards, agronomist consultation, and QA threads. |
+| **Sales Analytics Service** | `8086` | PostgreSQL (`ceygreen_analytics`) | Spring Boot 3, JPA, Kafka Consumer | Aggregates revenue, order volume, crop trends, and business intelligence. |
+| **Notification Service** | `8088` | PostgreSQL (`ceygreen_notifications`) | Spring Boot 3, JPA, Kafka Consumer | Multi-channel alert dispatch for sensor warnings, disease scans, and orders. |
+| **Frontend Web App** | `3000` | Nginx SPA | React 18, Vite, TypeScript, TailwindCSS | Responsive web UI with interactive diagnosis scanner, charts, and marketplace. |
 
 ---
 
-## Service Independence Architecture
+## 🔬 Core Service Deep Dives
 
-> **Hard Rule**: No internal service makes direct synchronous REST calls to another microservice. All cross-service coordination is either **client-orchestrated** or **event-driven via Apache Kafka**.
+### 1. User Management Service (`user-service` — Port 8081)
+The **User Service** serves as the central identity authority for the entire ecosystem.
 
-1. **Client-Orchestrated Coordination**: Disease Diagnosis outputs a predicted pathology; the frontend client independently queries the Treatment Service (`GET /treatments/{diseaseName}`) to retrieve matching cures.
-2. **Stateless JWT Claims**: Services never query User Service to verify identities. The API Gateway validates tokens via RSA public key and passes identity headers (`X-Farmer-ID`, `X-User-Role`, `X-User-Email`) downstream.
-3. **Database-Per-Service Isolation**: Each service owns its dedicated PostgreSQL database or MongoDB collection.
-4. **Resilient Asynchronous Events**: Producers fire domain events to Kafka topics independently of consumer availability.
+- **Asymmetric RS256 JWT Token Issuer**: Mints tokens using a 2048-bit RSA Private Key (`dev-private.pem`). The gateway and downstream services validate tokens locally using the matching Public Key (`dev-public.pem`) without inter-service latency.
+- **Timing-Attack Resistant Authentication**: Implements BCrypt password hashing with decoy hash matching for unknown emails to guarantee uniform execution time and prevent account enumeration.
+- **Role-Based Access Control (RBAC)**: Enforces self-registration rules and permission boundaries for `FARMER`, `BUYER`, and `ADMIN` roles.
+- **Defense-in-Depth Internal Security**: Enforces `X-API-Key` verification via `ApiKeyAuthFilter` so direct, unauthorized bypass requests to the container are blocked.
 
----
-
-## Polyglot Persistence
-
-| Storage Engine | Attached Services | Purpose |
-|---|---|---|
-| **PostgreSQL 16** | `user-service`, `treatment-service`, `ecommerce-service`, `analytics-service`, `notification-service` | ACID relational transactions for user accounts, marketplace orders, treatments, and analytic rollups. |
-| **MongoDB 7.0** | `diagnosis-service`, `forum-service` | High-throughput document storage for plant diagnosis images, predictions, and nested forum discussions. |
-| **Redis 7** | `api-gateway` | Token-bucket distributed rate limiting (60 req/min/IP) and token revocation storage. |
-| **Firebase Realtime DB** | `iot-service` | Real-time greenhouse environmental telemetry and live sensor updates. |
-
----
-
-## Kafka Event Backbone
-
-| Topic | Producer | Consumer(s) | Trigger Condition |
-|---|---|---|---|
-| `greenhouse-alerts` | `iot-service` | `notification-service` | Temperature, humidity, or soil NPK sensor crosses danger threshold |
-| `diagnosis-events` | `diagnosis-service` | `notification-service` | A plant disease leaf diagnosis is generated |
-| `treatment-events` | `treatment-service` | `notification-service` | A high-severity disease remedy is prescribed |
-| `order-events` | `ecommerce-service` | `analytics-service`, `notification-service` | A customer completes order checkout |
-| `stock-events` | `ecommerce-service` | `notification-service` | Marketplace product inventory drops below restock threshold |
-| `forum-events` | `forum-service` | `notification-service` | A community reply or agronomist comment is posted |
-
----
-
-## Project Directory Structure
-
-```text
-CeyGreen/
-├── backend/
-│   ├── api-gateway/                      # Spring Cloud Gateway (port 8080)
-│   ├── user-service/                     # User management & JWT Auth (port 8081)
-│   ├── diagnosis-service/                # ONNX ML Disease Classifier (port 8087)
-│   ├── iot-service/                      # IoT greenhouse control & Firebase (port 8082)
-│   ├── treatment-service/                # Remedies & treatment engine (port 8083)
-│   ├── ecommerce-service/                # Marketplace store & order manager (port 8084)
-│   ├── forum-service/                    # Community discussions & AI helper (port 8085)
-│   ├── analytics-service/                # Sales statistics & telemetry insights (port 8086)
-│   └── notification-service/             # Multi-channel farmer alert manager (port 8088)
-├── frontend/                             # React + Vite + TypeScript web application (port 3000)
-├── db/postgres/                          # PostgreSQL database initialization scripts
-├── .github/workflows/                    # GitHub Actions CI/CD workflows (cd.yml & ci.yml)
-├── docker-compose.yml                    # Full-stack 25-component orchestration
-├── .env.example                          # Environment variable configuration template
-└── README.md                             # Project documentation
+#### Key Endpoints:
+```http
+POST /api/users/register     - Register a new Farmer or Buyer account
+POST /api/users/login        - Authenticate credentials and receive RS256 Bearer Token
+GET  /api/users/{id}         - Retrieve user profile (requires Bearer Token & X-API-Key)
+PUT  /api/users/{id}         - Update profile information (requires Bearer Token & X-API-Key)
+GET  /.well-known/jwks.json  - Public JWKS endpoint for token validation
 ```
 
 ---
 
-## Quick Start & Local Execution
+### 2. Disease Diagnosis Service (`diagnosis-service` — Port 8087)
+The **Disease Diagnosis Service** delivers real-time, deep-learning-based plant leaf pathology identification.
 
-### Prerequisites
-- **Docker Desktop** (v24+ / Compose v2+)
-- **Java 17+** & **Maven 3.9+** (optional, for local service compilation)
-- **Node.js 20+** & **npm** (optional, for local client development)
+- **In-Process ONNX Runtime Inference**: Employs Microsoft ONNX Runtime (`ai.onnxruntime`) executing a pre-trained **ResNet50V2 Transfer Learning Model** (`disease_model.onnx`, 94.3 MB) directly inside the JVM using native C++ bindings for zero-latency execution.
+- **25 Plant Pathology Classes**: Classifies conditions across Tomato, Potato, Pepper, Grape, and Strawberry crops (e.g., *Early Blight, Late Blight, Bacterial Spot, Leaf Mold, Mosaic Virus*).
+- **Native Image Decoding**: Integrated **TwelveMonkeys ImageIO** (`imageio-webp:3.12.0`) enabling seamless processing of `.webp`, `.png`, `.jpg`, and `.jpeg` leaf uploads.
+- **Image Preprocessing**: Resizes uploads to `224×224` via bilinear interpolation and formats pixels into raw `[1, 224, 224, 3]` NHWC float tensors with built-in graph normalization.
+- **Safety Confidence Thresholding**: Automatically returns `uncertain - consult an expert` for predictions with confidence scores `< 0.60 (60%)`, preventing false-positive treatment applications.
+- **SHA-256 Image Caching**: Computes checksums on incoming image bytes to return instantaneous cached results for repeated uploads, reducing GPU/CPU workload.
+- **Asynchronous Kafka Event Producer**: Emits messages to topic `diagnosis-events` asynchronously via `CompletableFuture`, ensuring broker downtime never blocks or fails farmer diagnosis uploads.
+- **Google Gemini 1.5 Flash AI Integration**: Powers frontend clinical recovery plans, dynamically generating 14-day agronomic recovery schedules, greenhouse climate adjustments, and foliar spray programs.
 
-### Running the Entire Stack Locally:
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/vikumkodikara/CeyGreen.git
-   cd CeyGreen
-   ```
-
-2. **Configure environment**:
-   ```bash
-   cp .env.example .env
-   ```
-
-3. **Launch all 10 services & 4 datastores**:
-   ```bash
-   docker compose up -d --build
-   ```
-
-4. **Verify container health**:
-   ```bash
-   docker compose ps
-   ```
-
-### Service Endpoints
-
-| Resource | Local Endpoint | Live AWS Endpoint |
-|---|---|---|
-| **Web Application** | `http://localhost:3000` | **`http://13.48.196.207:3000`** |
-| **API Gateway Health** | `http://localhost:8080/actuator/health` | `http://13.48.196.207:8080/actuator/health` |
-| **User Service Health** | `http://localhost:8081/actuator/health` | `http://13.48.196.207:8081/actuator/health` |
-| **Diagnosis Service Health** | `http://localhost:8087/actuator/health` | `http://13.48.196.207:8087/actuator/health` |
-| **IoT Service Health** | `http://localhost:8082/actuator/health` | `http://13.48.196.207:8082/actuator/health` |
-| **Treatment Service Health** | `http://localhost:8083/actuator/health` | `http://13.48.196.207:8083/actuator/health` |
-| **E-Commerce Service Health** | `http://localhost:8084/actuator/health` | `http://13.48.196.207:8084/actuator/health` |
-| **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://13.48.196.207:8085/actuator/health` |
-| **Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://13.48.196.207:8086/actuator/health` |
-| **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://13.48.196.207:8088/actuator/health` |
+#### Key Endpoints:
+```http
+POST   /api/diagnosis/upload                - Upload leaf image (multipart/form-data) & run ONNX inference
+GET    /api/diagnosis/{id}                  - Fetch single diagnosis record
+GET    /api/diagnosis/history/{farmerId}    - List farmer's past diagnoses
+GET    /api/diagnosis/history/{farmerId}/paged - Paginated history list
+DELETE /api/diagnosis/{id}                  - Delete diagnosis record & associated image file
+GET    /api/diagnosis/images/{filename}     - Serve diagnostic image
+```
 
 ---
 
-## Treatment & Suggestion Service (Port 8083)
+## ⚡ Asynchronous Event Backbone (Apache Kafka)
 
-- **Advanced Filtering**: `GET /treatments/search?crop=...&severity=...&type=ORGANIC` for eco-friendly solutions.
-- **Crop Catalog**: `GET /treatments/crop/{cropName}` to browse treatments directly by crop type.
-- **Community Feedback**: `POST /treatments/{id}/rate` allows farmers to submit 5-star ratings for treatments.
-- **Alternative Remedies**: `GET /treatments/{id}/alternatives` fetches alternative options for the same disease.
-- **Rich Data Schema**: Returns deep agricultural insights including Pre-Harvest Intervals (PHI), effectiveness scores, brand names, and application methods.
+| Topic | Producer | Consumer(s) | Trigger / Purpose |
+|---|---|---|---|
+| `diagnosis-events` | `diagnosis-service` | `notification-service`, `analytics-service` | Fired on successful leaf disease scan. |
+| `greenhouse-alerts` | `iot-service` | `notification-service` | Fired when sensor thresholds (temp, humidity, NPK) enter critical state. |
+| `treatment-events` | `treatment-service` | `notification-service` | Fired when high-urgency chemical treatments are recommended. |
+| `order-events` | `ecommerce-service` | `analytics-service`, `notification-service` | Fired upon successful customer marketplace checkout. |
+| `stock-events` | `ecommerce-service` | `notification-service` | Fired when product stock drops below critical threshold. |
+| `forum-events` | `forum-service` | `notification-service` | Fired on expert agronomist replies and discussion topics. |
+
+---
+
+## 🛡️ Security Architecture & Principles
+
+1. **Defense-in-Depth Gateway & Filter Protection**:
+   - The central API Gateway checks JWT claims, rate limits by client IP, and injects verified identity headers (`X-Farmer-Id`, `X-User-Role`, `X-API-Key`).
+   - Every individual backend service runs an internal `ApiKeyAuthFilter` to reject any requests bypassing the gateway.
+2. **Stateless JWT Verification**:
+   - Microservices validate RS256 token signatures locally via the shared public key without calling the User Service on each request.
+3. **Database-Per-Service Isolation**:
+   - Microservices maintain isolated databases/schemas with no cross-service database access.
+4. **Client-Orchestrated Coordination**:
+   - When a diagnosis identifies a disease, the frontend client independently queries the Treatment Service (`GET /treatments/{diseaseName}`) to retrieve matching cures.
+
+---
+
+## 🛠️ Local Development & Setup
+
+### Prerequisites
+- **Docker Desktop** (v24+ / Docker Compose v2+)
+- **Java 17+** & **Maven 3.9+** (for manual local builds)
+- **Node.js 20+** & **npm** (for frontend development)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/vikumkodikara/CeyGreen.git
+cd CeyGreen
+```
+
+### 2. Environment Configuration
+Create a `.env` file in the project root:
+```bash
+cp .env.example .env
+```
+Key configuration settings in `.env`:
+```env
+SERVICE_API_KEY=ceygreen-dev-api-key
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://13.48.196.207:3000,*
+RATE_LIMIT_REQUESTS_PER_MIN=60
+VITE_API_BASE_URL=/api
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### 3. Launch Full Application Stack via Docker Compose
+```bash
+docker compose up -d --build
+```
+
+### 4. Verify Services Status
+```bash
+docker compose ps
+```
+
+---
+
+## 🌐 Service URL Directory
+
+| Resource / Service | Local URL | Live Azure Production URL |
+|---|---|---|
+| **React Web Client** | `http://localhost:3000` | **`http://172.198.138.134:3000`** |
+| **API Gateway Health** | `http://localhost:8080/actuator/health` | `http://172.198.138.134:8080/actuator/health` |
+| **User Service Health** | `http://localhost:8081/actuator/health` | `http://172.198.138.134:8081/actuator/health` |
+| **Diagnosis Service Health** | `http://localhost:8087/actuator/health` | `http://172.198.138.134:8087/actuator/health` |
+| **IoT Service Health** | `http://localhost:8082/actuator/health` | `http://172.198.138.134:8082/actuator/health` |
+| **Treatment Service Health** | `http://localhost:8083/actuator/health` | `http://172.198.138.134:8083/actuator/health` |
+| **E-Commerce Service Health** | `http://localhost:8084/actuator/health` | `http://172.198.138.134:8084/actuator/health` |
+| **Forum Service Health** | `http://localhost:8085/actuator/health` | `http://172.198.138.134:8085/actuator/health` |
+| **Sales Analytics Service Health** | `http://localhost:8086/actuator/health` | `http://172.198.138.134:8086/actuator/health` |
+| **Notification Service Health** | `http://localhost:8088/actuator/health` | `http://172.198.138.134:8088/actuator/health` |
+
+---
+
+## 👨‍💻 Author & Contribution
+
+Developed as part of the **CeyGreen Smart Greenhouse Management System**.  
+Core ownership: **User Management & Authentication Service (`user-service`)** and **AI Plant Disease Diagnosis Service (`diagnosis-service`)**, including ResNet50V2 ONNX Runtime inference, MongoDB storage, and Kafka event streaming.
