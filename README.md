@@ -1,4 +1,4 @@
-# 🌿 CeyGreen — Cloud-Native Greenhouse Management Ecosystem
+# CeyGreen — Cloud-Native Greenhouse Management Ecosystem
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -14,7 +14,7 @@
 
 ---
 
-## 🚀 Live Azure Deployment & Infrastructure
+## Live Azure Deployment & Infrastructure
 
 - **Live Web Application**: **[http://172.198.138.134:3000](http://172.198.138.134:3000)** (Hosted on Azure VM `Standard_B2s`, India South Central, Ubuntu 24.04 LTS).
 - **Reverse Proxy**: Nginx SPA reverse proxy routing `/api/**` traffic internally to `api-gateway:8080`.
@@ -22,49 +22,80 @@
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```mermaid
 graph TD
-    Client["Client Web Application (:3000)<br/>React 18 + Vite + TypeScript"] --> GW["Spring Cloud API Gateway (:8080)<br/>WebFlux + Redis 7 Token Bucket"]
-    GW -->|"Rate Limit Check (60 req/min/IP)"| Redis[("Redis 7<br/>Rate Limiting & Token Revocation")]
+    Client["Client Web Application (:3000)<br/>React 18 + Vite + TypeScript"] --> GW
 
-    subgraph "Core Authentication & Diagnostic Engine"
-        GW --> S2_User["User Management Service (:8081)<br/>OAuth 2.0 / RS256 JWT Authority"]
-        GW --> S2_Diag["Disease Diagnosis Service (:8087)<br/>ResNet50V2 ONNX Classifier"]
-        S2_User --> DB_User[("PostgreSQL 16<br/>ceygreen_users")]
-        S2_Diag --> DB_Diag[("MongoDB 7.0<br/>ceygreen_diagnoses")]
+    subgraph API["API Gateway (:8080)"]
+        GW["Spring Cloud Gateway<br/>WebFlux + OAuth2 Resource Server"]
     end
 
-    subgraph "Agricultural & Marketplace Services"
-        GW --> S1["IoT Telemetry & Control (:8082)"]
-        GW --> S3["Treatment & Suggestion (:8083)"]
-        GW --> S4["E-Commerce Marketplace (:8084)"]
-        GW --> S5["Community Forum (:8085)"]
-        GW --> S6_Analytics["Sales Analytics (:8086)"]
-        GW --> S6_Notify["Notification Service (:8088)"]
+    GW -->|"Rate Limit Check<br/>60 req/min/IP"| Redis[("Redis 7<br/>Rate Limiting &<br/>Token Revocation")]
+
+    GW --> S2_User
+    GW --> S2_Diag
+    GW --> S1
+    GW --> S3
+    GW --> S4
+    GW --> S5
+    GW --> S6_Analytics
+    GW --> S6_Notify
+
+    subgraph Services["Microservices"]
+        S2_User["User Management (:8081)<br/>OAuth 2.0 / RS256 JWT"]
+        S2_Diag["Disease Diagnosis (:8087)<br/>ResNet50V2 ONNX"]
+        S1["IoT Telemetry (:8082)<br/>Firebase Admin SDK"]
+        S3["Treatment (:8083)<br/>Spring Data JPA"]
+        S4["E-Commerce (:8084)<br/>Spring Data JPA"]
+        S5["Community Forum (:8085)<br/>Spring Data Mongo"]
+        S6_Analytics["Sales Analytics (:8086)<br/>Kafka Consumer"]
+        S6_Notify["Notification (:8088)<br/>Kafka Consumer"]
     end
 
-    S1 -.-> DB1[("Firebase Realtime DB")]
-    S3 -.-> DB3[("PostgreSQL<br/>ceygreen_treatments")]
-    S4 -.-> DB4[("PostgreSQL<br/>ceygreen_ecommerce")]
-    S5 -.-> DB5[("MongoDB<br/>ceygreen_forum")]
-    S6_Analytics -.-> DB6[("PostgreSQL<br/>ceygreen_analytics")]
-    S6_Notify -.-> DB7[("PostgreSQL<br/>ceygreen_notifications")]
+    subgraph Databases["Data Stores"]
+        DB_User[("PostgreSQL<br/>ceygreen_users")]
+        DB_Diag[("MongoDB<br/>ceygreen_diagnoses")]
+        DB1[("Firebase<br/>Realtime DB")]
+        DB3[("PostgreSQL<br/>ceygreen_treatments")]
+        DB4[("PostgreSQL<br/>ceygreen_ecommerce")]
+        DB5[("MongoDB<br/>ceygreen_forum")]
+        DB6[("PostgreSQL<br/>ceygreen_analytics")]
+        DB7[("PostgreSQL<br/>ceygreen_notifications")]
+    end
 
-    S1 -->|"greenhouse-alerts"| Kafka[("Apache Kafka 3.9 (KRaft)<br/>Event Backbone")]
+    S2_User --> DB_User
+    S2_Diag --> DB_Diag
+    S1 --> DB1
+    S3 --> DB3
+    S4 --> DB4
+    S5 --> DB5
+    S6_Analytics --> DB6
+    S6_Notify --> DB7
+
+    subgraph EventBus["Apache Kafka 3.9 - KRaft"]
+        Kafka[("Event Backbone")]
+    end
+
+    S1 -->|"greenhouse-alerts"| Kafka
     S2_Diag -->|"diagnosis-events"| Kafka
     S3 -->|"treatment-events"| Kafka
-    S4 -->|"order-events & stock-events"| Kafka
+    S4 -->|"order-events &<br/>stock-events"| Kafka
     S5 -->|"forum-events"| Kafka
-
     Kafka --> S6_Analytics
     Kafka --> S6_Notify
+
+    subgraph Monitoring["Monitoring"]
+        Grafana["Grafana (:3001)<br/>Greenhouse Health Dashboard"]
+    end
+
+    S1 -.-> Grafana
 ```
 
 ---
 
-## 📦 Microservices Breakdown
+## Microservices Breakdown
 
 | Service | Port | Primary Datastore | Key Technologies | Description |
 |---|---|---|---|---|
@@ -81,7 +112,7 @@ graph TD
 
 ---
 
-## 🔬 Core Service Deep Dives
+## Core Service Deep Dives
 
 ### 1. User Management Service (`user-service` — Port 8081)
 The **User Service** serves as the central identity authority for the entire ecosystem.
@@ -126,7 +157,7 @@ GET    /api/diagnosis/images/{filename}     - Serve diagnostic image
 
 ---
 
-## ⚡ Asynchronous Event Backbone (Apache Kafka)
+## Asynchronous Event Backbone (Apache Kafka)
 
 | Topic | Producer | Consumer(s) | Trigger / Purpose |
 |---|---|---|---|
@@ -139,7 +170,7 @@ GET    /api/diagnosis/images/{filename}     - Serve diagnostic image
 
 ---
 
-## 🛡️ Security Architecture & Principles
+## Security Architecture & Principles
 
 1. **Defense-in-Depth Gateway & Filter Protection**:
    - The central API Gateway checks JWT claims, rate limits by client IP, and injects verified identity headers (`X-Farmer-Id`, `X-User-Role`, `X-API-Key`).
@@ -153,7 +184,7 @@ GET    /api/diagnosis/images/{filename}     - Serve diagnostic image
 
 ---
 
-## 🛠️ Local Development & Setup
+## Local Development & Setup
 
 ### Prerequisites
 - **Docker Desktop** (v24+ / Docker Compose v2+)
@@ -174,7 +205,7 @@ cp .env.example .env
 Key configuration settings in `.env`:
 ```env
 SERVICE_API_KEY=ceygreen-dev-api-key
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://13.48.196.207:3000,*
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,http://172.198.138.134:3000,*
 RATE_LIMIT_REQUESTS_PER_MIN=60
 VITE_API_BASE_URL=/api
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -192,7 +223,7 @@ docker compose ps
 
 ---
 
-## 🌐 Service URL Directory
+## Service URL Directory
 
 | Resource / Service | Local URL | Live Azure Production URL |
 |---|---|---|
@@ -209,7 +240,7 @@ docker compose ps
 
 ---
 
-## 👨‍💻 Author & Contribution
+## Author & Contribution
 
 Developed as part of the **CeyGreen Smart Greenhouse Management System**.  
 Core ownership: **User Management & Authentication Service (`user-service`)** and **AI Plant Disease Diagnosis Service (`diagnosis-service`)**, including ResNet50V2 ONNX Runtime inference, MongoDB storage, and Kafka event streaming.
