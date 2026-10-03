@@ -118,26 +118,21 @@ jobs:
           host: ${{ secrets.AZURE_VM_HOST }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          port: 22
+          script_stop: true
           script: |
             set -e
-            cd ~/CeyGreen 2>/dev/null || cd ~/ceygreen
+            cd /home/ceygreen/CeyGreen 2>/dev/null || cd ~/CeyGreen 2>/dev/null || cd ~/ceygreen
 
+            echo "Pulling latest code from main branch..."
             git pull origin main
 
-            echo "${{ secrets.DEPLOY_ENV_FILE }}" > .env
-
-            echo "Cleaning up dangling images and containers before deployment..."
-            docker container prune -f || true
-            docker image prune -af || true
-            docker builder prune -af || true
-
-            echo "Pulling latest images..."
+            echo "Pulling latest Docker images..."
             docker compose pull
             docker compose up -d --remove-orphans
 
-            echo "Cleaning up orphaned images and build cache after deployment..."
+            echo "Cleaning up dangling images..."
             docker image prune -af || true
-            docker builder prune -af || true
 
             echo "Current disk usage:"
             df -h /
@@ -145,8 +140,8 @@ jobs:
             echo "Current memory usage:"
             free -h
 
-            echo "Waiting for services to be healthy..."
-            sleep 90
+            echo "Waiting for services to stabilize..."
+            sleep 45
             echo "--- Service Health Status ---"
             curl -sf http://localhost:8080/actuator/health && echo " ✔ API Gateway (8080)" || echo " ✖ API Gateway (8080)"
             curl -sf http://localhost:8081/actuator/health && echo " ✔ User Service (8081)" || echo " ✖ User Service (8081)"
