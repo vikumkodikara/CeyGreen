@@ -1,321 +1,11 @@
-import React, { useState } from 'react';
-import { getSalesSummary, getSalesTrend, getLeaderboard } from '../api/analytics';
+import React, { useState, useEffect, useMemo } from 'react';
+import { getSalesSummary, getSalesTrend } from '../api/analytics';
+import { getMyOrders, getFarmerOrders } from '../api/orderApi';
 import { Spinner } from '../components/ui/Spinner';
 import { useAuth } from '../hooks/useAuth';
-import { LeaderboardResponse, SalesSummary, SalesTrend } from '../types/analytics';
+import { SalesSummary, SalesTrend } from '../types/analytics';
+import { Order } from '../types/order';
 import './AnalyticsPage.css';
-
-// ─── Grafana base URL ──────────────────────────────────────────────────────────
-const getGrafanaBaseUrl = (): string => {
-  if (import.meta.env.VITE_GRAFANA_URL) {
-    return import.meta.env.VITE_GRAFANA_URL;
-  }
-  return '/grafana';
-};
-
-const GRAFANA_DASHBOARD_UID = 'ceygreen-sales-analytics';
-
-// Use /d-solo/ so Grafana renders only that one panel — no full-dashboard scroll
-function grafanaPanelUrl(panelId: number, farmerId: string) {
-  const params = new URLSearchParams({
-    orgId: '1',
-    panelId: String(panelId),
-    'var-farmer': farmerId,
-    from: 'now-90d',
-    to: 'now',
-    theme: 'light',
-    refresh: '30s',
-  });
-  return `${getGrafanaBaseUrl()}/d-solo/${GRAFANA_DASHBOARD_UID}/sales-analytics?${params}`;
-}
-
-// ─── Static styles — CeyGreen Light Theme ─────────────────────────────────────
-const S = {
-  page: {
-    minHeight: '100vh',
-    background: '#f8fafc',
-    padding: '0 0 4rem',
-    fontFamily: "'Inter', system-ui, sans-serif",
-  } as React.CSSProperties,
-
-  hero: {
-    background: 'linear-gradient(120deg, #f0fdf4 0%, #ffffff 60%)',
-    borderBottom: '1px solid #e2e8f0',
-    padding: '2.5rem 2rem 2rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: '1rem',
-  } as React.CSSProperties,
-
-  heroBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    background: '#dcfce7',
-    border: '1px solid #bbf7d0',
-    borderRadius: '100px',
-    padding: '0.25rem 0.875rem',
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    color: '#15803d',
-    letterSpacing: '0.04em',
-    textTransform: 'uppercase',
-    marginBottom: '0.75rem',
-  } as React.CSSProperties,
-
-  heroTitle: {
-    margin: 0,
-    fontSize: 'clamp(1.6rem, 4vw, 2.4rem)',
-    fontWeight: 800,
-    color: '#0f172a',
-    lineHeight: 1.15,
-  } as React.CSSProperties,
-
-  heroSubtitle: {
-    margin: '0.5rem 0 0',
-    color: '#64748b',
-    fontSize: '1rem',
-    maxWidth: '520px',
-  } as React.CSSProperties,
-
-  grafanaLink: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    background: '#fff7ed',
-    border: '1px solid #fed7aa',
-    borderRadius: '0.6rem',
-    padding: '0.5rem 1.1rem',
-    color: '#c2410c',
-    fontWeight: 600,
-    fontSize: '0.875rem',
-    textDecoration: 'none',
-    whiteSpace: 'nowrap',
-    transition: 'background 0.15s',
-  } as React.CSSProperties,
-
-  content: {
-    maxWidth: '1300px',
-    margin: '0 auto',
-    padding: '2rem 1.5rem',
-  } as React.CSSProperties,
-
-  lookupCard: {
-    background: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '1.25rem',
-    padding: '1.75rem 2rem',
-    marginBottom: '1.5rem',
-    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-  } as React.CSSProperties,
-
-  lookupLabel: {
-    display: 'block',
-    fontSize: '0.78rem',
-    fontWeight: 600,
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    marginBottom: '0.6rem',
-  } as React.CSSProperties,
-
-  lookupRow: {
-    display: 'flex',
-    gap: '0.75rem',
-    alignItems: 'stretch',
-  } as React.CSSProperties,
-
-  lookupInput: {
-    flex: 1,
-    background: '#f0fdf4',
-    border: '1px solid #bbf7d0',
-    borderRadius: '0.75rem',
-    padding: '0.75rem 1.1rem',
-    color: '#0f172a',
-    fontSize: '1rem',
-    outline: 'none',
-    fontFamily: 'inherit',
-  } as React.CSSProperties,
-
-  fetchBtn: {
-    background: 'linear-gradient(135deg, #16a34a 0%, #059669 100%)',
-    border: 'none',
-    borderRadius: '0.75rem',
-    padding: '0.75rem 1.75rem',
-    color: '#fff',
-    fontWeight: 700,
-    fontSize: '0.95rem',
-    cursor: 'pointer',
-    letterSpacing: '0.02em',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.4rem',
-    whiteSpace: 'nowrap',
-    boxShadow: '0 4px 6px -1px rgba(5,150,105,0.25)',
-  } as React.CSSProperties,
-
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1rem',
-    marginBottom: '1.5rem',
-  } as React.CSSProperties,
-
-  sectionHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '1rem',
-  } as React.CSSProperties,
-
-  sectionTitle: {
-    fontSize: '1rem',
-    fontWeight: 700,
-    color: '#1e293b',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    margin: 0,
-  } as React.CSSProperties,
-
-  grafanaGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
-    gap: '1.25rem',
-    marginBottom: '1.5rem',
-  } as React.CSSProperties,
-
-  grafanaCard: {
-    background: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '1.1rem',
-    overflow: 'hidden',
-    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-  } as React.CSSProperties,
-
-  grafanaFrame: {
-    width: '100%',
-    border: 'none',
-    display: 'block',
-    background: '#ffffff',
-  } as React.CSSProperties,
-
-  tableWrap: {
-    overflowX: 'auto',
-    borderRadius: '1.1rem',
-    border: '1px solid #e2e8f0',
-    background: '#ffffff',
-    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-  } as React.CSSProperties,
-
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.875rem',
-  } as React.CSSProperties,
-
-  th: {
-    padding: '0.875rem 1rem',
-    textAlign: 'left',
-    fontWeight: 600,
-    fontSize: '0.73rem',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: '0.07em',
-    borderBottom: '1px solid #e2e8f0',
-    background: '#f8fafc',
-    whiteSpace: 'nowrap',
-  } as React.CSSProperties,
-
-  td: {
-    padding: '0.8rem 1rem',
-    color: '#334155',
-    borderBottom: '1px solid #f1f5f9',
-  } as React.CSSProperties,
-
-  loadingWrap: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '1rem',
-    padding: '4rem 0',
-    color: '#64748b',
-  } as React.CSSProperties,
-};
-
-// ─── Style helpers ─────────────────────────────────────────────────────────────
-function statCardStyle(bg: string, border: string): React.CSSProperties {
-  return {
-    background: bg,
-    border: `1px solid ${border}`,
-    borderRadius: '1.1rem',
-    padding: '1.4rem 1.5rem',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.35rem',
-    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04)',
-  };
-}
-
-function statValueStyle(color: string): React.CSSProperties {
-  return { fontSize: '1.75rem', fontWeight: 800, color, lineHeight: 1.1 };
-}
-
-function noticeStyle(type: 'info' | 'warn'): React.CSSProperties {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.625rem',
-    padding: '0.875rem 1.25rem',
-    borderRadius: '0.875rem',
-    marginBottom: '1.25rem',
-    fontSize: '0.875rem',
-    background: type === 'info' ? '#f0fdf4' : '#fffbeb',
-    border: `1px solid ${type === 'info' ? '#bbf7d0' : '#fde68a'}`,
-    color: type === 'info' ? '#15803d' : '#92400e',
-  };
-}
-
-function badgeStyle(status: string): React.CSSProperties {
-  const map: Record<string, [string, string]> = {
-    COMPLETED: ['#dcfce7', '#15803d'],
-    PENDING:   ['#fef9c3', '#854d0e'],
-    CANCELLED: ['#fee2e2', '#b91c1c'],
-  };
-  const [bg, color] = map[status] ?? ['#f1f5f9', '#475569'];
-  return {
-    display: 'inline-block',
-    padding: '0.2rem 0.65rem',
-    borderRadius: '100px',
-    fontSize: '0.72rem',
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    textTransform: 'uppercase',
-    background: bg,
-    color,
-  };
-}
-
-// ─── Mock data ─────────────────────────────────────────────────────────────────
-interface OrderLog {
-  id: string; cropName: string; quantity: number;
-  totalAmount: number; buyerName: string; status: string; date: string;
-}
-
-const MOCK_LOGS: OrderLog[] = [
-  { id: 'ORD-8921', cropName: 'Organic Bell Peppers',    quantity: 15, totalAmount: 1850, buyerName: 'Green Mart Colombo',    status: 'COMPLETED', date: new Date(Date.now() - 7200000).toISOString()   },
-  { id: 'ORD-8914', cropName: 'Hydroponic Tomatoes',     quantity: 20, totalAmount: 2100, buyerName: 'Fresh Organics Kandy', status: 'COMPLETED', date: new Date(Date.now() - 93600000).toISOString()  },
-  { id: 'ORD-8898', cropName: 'Ceylon Cinnamon Sprouts', quantity:  8, totalAmount:  900, buyerName: 'Lanka Agro Exports',   status: 'COMPLETED', date: new Date(Date.now() - 187200000).toISOString() },
-];
-
-const MOCK_BOARD: LeaderboardResponse = [
-  { rank: 1, farmerId: 'FARMER-101', totalRevenue: 148500, totalOrders: 24, lastUpdated: new Date().toISOString() },
-  { rank: 2, farmerId: 'FARMER-204', totalRevenue: 112300, totalOrders: 19, lastUpdated: new Date().toISOString() },
-  { rank: 3, farmerId: 'FARMER-088', totalRevenue:  87200, totalOrders: 14, lastUpdated: new Date().toISOString() },
-];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 const fmtCurrency = (n: number) =>
@@ -329,348 +19,479 @@ const fmtDate = (iso?: string) => {
   } catch { return iso; }
 };
 
+const statusColor: Record<string, { bg: string; color: string }> = {
+  PENDING:   { bg: '#fef9c3', color: '#854d0e' },
+  CONFIRMED: { bg: '#dbeafe', color: '#1e40af' },
+  SHIPPED:   { bg: '#e0e7ff', color: '#4338ca' },
+  DELIVERED: { bg: '#dcfce7', color: '#15803d' },
+  CANCELLED: { bg: '#fee2e2', color: '#b91c1c' },
+  COMPLETED: { bg: '#dcfce7', color: '#15803d' },
+};
+
+type TabKey = 'overview' | 'selling' | 'buying';
+
 // ─── Component ─────────────────────────────────────────────────────────────────
 export const AnalyticsPage: React.FC = () => {
   const { user } = useAuth();
-  const initialFarmerId = user?.farmerId || user?.id || '4396b888-0aa1-4aa8-aa16-43bf7aebefc7';
-  const [farmerId,    setFarmerId]    = useState(initialFarmerId);
-  const [activeFid,   setActiveFid]   = useState<string | null>(null);
-  const [summary,     setSummary]     = useState<SalesSummary | null>(null);
-  const [trend,       setTrend]       = useState<SalesTrend | null>(null);
-  const [logs,        setLogs]        = useState<OrderLog[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
-  const [loading,     setLoading]     = useState(false);
-  const [isMock,      setIsMock]      = useState(false);
-  const [notice,      setNotice]      = useState<string | null>(null);
+  const farmerId = user?.farmerId || user?.id || '';
+  const userRole = user?.role || 'FARMER';
 
-  const fetchAnalytics = async (targetId?: string) => {
-    const fid = (targetId ?? farmerId).trim() || '4396b888-0aa1-4aa8-aa16-43bf7aebefc7';
-    setLoading(true); setNotice(null); setIsMock(false);
-    setSummary(null); setTrend(null); setLogs([]); setLeaderboard(null); setActiveFid(null);
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-    let summaryData: SalesSummary | null = null;
-    let trendData:   SalesTrend   | null = null;
-    let boardData:   LeaderboardResponse | null = null;
-    let useMock = false;
+  // Selling data
+  const [summary, setSummary] = useState<SalesSummary | null>(null);
+  const [trend, setTrend] = useState<SalesTrend | null>(null);
+  const [sellingOrders, setSellingOrders] = useState<Order[]>([]);
+  const [sellingLoading, setSellingLoading] = useState(true);
 
-    try { summaryData = await getSalesSummary(fid); } catch { useMock = true; }
+  // Buying data
+  const [buyingOrders, setBuyingOrders] = useState<Order[]>([]);
+  const [buyingLoading, setBuyingLoading] = useState(true);
 
-    if (!useMock) {
+  // Notice
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isMock, setIsMock] = useState(false);
+
+  // ── Fetch selling analytics ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!farmerId) return;
+    setSellingLoading(true);
+    setNotice(null);
+    setIsMock(false);
+
+    const loadSelling = async () => {
+      let summaryData: SalesSummary | null = null;
+      let trendData: SalesTrend | null = null;
+      let orders: Order[] = [];
+      let useMock = false;
+
+      try { summaryData = await getSalesSummary(farmerId); } catch { useMock = true; }
+      if (!useMock) {
+        try { trendData = await getSalesTrend(farmerId); } catch { /* optional */ }
+      }
+
       try {
-        trendData = await getSalesTrend(fid);
-        if (trendData?.orderHistory?.length) {
-          setLogs(trendData.orderHistory.map((h) => ({
-            id:          String(h.orderId ?? h.id ?? '—'),
-            cropName:    h.product ?? h.cropName ?? 'Fresh Produce',
-            quantity:    h.quantity || 1,
-            totalAmount: Number(h.amount ?? h.totalAmount) || 0,
-            buyerName:   'Direct Buyer',
-            status:      'COMPLETED',
-            date:        h.recordedAt ?? h.receivedAt,
-          })));
-        }
+        const page = await getFarmerOrders({ page: 0, size: 50 });
+        orders = page.content;
       } catch { /* optional */ }
-    }
 
-    try { boardData = await getLeaderboard(); } catch { boardData = MOCK_BOARD; }
+      // If backend is offline, use data from orders or show mock notice
+      if (useMock || !summaryData) {
+        setIsMock(true);
+        // Build summary from actual orders if available
+        if (orders.length > 0) {
+          const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+          summaryData = {
+            farmerId,
+            totalOrders: orders.length,
+            totalRevenue,
+            lastUpdated: new Date().toISOString(),
+          };
+        } else {
+          setNotice('Analytics backend offline — showing placeholder data. Start the backend to load live data.');
+          summaryData = { farmerId, totalOrders: 0, totalRevenue: 0, lastUpdated: new Date().toISOString() };
+        }
+      }
 
-    if (useMock || !summaryData) {
-      setIsMock(true);
-      setNotice('Analytics backend offline — showing mock data. Start Docker containers to load live data.');
-      summaryData = { farmerId: fid, totalOrders: 24, totalRevenue: 148500, lastUpdated: new Date().toISOString() };
-      setLogs(MOCK_LOGS);
-      boardData = MOCK_BOARD;
-    }
+      setSummary(summaryData);
+      setTrend(trendData);
+      setSellingOrders(orders);
+      setSellingLoading(false);
+    };
 
-    setSummary(summaryData);
-    setTrend(trendData);
-    setLeaderboard(boardData);
-    setActiveFid(fid);
-    setLoading(false);
-  };
+    loadSelling();
+  }, [farmerId]);
 
-  // Auto-fetch analytics on component mount or when user changes
-  React.useEffect(() => {
-    const fid = user?.farmerId || user?.id || '4396b888-0aa1-4aa8-aa16-43bf7aebefc7';
-    setFarmerId(fid);
-    fetchAnalytics(fid);
-  }, [user]);
+  // ── Fetch buying analytics ───────────────────────────────────────────────────
+  useEffect(() => {
+    setBuyingLoading(true);
 
-  const selectFarmer = (id: string) => {
-    setFarmerId(id);
-    fetchAnalytics(id);
-  };
+    const loadBuying = async () => {
+      try {
+        const page = await getMyOrders({ page: 0, size: 50 });
+        setBuyingOrders(page.content);
+      } catch {
+        setBuyingOrders([]);
+      }
+      setBuyingLoading(false);
+    };
 
-  const avgOrderValue = summary && summary.totalOrders > 0
-    ? summary.totalRevenue / summary.totalOrders : 0;
+    loadBuying();
+  }, []);
+
+  // ── Computed stats ───────────────────────────────────────────────────────────
+  const sellingStats = useMemo(() => {
+    const totalRevenue = summary?.totalRevenue || sellingOrders.reduce((s, o) => s + (o.totalPrice || 0), 0);
+    const totalOrders = summary?.totalOrders || sellingOrders.length;
+    const avgOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const pendingCount = sellingOrders.filter(o => o.status === 'PENDING').length;
+    const deliveredCount = sellingOrders.filter(o => o.status === 'DELIVERED').length;
+    const cancelledCount = sellingOrders.filter(o => o.status === 'CANCELLED').length;
+    return { totalRevenue, totalOrders, avgOrder, pendingCount, deliveredCount, cancelledCount };
+  }, [summary, sellingOrders]);
+
+  const buyingStats = useMemo(() => {
+    const totalSpent = buyingOrders.reduce((s, o) => s + (o.totalPrice || 0), 0);
+    const totalOrders = buyingOrders.length;
+    const avgOrder = totalOrders > 0 ? totalSpent / totalOrders : 0;
+    const pendingCount = buyingOrders.filter(o => o.status === 'PENDING').length;
+    const deliveredCount = buyingOrders.filter(o => o.status === 'DELIVERED').length;
+    const cancelledCount = buyingOrders.filter(o => o.status === 'CANCELLED').length;
+    return { totalSpent, totalOrders, avgOrder, pendingCount, deliveredCount, cancelledCount };
+  }, [buyingOrders]);
+
+  const overviewStats = useMemo(() => ({
+    totalTransactions: sellingStats.totalOrders + buyingStats.totalOrders,
+    netRevenue: sellingStats.totalRevenue - buyingStats.totalSpent,
+    sellingRevenue: sellingStats.totalRevenue,
+    totalSpent: buyingStats.totalSpent,
+  }), [sellingStats, buyingStats]);
+
+  // ── Tabs config ──────────────────────────────────────────────────────────────
+  const tabs: { key: TabKey; icon: string; label: string }[] = [
+    { key: 'overview', icon: '📊', label: 'Overview' },
+    { key: 'selling', icon: '🌾', label: 'My Sales' },
+    { key: 'buying', icon: '🛒', label: 'My Purchases' },
+  ];
+
+  const isLoading = sellingLoading || buyingLoading;
 
   return (
-    <div style={S.page}>
+    <div className="analytics-page">
       {/* ── Hero ── */}
-      <header style={S.hero}>
+      <header className="analytics-hero">
         <div>
-          <div style={S.heroBadge}><span>📊</span> Sales Intelligence</div>
-          <h1 style={S.heroTitle}>Sales Analytics</h1>
-          <p style={S.heroSubtitle}>
-            Live revenue, order summaries, and activity logs pulled from PostgreSQL —
-            visualised with Grafana.
+          <div className="analytics-badge">
+            <span>📊</span> My E-Commerce Analytics
+          </div>
+          <h1 className="analytics-title">
+            {user?.name ? `${user.name}'s Analytics` : 'My Analytics'}
+          </h1>
+          <p className="analytics-subtitle">
+            Track your selling and buying performance on CeyGreen Marketplace.
           </p>
         </div>
-        <a
-          href={`${getGrafanaBaseUrl()}/d/${GRAFANA_DASHBOARD_UID}`}
-          target="_blank" rel="noopener noreferrer"
-          style={S.grafanaLink}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          Open in Grafana
-        </a>
+        <div className="analytics-user-chip">
+          <span className="analytics-user-avatar">
+            {(user?.name || 'U').charAt(0).toUpperCase()}
+          </span>
+          <div>
+            <div className="analytics-user-name">{user?.name || 'User'}</div>
+            <div className="analytics-user-role">{userRole}</div>
+          </div>
+        </div>
       </header>
 
-      <div style={S.content}>
-        {/* ── Lookup ── */}
-        <div style={S.lookupCard}>
-          <label style={S.lookupLabel}>Look up a farmer</label>
-          <div style={S.lookupRow}>
-            <input
-              style={S.lookupInput}
-              value={farmerId}
-              onChange={(e) => setFarmerId(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchAnalytics()}
-              placeholder="e.g. FARMER-101 or UUID"
-            />
+      <div className="analytics-content">
+        {/* ── Tabs ── */}
+        <div className="analytics-tabs">
+          {tabs.map(t => (
             <button
-              style={{ ...S.fetchBtn, opacity: loading ? 0.65 : 1 }}
-              onClick={() => fetchAnalytics()}
-              disabled={loading}
+              key={t.key}
+              className={`analytics-tab ${activeTab === t.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(t.key)}
             >
-              {loading ? <Spinner /> : '⚡'} Fetch
+              <span>{t.icon}</span> {t.label}
             </button>
-          </div>
-          
-          {/* Quick Switch Chips */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Quick Select:</span>
-            {user?.id && (
-              <button
-                type="button"
-                onClick={() => selectFarmer(user.farmerId || user.id)}
-                style={{
-                  padding: '0.2rem 0.6rem',
-                  fontSize: '0.75rem',
-                  borderRadius: '9999px',
-                  border: farmerId === (user.farmerId || user.id) ? '1px solid #16a34a' : '1px solid #cbd5e1',
-                  background: farmerId === (user.farmerId || user.id) ? '#dcfce7' : '#ffffff',
-                  color: farmerId === (user.farmerId || user.id) ? '#15803d' : '#475569',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
-              >
-                👤 My Account ({user.name || 'Farmer'})
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => selectFarmer('4396b888-0aa1-4aa8-aa16-43bf7aebefc7')}
-              style={{
-                padding: '0.2rem 0.6rem',
-                fontSize: '0.75rem',
-                borderRadius: '9999px',
-                border: farmerId === '4396b888-0aa1-4aa8-aa16-43bf7aebefc7' ? '1px solid #16a34a' : '1px solid #cbd5e1',
-                background: farmerId === '4396b888-0aa1-4aa8-aa16-43bf7aebefc7' ? '#dcfce7' : '#ffffff',
-                color: farmerId === '4396b888-0aa1-4aa8-aa16-43bf7aebefc7' ? '#15803d' : '#475569',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              🌱 nethmina (Active Farm)
-            </button>
-            <button
-              type="button"
-              onClick={() => selectFarmer('FARMER-101')}
-              style={{
-                padding: '0.2rem 0.6rem',
-                fontSize: '0.75rem',
-                borderRadius: '9999px',
-                border: farmerId === 'FARMER-101' ? '1px solid #16a34a' : '1px solid #cbd5e1',
-                background: farmerId === 'FARMER-101' ? '#dcfce7' : '#ffffff',
-                color: farmerId === 'FARMER-101' ? '#15803d' : '#475569',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              🏷️ FARMER-101
-            </button>
-          </div>
+          ))}
         </div>
 
         {/* ── Notice ── */}
         {notice && (
-          <div style={noticeStyle(isMock ? 'warn' : 'info')}>
+          <div className={`analytics-notice ${isMock ? 'warn' : 'info'}`}>
             <span>{isMock ? '⚠️' : '🌱'}</span>
             <span>{notice}</span>
           </div>
         )}
 
         {/* ── Loading ── */}
-        {loading && (
-          <div style={S.loadingWrap}>
+        {isLoading && (
+          <div className="analytics-loading">
             <Spinner />
-            <span style={{ color: '#64748b' }}>Fetching sales analytics for {farmerId}…</span>
+            <span>Loading your analytics…</span>
           </div>
         )}
 
-        {/* ── Results ── */}
-        {!loading && summary && activeFid && (
+        {/* ── Overview Tab ── */}
+        {!isLoading && activeTab === 'overview' && (
           <>
-            {/* KPI stat cards */}
-            <div style={S.statsGrid}>
-              {/* Total Orders — Deep Forest Green */}
-              <div style={statCardStyle('#f0fdf4', '#bbf7d0')}>
-                <span style={S.lookupLabel}>Total Orders</span>
-                <span style={statValueStyle('#15803d')}>{summary.totalOrders.toLocaleString()}</span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>lifetime orders</span>
+            <div className="analytics-stats-grid four-col">
+              <div className="stat-card stat-green">
+                <span className="stat-label">Total Transactions</span>
+                <span className="stat-value green">{overviewStats.totalTransactions.toLocaleString()}</span>
+                <span className="stat-desc">all sales + purchases</span>
               </div>
-              {/* Total Revenue — Emerald Green */}
-              <div style={statCardStyle('#ecfdf5', '#a7f3d0')}>
-                <span style={S.lookupLabel}>Total Revenue</span>
-                <span style={statValueStyle('#059669')}>{fmtCurrency(summary.totalRevenue)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>all-time gross</span>
+              <div className="stat-card stat-emerald">
+                <span className="stat-label">Selling Revenue</span>
+                <span className="stat-value emerald">{fmtCurrency(overviewStats.sellingRevenue)}</span>
+                <span className="stat-desc">total income from sales</span>
               </div>
-              {/* Avg Order Value — Teal */}
-              <div style={statCardStyle('#f0fdfa', '#99f6e4')}>
-                <span style={S.lookupLabel}>Avg Order Value</span>
-                <span style={statValueStyle('#0d9488')}>{fmtCurrency(avgOrderValue)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>per transaction</span>
+              <div className="stat-card stat-blue">
+                <span className="stat-label">Total Spent</span>
+                <span className="stat-value blue">{fmtCurrency(overviewStats.totalSpent)}</span>
+                <span className="stat-desc">total purchases made</span>
               </div>
-              {/* Last Updated — Slate Blue */}
-              <div style={statCardStyle('#f8fafc', '#e2e8f0')}>
-                <span style={S.lookupLabel}>Last Updated</span>
-                <span style={{ ...statValueStyle('#1e40af'), fontSize: '1.05rem' }}>{fmtDate(summary.lastUpdated)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>latest sync</span>
+              <div className="stat-card stat-teal">
+                <span className="stat-label">Net Balance</span>
+                <span className={`stat-value ${overviewStats.netRevenue >= 0 ? 'teal' : 'red'}`}>
+                  {fmtCurrency(overviewStats.netRevenue)}
+                </span>
+                <span className="stat-desc">revenue − spending</span>
               </div>
             </div>
 
-            {/* ── Grafana embedded panels ── */}
-            {!isMock && (
-              <>
-                <div style={S.sectionHeader}>
-                  <h2 style={S.sectionTitle}>
-                    <span>📈</span> Charts — Powered by Grafana + PostgreSQL
-                  </h2>
-                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>auto-refreshes every 30s</span>
-                </div>
-
-                <div style={S.grafanaGrid}>
-                  <div style={S.grafanaCard}>
-                    <iframe
-                      src={grafanaPanelUrl(5, activeFid)}
-                      style={{ ...S.grafanaFrame, height: '400px' }}
-                      title="Revenue by Product"
-                      allowFullScreen
-                    />
-                  </div>
-                  <div style={S.grafanaCard}>
-                    <iframe
-                      src={grafanaPanelUrl(6, activeFid)}
-                      style={{ ...S.grafanaFrame, height: '400px' }}
-                      title="Orders by Product"
-                      allowFullScreen
-                    />
+            {/* Order Status Breakdown */}
+            <div className="analytics-section">
+              <h2 className="analytics-section-title">
+                <span>📋</span> Order Status Breakdown
+              </h2>
+              <div className="analytics-stats-grid three-col">
+                <div className="stat-card stat-outline">
+                  <span className="stat-label">Selling Orders</span>
+                  <div className="stat-breakdown">
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot pending" />
+                      <span>Pending</span>
+                      <span className="breakdown-val">{sellingStats.pendingCount}</span>
+                    </div>
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot delivered" />
+                      <span>Delivered</span>
+                      <span className="breakdown-val">{sellingStats.deliveredCount}</span>
+                    </div>
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot cancelled" />
+                      <span>Cancelled</span>
+                      <span className="breakdown-val">{sellingStats.cancelledCount}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div style={{ ...S.grafanaCard, marginBottom: '1.5rem' }}>
-                  <iframe
-                    src={grafanaPanelUrl(7, activeFid)}
-                    style={{ ...S.grafanaFrame, height: '380px' }}
-                    title="Order Activity Timeline"
-                    allowFullScreen
-                  />
+                <div className="stat-card stat-outline">
+                  <span className="stat-label">Buying Orders</span>
+                  <div className="stat-breakdown">
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot pending" />
+                      <span>Pending</span>
+                      <span className="breakdown-val">{buyingStats.pendingCount}</span>
+                    </div>
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot delivered" />
+                      <span>Delivered</span>
+                      <span className="breakdown-val">{buyingStats.deliveredCount}</span>
+                    </div>
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot cancelled" />
+                      <span>Cancelled</span>
+                      <span className="breakdown-val">{buyingStats.cancelledCount}</span>
+                    </div>
+                  </div>
                 </div>
-              </>
-            )}
-
-            {/* ── Recent Order Log ── */}
-            <div style={S.sectionHeader}>
-              <h2 style={S.sectionTitle}><span>🧾</span> Recent Activity &amp; Order Log</h2>
-              {isMock && <span style={{ fontSize: '0.78rem', color: '#d97706', background: '#fef3c7', padding: '0.15rem 0.6rem', borderRadius: '100px', fontWeight: 600 }}>mock data</span>}
+                <div className="stat-card stat-outline">
+                  <span className="stat-label">Averages</span>
+                  <div className="stat-breakdown">
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot teal-dot" />
+                      <span>Avg Sale</span>
+                      <span className="breakdown-val">{fmtCurrency(sellingStats.avgOrder)}</span>
+                    </div>
+                    <div className="breakdown-item">
+                      <span className="breakdown-dot blue-dot" />
+                      <span>Avg Purchase</span>
+                      <span className="breakdown-val">{fmtCurrency(buyingStats.avgOrder)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div style={{ ...S.tableWrap, marginBottom: '1.5rem' }}>
-              {logs.length > 0 ? (
-                <table style={S.table}>
-                  <thead>
-                    <tr>
-                      {['Order ID', 'Product / Crop', 'Qty', 'Total Amount', 'Buyer', 'Status', 'Recorded At'].map((h) => (
-                        <th key={h} style={S.th}>{h}</th>
+
+            {/* Recent Activity — last 5 of each */}
+            <div className="analytics-section">
+              <h2 className="analytics-section-title"><span>🔄</span> Recent Activity</h2>
+              <div className="analytics-two-col">
+                <div>
+                  <h3 className="analytics-col-title">Recent Sales</h3>
+                  {sellingOrders.length > 0 ? (
+                    <div className="analytics-mini-list">
+                      {sellingOrders.slice(0, 5).map(o => (
+                        <div key={o.id} className="mini-list-item">
+                          <div className="mini-list-left">
+                            <span className="mini-order-id">#{o.id}</span>
+                            <span className="mini-product">{o.cropName || `Product ${o.productId}`}</span>
+                          </div>
+                          <div className="mini-list-right">
+                            <span className="mini-amount">{fmtCurrency(o.totalPrice)}</span>
+                            <span className="mini-status" style={{ background: statusColor[o.status]?.bg, color: statusColor[o.status]?.color }}>
+                              {o.status}
+                            </span>
+                          </div>
+                        </div>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log) => (
-                      <tr key={log.id} style={{ background: '#ffffff' }}>
-                        <td style={{ ...S.td, fontWeight: 700, color: '#1e293b', fontFamily: 'monospace' }}>#{log.id}</td>
-                        <td style={S.td}>{log.cropName}</td>
-                        <td style={{ ...S.td, color: '#64748b' }}>{log.quantity} units</td>
-                        <td style={{ ...S.td, fontWeight: 700, color: '#059669' }}>{fmtCurrency(log.totalAmount)}</td>
-                        <td style={S.td}>{log.buyerName}</td>
-                        <td style={S.td}><span style={badgeStyle(log.status)}>{log.status}</span></td>
-                        <td style={{ ...S.td, fontSize: '0.8rem', color: '#94a3b8' }}>{fmtDate(log.date)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div style={{ padding: '2.5rem', textAlign: 'center', color: '#94a3b8', background: '#ffffff' }}>
-                  No order logs found for <strong style={{ color: '#64748b' }}>{activeFid}</strong>.
+                    </div>
+                  ) : (
+                    <div className="analytics-empty">No sales yet</div>
+                  )}
                 </div>
-              )}
+                <div>
+                  <h3 className="analytics-col-title">Recent Purchases</h3>
+                  {buyingOrders.length > 0 ? (
+                    <div className="analytics-mini-list">
+                      {buyingOrders.slice(0, 5).map(o => (
+                        <div key={o.id} className="mini-list-item">
+                          <div className="mini-list-left">
+                            <span className="mini-order-id">#{o.id}</span>
+                            <span className="mini-product">{o.cropName || `Product ${o.productId}`}</span>
+                          </div>
+                          <div className="mini-list-right">
+                            <span className="mini-amount">{fmtCurrency(o.totalPrice)}</span>
+                            <span className="mini-status" style={{ background: statusColor[o.status]?.bg, color: statusColor[o.status]?.color }}>
+                              {o.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="analytics-empty">No purchases yet</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Selling Tab ── */}
+        {!isLoading && activeTab === 'selling' && (
+          <>
+            <div className="analytics-stats-grid four-col">
+              <div className="stat-card stat-green">
+                <span className="stat-label">Total Sales</span>
+                <span className="stat-value green">{sellingStats.totalOrders.toLocaleString()}</span>
+                <span className="stat-desc">orders received</span>
+              </div>
+              <div className="stat-card stat-emerald">
+                <span className="stat-label">Total Revenue</span>
+                <span className="stat-value emerald">{fmtCurrency(sellingStats.totalRevenue)}</span>
+                <span className="stat-desc">gross income</span>
+              </div>
+              <div className="stat-card stat-teal">
+                <span className="stat-label">Avg Order Value</span>
+                <span className="stat-value teal">{fmtCurrency(sellingStats.avgOrder)}</span>
+                <span className="stat-desc">per transaction</span>
+              </div>
+              <div className="stat-card stat-slate">
+                <span className="stat-label">Last Updated</span>
+                <span className="stat-value-sm slate">{fmtDate(summary?.lastUpdated)}</span>
+                <span className="stat-desc">latest sync</span>
+              </div>
             </div>
 
-            {/* ── Leaderboard ── */}
-            {leaderboard && leaderboard.length > 0 && (
-              <>
-                <div style={S.sectionHeader}>
-                  <h2 style={S.sectionTitle}><span>🏆</span> Revenue Leaderboard</h2>
-                </div>
-                <div style={S.tableWrap}>
-                  <table style={S.table}>
+            {/* Selling Orders Table */}
+            <div className="analytics-section">
+              <div className="analytics-section-header">
+                <h2 className="analytics-section-title"><span>🧾</span> My Sales Orders</h2>
+                {isMock && <span className="mock-badge">demo data</span>}
+              </div>
+              <div className="analytics-table-wrap">
+                {sellingOrders.length > 0 ? (
+                  <table className="analytics-table">
                     <thead>
                       <tr>
-                        {['Rank', 'Farmer ID', 'Total Revenue', 'Total Orders', 'Last Updated'].map((h) => (
-                          <th key={h} style={S.th}>{h}</th>
+                        {['Order ID', 'Product', 'Qty', 'Total', 'Buyer', 'Status', 'Date'].map(h => (
+                          <th key={h}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {leaderboard.map((e) => {
-                        const isActive = e.farmerId === activeFid;
-                        return (
-                          <tr key={e.farmerId} style={{ background: isActive ? '#f0fdf4' : '#ffffff' }}>
-                            <td style={{ ...S.td, fontWeight: 800, fontSize: '1.1rem' }}>
-                              {e.rank === 1 ? '🥇' : e.rank === 2 ? '🥈' : e.rank === 3 ? '🥉' : `#${e.rank}`}
-                            </td>
-                            <td style={{ ...S.td, fontWeight: isActive ? 700 : 400, color: isActive ? '#15803d' : '#1e293b', fontFamily: 'monospace' }}>
-                              {e.farmerId}
-                              {isActive && (
-                                <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: '#15803d', background: '#dcfce7', padding: '0.1rem 0.5rem', borderRadius: '100px', fontWeight: 700 }}>
-                                  you
-                                </span>
-                              )}
-                            </td>
-                            <td style={{ ...S.td, fontWeight: 700, color: '#059669' }}>{fmtCurrency(e.totalRevenue)}</td>
-                            <td style={S.td}>{e.totalOrders.toLocaleString()}</td>
-                            <td style={{ ...S.td, fontSize: '0.8rem', color: '#94a3b8' }}>{fmtDate(e.lastUpdated)}</td>
-                          </tr>
-                        );
-                      })}
+                      {sellingOrders.map(o => (
+                        <tr key={o.id}>
+                          <td className="cell-mono">#{o.id}</td>
+                          <td>{o.cropName || `Product ${o.productId}`}</td>
+                          <td className="cell-muted">{o.quantity} units</td>
+                          <td className="cell-green">{fmtCurrency(o.totalPrice)}</td>
+                          <td>{o.buyerName || (o.buyerId ? o.buyerId.slice(0, 8) + '…' : '—')}</td>
+                          <td>
+                            <span className="status-pill" style={{ background: statusColor[o.status]?.bg, color: statusColor[o.status]?.color }}>
+                              {o.status}
+                            </span>
+                          </td>
+                          <td className="cell-date">{fmtDate(o.orderedAt)}</td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
-                </div>
-              </>
-            )}
+                ) : (
+                  <div className="analytics-empty-table">
+                    No sales orders found. Start listing products on the marketplace to receive orders.
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Buying Tab ── */}
+        {!isLoading && activeTab === 'buying' && (
+          <>
+            <div className="analytics-stats-grid four-col">
+              <div className="stat-card stat-blue">
+                <span className="stat-label">Total Purchases</span>
+                <span className="stat-value blue">{buyingStats.totalOrders.toLocaleString()}</span>
+                <span className="stat-desc">orders placed</span>
+              </div>
+              <div className="stat-card stat-indigo">
+                <span className="stat-label">Total Spent</span>
+                <span className="stat-value indigo">{fmtCurrency(buyingStats.totalSpent)}</span>
+                <span className="stat-desc">all-time spending</span>
+              </div>
+              <div className="stat-card stat-purple">
+                <span className="stat-label">Avg Purchase</span>
+                <span className="stat-value purple">{fmtCurrency(buyingStats.avgOrder)}</span>
+                <span className="stat-desc">per order</span>
+              </div>
+              <div className="stat-card stat-slate">
+                <span className="stat-label">Pending</span>
+                <span className="stat-value slate">{buyingStats.pendingCount}</span>
+                <span className="stat-desc">awaiting delivery</span>
+              </div>
+            </div>
+
+            {/* Buying Orders Table */}
+            <div className="analytics-section">
+              <h2 className="analytics-section-title"><span>🛍️</span> My Purchase Orders</h2>
+              <div className="analytics-table-wrap">
+                {buyingOrders.length > 0 ? (
+                  <table className="analytics-table">
+                    <thead>
+                      <tr>
+                        {['Order ID', 'Product', 'Qty', 'Total', 'Status', 'Date'].map(h => (
+                          <th key={h}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {buyingOrders.map(o => (
+                        <tr key={o.id}>
+                          <td className="cell-mono">#{o.id}</td>
+                          <td>{o.cropName || `Product ${o.productId}`}</td>
+                          <td className="cell-muted">{o.quantity} units</td>
+                          <td className="cell-blue">{fmtCurrency(o.totalPrice)}</td>
+                          <td>
+                            <span className="status-pill" style={{ background: statusColor[o.status]?.bg, color: statusColor[o.status]?.color }}>
+                              {o.status}
+                            </span>
+                          </td>
+                          <td className="cell-date">{fmtDate(o.orderedAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="analytics-empty-table">
+                    No purchases found. Browse the marketplace to start buying.
+                  </div>
+                )}
+              </div>
+            </div>
           </>
         )}
       </div>
