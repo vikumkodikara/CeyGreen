@@ -105,6 +105,7 @@ services:
       - "8081:8081"
     environment:
       SERVER_PORT: 8081
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
       POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_users
       POSTGRES_USER: ceygreen
       POSTGRES_PASSWORD: ceygreen
@@ -132,6 +133,7 @@ services:
       - "8087:8087"
     environment:
       SERVER_PORT: 8087
+      JAVA_OPTS: "-Xmx384m -Xms128m -XX:MaxRAMPercentage=60"
       MONGODB_URI: mongodb://mongo:27017/ceygreen_diagnoses
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
@@ -163,6 +165,7 @@ services:
       - "8080:8080"
     environment:
       SERVER_PORT: 8080
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
       REDIS_HOST: redis
       REDIS_PORT: 6379
       USER_SERVICE_URL: http://user-service:8081
@@ -252,6 +255,7 @@ services:
        - "8083:8083"
      environment:
        SERVER_PORT: 8083
+       JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
        POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_treatments
        POSTGRES_USER: ceygreen
        POSTGRES_PASSWORD: ceygreen
@@ -281,6 +285,7 @@ services:
       - "8084:8084"
     environment:
       SERVER_PORT: 8084
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
       POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_ecommerce
       POSTGRES_USER: ceygreen
       POSTGRES_PASSWORD: ceygreen
@@ -311,6 +316,7 @@ services:
       - "8085:8085"
     environment:
       SERVER_PORT: 8085
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
       MONGODB_URI: mongodb://mongo:27017/ceygreen_forum
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SERVICE_API_KEY: ${SERVICE_API_KEY:-ceygreen-dev-api-key}
@@ -341,6 +347,7 @@ services:
       - "8086:8086"
     environment:
       SERVER_PORT: 8086
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
       POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_analytics
       POSTGRES_USER: ceygreen
       POSTGRES_PASSWORD: ceygreen
@@ -372,6 +379,7 @@ services:
       - "8088:8088"
     environment:
       SERVER_PORT: 8088
+      JAVA_OPTS: "-Xmx256m -Xms128m -XX:MaxRAMPercentage=60"
       POSTGRES_URL: jdbc:postgresql://postgres:5432/ceygreen_notifications
       POSTGRES_USER: ceygreen
       POSTGRES_PASSWORD: ceygreen

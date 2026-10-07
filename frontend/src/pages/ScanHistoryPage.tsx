@@ -13,7 +13,12 @@ const CROPS = ['All Crops', 'Tomato', 'Potato', 'Bell Pepper', 'Grape', 'Strawbe
 export const ScanHistoryPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const farmerId = user?.farmerId || user?.id || 'farmer-1';
+  const rawId = user?.farmerId || user?.id;
+  const isValidUUID = (str: string | undefined): boolean => {
+    if (!str) return false;
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
+  };
+  const farmerId = isValidUUID(rawId) ? rawId! : null;
 
   const [pageData, setPageData] = useState<PaginatedResponse<DiagnosisSummary> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +36,20 @@ export const ScanHistoryPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchScans = useCallback(async (page: number) => {
+    if (!farmerId) {
+      setLoading(false);
+      setPageData({
+        content: [],
+        totalPages: 0,
+        totalElements: 0,
+        number: 0,
+        size: pageSize,
+        first: true,
+        last: true,
+        empty: true,
+      });
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
